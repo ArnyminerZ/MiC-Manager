@@ -4,5 +4,5 @@
  * @returns {{success: boolean, error: {code: string}}}
  */
 export const errorResponse = (code) => {
-    return {success: false, error: {code: 'missing-parameters'}};
+    return {success: false, error: {code}};
 };
