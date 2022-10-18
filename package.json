@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "The server code for managing the Fila Magenta's Apps.",
   "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
   "repository": "https://github.com/ArnyminerZ/Backend.git",
   "author": "Arnau Mora <arnyminer.z@gmail.com>",
   "license": "GPL-3.0-or-later",
