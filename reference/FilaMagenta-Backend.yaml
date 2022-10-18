@@ -1,0 +1,121 @@
+openapi: 3.0.0
+x-stoplight:
+  id: 9dctvl5eer2w8
+info:
+  title: FilaMagenta-Backend
+  version: 1.0.0
+  description: The server code for managing the Fila Magenta's Apps.
+  contact:
+    name: Arnau Mora
+    email: filamagenta@arnaumora.me
+  license:
+    name: GNU AGPL v3
+    url: 'https://github.com/ArnyminerZ/Backend/blob/master/LICENSE'
+servers:
+  - url: 'http://localhost:3000'
+    description: Development Server
+paths:
+  /v1/user/auth:
+    get:
+      summary: Authenticate
+      tags:
+        - Users
+        - Authentication
+      responses:
+        '200':
+          description: OK - Authorised
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '400':
+          description: Bad Request - Missing parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples: { }
+        '403':
+          description: Forbidden - Wrong credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '406':
+          description: Not Acceptable - The caller has made too many attempts. IP locked for 5 minutes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+        '500':
+          description: Internal Server Error - Unhandled error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+      operationId: get-user-auth
+      description: |-
+        Requests an access token to the server.
+        If returned `200`, `data` contains:
+        * `auth-token`: The token generated. Is valid for 30 days, this time gets extended every time it's used. May be disposed manually.
+      parameters:
+        - schema:
+            type: string
+            example: 12345678A
+            pattern: '^\d{8}[TRWAGMYFPDXBNJZSQVHLCKE]$'
+            minLength: 9
+            maxLength: 9
+          in: query
+          name: dni
+          description: 'The DNI of the user being authorised. Case sensitive, and must include letter.'
+          required: true
+        - schema:
+            type: string
+          in: query
+          name: password
+          description: The password of the user being authenticated.
+          required: true
+    parameters: [ ]
+components:
+  schemas:
+    Error:
+      title: Error
+      x-stoplight:
+        id: 47cl8j75t0guo
+      type: object
+      description: |-
+        Returned when an error happenned. Error codes:
+        * `missing-parameters`: The requests has some required parameters, and you haven't specified one or more of them.
+        * `wrong-credentials`: The credentials you have specified are wrong.
+      properties:
+        code:
+          type: string
+          description: The error code that identifies the error.
+          enum:
+            - missing-parameters
+            - wrong-credentials
+      required:
+        - code
+    Response:
+      title: Response
+      x-stoplight:
+        id: m065vm4jaxqgn
+      type: object
+      description: Returned on every operation. May include error if `success` is `false`. May or may not include `data` (Only for actions that apply).
+      properties:
+        success:
+          type: boolean
+          description: Whether the operation was successful.
+          readOnly: true
+        error:
+          $ref: '#/components/schemas/Error'
+        data:
+          type: object
+          description: May contain data. See the corresponding endpoint.
+      required:
+        - success
+  securitySchemes:
+    API Key:
+      name: API Key
+      type: apiKey
+      in: header
