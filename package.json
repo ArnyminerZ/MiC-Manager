@@ -1,0 +1,9 @@
+{
+  "name": "filamagenta_backend",
+  "version": "1.0.0",
+  "description": "The server code for managing the Fila Magenta's Apps.",
+  "main": "index.js",
+  "repository": "https://github.com/ArnyminerZ/Backend.git",
+  "author": "Arnau Mora <arnyminer.z@gmail.com>",
+  "license": "gpl-3.0"
+}
