@@ -1,3 +1,5 @@
+import bcrypt from 'bcrypt';
+
 import {query} from './database.js';
 
 import securityPolicy from '../security-policy.json' assert {type: 'json'};
@@ -113,6 +115,30 @@ export const login = async (dni, password, reqIp) => {
     return await query(queryStr);
 };
 
+/**
+ * Changes the password of a user given its DNI and a new password. Optionally, an apiKey may be given for users that
+ * already have a password.
+ * @param {string} dni The DNI of the user.
+ * @param {string} newPassword The new password to set.
+ * @param {string?} apiKey If the user already has a password, the apiKey to use for authenticating.
+ * @throws {UserNotFoundException} If there isn't a matching user with the given DNI.
+ * @throws {PasswordlessUserException} If the given user doesn't have a password. `changePassword` should be called.
+ * @returns {Promise<boolean>} The result of the operation.
+ */
 export const changePassword = async (dni, newPassword, apiKey) => {
     const socioId = await getSocioIdFromDni(dni);
+    try {
+        const userHash = await getUserFromSocioId(socioId);
+        // TODO: actuate with userHash and apiKey
+    } catch (e) {
+        if (e instanceof PasswordlessUserException) {
+            // Trying to set a password
+            const passwordHash = await bcrypt.hash(newPassword, securityPolicy.crypto["salt-rounds"]);
+            const sql = `INSERT INTO GesTro.dbo.mUsers (SocioId, Hash)
+                         VALUES (${socioId}, '${passwordHash}');`;
+            await query(sql);
+            return true;
+        } else throw e
+    }
+    return false;
 };
