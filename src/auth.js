@@ -92,6 +92,7 @@ const getUserFromSocioId = async (socioId) => {
  * @throws {SecurityException} When a security policy is broken. Applies: `login.max-attempts-24h`
  * @throws {UserNotFoundException} If there isn't a matching user with the given DNI.
  * @throws {PasswordlessUserException} If the given user doesn't have a password. `changePassword` should be called.
+ * @throws {WrongPasswordException} If the password introduced is not correct.
  * @returns {Promise<void>}
  * @see changePassword
  */
@@ -103,23 +104,18 @@ export const login = async (dni, password, reqIp) => {
     if (loginAttempts >= maxAttempts)
         throw new SecurityException(`Max attempts count reached (${maxAttempts}).`);
 
-    let successful = false;
-
     const socioId = await getSocioIdFromDni(dni);
+    const userHash = await getUserFromSocioId(socioId);
 
-    // const passwordHash = await bcrypt.hash(password, securityPolicy.crypto["salt-rounds"]);
-
-    const sql = `SELECT hash
-                 FROM GesTro.dbo.mUsers
-                 WHERE SocioId = ${socioId}`;
-    const hashQuery = await query(sql);
-    if (hashQuery.rowsAffected[0] <= 0)
-        throw new PasswordlessUserException(`The user with DNI ${dni} doesn't have a password defined, please, set.`);
+    let successful = await bcrypt.compare(password, userHash);
 
     // Register the attempt
     const queryStr = `INSERT INTO GesTro.dbo.mLoginAttempts (DNI, IP, Successful)
                       SELECT '${dni}', (SELECT bin FROM dbo.itvfBinaryIPv4('${ip}')), ${successful ? 1 : 0};`;
-    return await query(queryStr);
+    await query(queryStr);
+
+    if (!successful)
+        throw new WrongPasswordException('Wrong password introduced.');
 };
 
 /**
