@@ -25,6 +25,13 @@ export class PasswordlessUserException extends Error {
     }
 }
 
+export class WrongPasswordException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'WrongPasswordException';
+    }
+}
+
 /**
  * Queries the amount of login attempts made by the given IP in the last 24 hours.
  * @author Arnau Mora
