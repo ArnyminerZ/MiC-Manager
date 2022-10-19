@@ -47,6 +47,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
+        '417':
+          description: 'Expectation Failed - The user doesn''t have a password defined. Please, assign one.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
         '500':
           description: Internal Server Error - Unhandled error occurred
           content:
