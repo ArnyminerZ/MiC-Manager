@@ -76,6 +76,62 @@ paths:
           description: The password of the user being authenticated.
           required: true
     parameters: [ ]
+  /v1/user/change_password:
+    post:
+      summary: Password Change
+      operationId: post-v1-user-change_password
+      responses:
+        '200':
+          description: OK - Password changed successfuly.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-success:
+                  value:
+                    success: true
+        '400':
+          description: 'Bad Request - `password` is not present in body, or the `API Key` header should be present but it isn''t.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-400:
+                  value:
+                    success: false
+                    error:
+                      code: missing-parameters
+        '406':
+          description: Not Acceptable - The given API Key is not valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-406:
+                  value:
+                    success: false
+                    error:
+                      code: invalid-key
+      description: |-
+        Used for changing the password of a user. If the user doesn't have a password, this method also serves for setting one for the first time.
+        "API key" is obviously only required if the user already has a password, this key will be used for checking if the user is authorised, or if it's updating its account.
+      security:
+        - API Key: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  description: The new password to give to the user.
+              required:
+                - password
+        description: The new password to set.
 components:
   schemas:
     Error:
@@ -87,6 +143,7 @@ components:
         Returned when an error happenned. Error codes:
         * `missing-parameters`: The requests has some required parameters, and you haven't specified one or more of them.
         * `wrong-credentials`: The credentials you have specified are wrong.
+        * `invalid-key`: The given API Key is not valid, it has expired, or it has been disposed.
       properties:
         code:
           type: string
@@ -94,6 +151,7 @@ components:
           enum:
             - missing-parameters
             - wrong-credentials
+            - invalid-key
       required:
         - code
     Response:
