@@ -6,3 +6,11 @@
 export const errorResponse = (code) => {
     return {success: false, error: {code}};
 };
+
+/**
+ * Generates a success response.
+ * @returns {{success: boolean}}
+ */
+export const successResponse = () => {
+    return {success: true};
+};
