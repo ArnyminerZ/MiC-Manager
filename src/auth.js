@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 
 import {query} from './database.js';
+import {checkToken, generateToken} from "./security.js";
 
 import securityPolicy from '../security-policy.json' assert {type: 'json'};
 
@@ -29,6 +30,13 @@ export class WrongPasswordException extends Error {
     constructor(message) {
         super(message);
         this.name = 'WrongPasswordException';
+    }
+}
+
+export class InvalidTokenException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'InvalidTokenException';
     }
 }
 
@@ -94,7 +102,7 @@ const getUserFromSocioId = async (socioId) => {
  * @throws {UserNotFoundException} If there isn't a matching user with the given DNI.
  * @throws {PasswordlessUserException} If the given user doesn't have a password. `changePassword` should be called.
  * @throws {WrongPasswordException} If the password introduced is not correct.
- * @returns {Promise<void>}
+ * @returns {Promise<string>}
  * @see changePassword
  */
 export const login = async (dni, password, reqIp) => {
@@ -117,6 +125,8 @@ export const login = async (dni, password, reqIp) => {
 
     if (!successful)
         throw new WrongPasswordException('Wrong password introduced.');
+
+    return await generateToken({dni});
 };
 
 /**
@@ -126,14 +136,19 @@ export const login = async (dni, password, reqIp) => {
  * @param {string} newPassword The new password to set.
  * @param {string?} apiKey If the user already has a password, the apiKey to use for authenticating.
  * @throws {UserNotFoundException} If there isn't a matching user with the given DNI.
- * @throws {PasswordlessUserException} If the given user doesn't have a password. `changePassword` should be called.
- * @returns {Promise<boolean>} The result of the operation.
+ * @throws {InvalidTokenException} When the given apiKey is not valid or has expired.
+ * @returns {Promise<void>}
  */
 export const changePassword = async (dni, newPassword, apiKey) => {
     const socioId = await getSocioIdFromDni(dni);
+    let error;
     try {
-        const userHash = await getUserFromSocioId(socioId);
-        // TODO: actuate with userHash and apiKey
+        // Check if the user has a hash
+        await getUserFromSocioId(socioId);
+        const isTokenValid = await checkToken(apiKey);
+        if (!isTokenValid)
+            error = new InvalidTokenException('The given apiKey is not valid.');
+        // TODO: Actually change password
     } catch (e) {
         if (e instanceof PasswordlessUserException) {
             // Trying to set a password
@@ -141,8 +156,9 @@ export const changePassword = async (dni, newPassword, apiKey) => {
             const sql = `INSERT INTO GesTro.dbo.mUsers (SocioId, Hash)
                          VALUES (${socioId}, '${passwordHash}');`;
             await query(sql);
-            return true;
-        } else throw e
+        } else
+            throw e
     }
-    return false;
+    if (error != null)
+        throw error;
 };
