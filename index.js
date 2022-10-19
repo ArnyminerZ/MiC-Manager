@@ -42,7 +42,7 @@ app.use(express.json({strict: false}));
 app.use(express.urlencoded())
 
 app.get('/v1/user/auth', async (req, res) => {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
+    // const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
     const query = req.query;
     /**
      * @type {string|null}
@@ -56,8 +56,8 @@ app.get('/v1/user/auth', async (req, res) => {
     if (dni == null || password == null)
         return res.status(400).json(errorResponse('missing-parameters'));
     try {
-        await login(dni, password, req.clientIp);
-        res.status(200).send('ok');
+        const token = await login(dni, password, req.clientIp);
+        res.status(200).json(successResponse({token}));
     } catch (e) {
         if (e instanceof PasswordlessUserException)
             res.status(417).json(errorResponse('passwordless'));
@@ -65,7 +65,7 @@ app.get('/v1/user/auth', async (req, res) => {
             res.status(403).json(errorResponse('wrong-credentials'));
         else {
             console.error('❌ Could not authenticate. Error:', e);
-            res.status(500).json({success: false, error: 'unknown', errorData: JSON.stringify(e)});
+            res.status(500).json({success: false, error: 'unknown', errorData: e});
         }
     }
 });
@@ -82,15 +82,19 @@ app.post('/v1/user/change_password', async (req, res) => {
     /**
      * @type {string|null}
      */
-    const apiKey = req.headers['apiKey']
+    const apiKey = req.get('API-Key');
 
-    console.log('dni:', dni, 'password:', password, 'body:', req.body);
     if (dni == null || password == null)
         return res.status(400).json(errorResponse('missing-parameters'));
-    const passwordChanged = await changePassword(dni, password, apiKey);
-    if (passwordChanged)
-        return res.status(200).json(successResponse());
-    return res.status(500).json({error: 'work in progress'});
+    try {
+        await changePassword(dni, password, apiKey);
+        res.status(200).json(successResponse());
+    } catch (e) {
+        if (e instanceof InvalidTokenException)
+            res.status(406).json(errorResponse('invalid-key'));
+        else
+            res.status(500).json({error: 'work in progress'})
+    }
 });
 
 app.listen(HTTP_PORT, () => console.info(`🖥️ Listening for requests on http://localhost:${HTTP_PORT}`));
