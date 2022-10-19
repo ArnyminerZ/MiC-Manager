@@ -14,6 +14,7 @@
     "express": "^4.18.2",
     "mssql": "^9.0.1",
     "dotenv": "^16.0.3",
-    "request-ip": "^3.3.0"
+    "request-ip": "^3.3.0",
+    "bcrypt": "^5.1.0"
   }
 }
