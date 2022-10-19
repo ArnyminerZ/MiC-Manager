@@ -1,9 +1,17 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import reqIp from 'request-ip';
+import fs from 'fs';
+
 import {errorResponse, successResponse} from './src/response.js';
 import {check as dbCheck} from './src/database.js';
-import {changePassword, login, PasswordlessUserException, WrongPasswordException} from "./src/auth.js";
+import {
+    changePassword,
+    InvalidTokenException,
+    login,
+    PasswordlessUserException,
+    WrongPasswordException
+} from "./src/auth.js";
 
 dotenv.config();
 
@@ -12,6 +20,9 @@ dotenv.config();
  * @type {number}
  */
 const HTTP_PORT = process.env.HTTP_PORT ?? 3000;
+
+if (!fs.existsSync('private.key'))
+    throw Error('❌ TOKEN_KEY is required and not defined.');
 
 console.info(`⏺️ Checking database...`);
 if (!(await dbCheck())) {
