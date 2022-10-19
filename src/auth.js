@@ -42,7 +42,8 @@ export class WrongPasswordException extends Error {
 const loginAttemptsCount = async (ip) => {
     const sql = `SELECT Id, dbo.fnDisplayIPv4(IP), DNI, Timestamp
                  FROM mLoginAttempts
-                 WHERE Timestamp >= DATEADD(day, -1, getdate());`;
+                 WHERE Timestamp >= DATEADD(day, -1, getdate())
+                   AND Successful = 0;`;
     const q = await query(sql);
     return q?.recordset?.length ?? 0;
 };
