@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import reqIp from 'request-ip';
 import {errorResponse} from './src/response.js';
 import {check as dbCheck} from './src/database.js';
-import {login} from "./src/auth.js";
+import {login, PasswordlessUserException} from "./src/auth.js";
 
 dotenv.config();
 
@@ -42,8 +42,17 @@ app.get('/v1/user/auth', async (req, res) => {
 
     if (dni == null || password == null)
         return res.status(400).json(errorResponse('missing-parameters'));
-    console.info(await login(dni, password, req.clientIp));
-    res.status(200).send('ok');
+    try {
+        await login(dni, password, req.clientIp);
+        res.status(200).send('ok');
+    } catch (e) {
+        if (e instanceof PasswordlessUserException)
+            res.status(417).json(errorResponse('passwordless'));
+        else {
+            console.error('❌ Could not authenticate. Error:', e);
+            res.status(500).json({success: false, error: 'unknown', errorData: JSON.stringify(e)});
+        }
+    }
 });
 
 app.listen(HTTP_PORT, () => console.info(`🖥️ Listening for requests on http://localhost:${HTTP_PORT}`));
