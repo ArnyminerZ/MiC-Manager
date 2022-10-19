@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import reqIp from 'request-ip';
 import {errorResponse, successResponse} from './src/response.js';
 import {check as dbCheck} from './src/database.js';
-import {changePassword, login, PasswordlessUserException} from "./src/auth.js";
+import {changePassword, login, PasswordlessUserException, WrongPasswordException} from "./src/auth.js";
 
 dotenv.config();
 
@@ -50,6 +50,8 @@ app.get('/v1/user/auth', async (req, res) => {
     } catch (e) {
         if (e instanceof PasswordlessUserException)
             res.status(417).json(errorResponse('passwordless'));
+        else if (e instanceof WrongPasswordException)
+            res.status(403).json(errorResponse('wrong-credentials'));
         else {
             console.error('❌ Could not authenticate. Error:', e);
             res.status(500).json({success: false, error: 'unknown', errorData: JSON.stringify(e)});
