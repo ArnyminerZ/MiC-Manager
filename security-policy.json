@@ -1,0 +1,8 @@
+{
+  "login": {
+    "max-attempts-24h": 5
+  },
+  "crypto": {
+    "salt-rounds": 10
+  }
+}
