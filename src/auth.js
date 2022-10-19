@@ -53,7 +53,25 @@ const getSocioIdFromDni = async (dni) => {
     if (socioIdQuery.rowsAffected[0] <= 0 || socioIdQuery.recordset == null)
         throw new UserNotFoundException(`Could not find socio with DNI ${dni}.`);
     return socioIdQuery.recordset[0]['IdSocio'];
-}
+};
+
+/**
+ * Returns the user data from a given socioId.
+ * @author Arnau Mora
+ * @since 20221019
+ * @param {number} socioId The SocioId of the user to search for.
+ * @throws {PasswordlessUserException} If the given user doesn't have a password. `changePassword` should be called.
+ * @returns {Promise<string>} The hash of the user.
+ */
+const getUserFromSocioId = async (socioId) => {
+    const sql = `SELECT hash
+                 FROM GesTro.dbo.mUsers
+                 WHERE SocioId = ${socioId}`;
+    const hashQuery = await query(sql);
+    if (hashQuery.rowsAffected[0] <= 0 || hashQuery.rowsAffected[0] <= 0)
+        throw new PasswordlessUserException(`The user with SocioId=${socioId} doesn't have a password defined, please, set.`);
+    return hashQuery.recordset[0]['hash'];
+};
 
 /**
  * Tries to authorise in the system using the given credentials.
