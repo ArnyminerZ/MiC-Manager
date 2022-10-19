@@ -9,8 +9,11 @@ export const errorResponse = (code) => {
 
 /**
  * Generates a success response.
+ * @param {Object} data The data to append to the response
  * @returns {{success: boolean}}
  */
-export const successResponse = () => {
-    return {success: true};
+export const successResponse = (data = null) => {
+    if (data != null)
+        return {success: true, data};
+    return {success: true}
 };
