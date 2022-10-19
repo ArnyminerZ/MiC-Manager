@@ -150,6 +150,7 @@ components:
         * `missing-parameters`: The requests has some required parameters, and you haven't specified one or more of them.
         * `wrong-credentials`: The credentials you have specified are wrong.
         * `invalid-key`: The given API Key is not valid, it has expired, or it has been disposed.
+        * `passwordless`: Thrown when the user doesn't have a password assigned.
       properties:
         code:
           type: string
