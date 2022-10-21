@@ -2,43 +2,15 @@ import bcrypt from 'bcrypt';
 
 import {query} from './database.js';
 import {checkToken, generateToken} from "./security.js";
+import {
+    InvalidTokenException,
+    PasswordlessUserException,
+    SecurityException,
+    UserNotFoundException,
+    WrongPasswordException,
+} from './exceptions.js';
 
 import securityPolicy from '../security-policy.json' assert {type: 'json'};
-
-export class SecurityException extends Error {
-    constructor(message) {
-        super(message);
-        this.name = "SecurityException";
-    }
-}
-
-export class UserNotFoundException extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'UserNotFoundException';
-    }
-}
-
-export class PasswordlessUserException extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'PasswordlessUserException';
-    }
-}
-
-export class WrongPasswordException extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'WrongPasswordException';
-    }
-}
-
-export class InvalidTokenException extends Error {
-    constructor(message) {
-        super(message);
-        this.name = 'InvalidTokenException';
-    }
-}
 
 /**
  * Queries the amount of login attempts made by the given IP in the last 24 hours.
