@@ -5,13 +5,10 @@ import fs from 'fs';
 
 import {errorResponse, successResponse} from './src/response.js';
 import {check as dbCheck} from './src/database.js';
-import {
-    changePassword,
-    InvalidTokenException,
-    login,
-    PasswordlessUserException,
-    WrongPasswordException
-} from "./src/auth.js";
+import {changePassword, login} from "./src/auth.js";
+import {InvalidTokenException, PasswordlessUserException, WrongPasswordException} from './src/exceptions.js';
+import {checkToken, decodeToken} from "./src/security.js";
+import {getUserData} from "./src/data.js";
 
 dotenv.config();
 
@@ -68,6 +65,20 @@ app.get('/v1/user/auth', async (req, res) => {
             res.status(500).json({success: false, error: 'unknown', errorData: e});
         }
     }
+});
+app.get('/v1/user/data', async (req, res) => {
+    /**
+     * @type {string|null}
+     */
+    const apiKey = req.get('API-Key');
+    if (apiKey == null || !(await checkToken(apiKey)))
+        return res.status(406).send(errorResponse('invalid-key'));
+    const tokenData = await decodeToken(apiKey);
+    if (!tokenData.hasOwnProperty('socioId'))
+        return res.status(400).send(errorResponse('invalid-key'));
+    const socioId = tokenData['socioId'];
+    const userData = await getUserData(socioId);
+    res.json(successResponse(userData));
 });
 app.post('/v1/user/change_password', async (req, res) => {
     const body = req.body;

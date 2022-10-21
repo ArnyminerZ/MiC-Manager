@@ -138,6 +138,56 @@ paths:
               required:
                 - password
         description: The new password to set.
+  /v1/user/data:
+    get:
+      summary: Get User Data
+      tags: [ ]
+      responses:
+        '200':
+          description: OK - Returns the data of the user. See example for schema (fields ending with `*` can be null).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-1:
+                  value:
+                    success: true
+                    data:
+                      name: First Name
+                      familyName: Family Name
+                      address: 'C/ Murillo, 27. Alcoi*'
+                      postalCode: '03802'
+                      dni: 12345678A
+                      born: 29/11/1998
+                      workPhone: 9876544321*
+                      homePhone: 9876544321*
+                      mobilePhone: 9876544321*
+                      email: example@mail.com
+                      wheelNumber:
+                        whites: '23'
+                        blacks: '98'
+                      wheelLock:
+                        whites: 'true'
+                        blacks: 'false'
+        '400':
+          description: Bad Request - The given token doesn't contain valid data.
+        '406':
+          description: Not Acceptable - The given API Key is not valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-406:
+                  value:
+                    success: false
+                    error:
+                      code: invalid-key
+      operationId: get-v1-user-data
+      description: Fetches the currently logged in user's data.
+      security:
+        - API-Key: [ ]
 components:
   schemas:
     Error:
