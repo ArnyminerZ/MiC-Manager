@@ -32,3 +32,30 @@ export const getUserData = async (socioId) => {
         },
     };
 };
+
+/**
+ * Gets a list of all the available events.
+ * @author Arnau Mora
+ * @since 20221021
+ * @return {Promise<[{id:number,displayName:string,date:string,menu:Object?,contact:string?,description:string?,category:number}]>}
+ */
+export const getEvents = async () => {
+    const sql = `SELECT *
+                 FROM GesTro.dbo.mEvents;`;
+    const result = await dbQuery(sql);
+    let builder = [];
+    const size = result.rowsAffected[0];
+    for (let c = 0; c < size; c++) {
+        const row = result.recordset[c];
+        builder.push({
+            id: row['id'],
+            displayName: row['DisplayName'],
+            date: row['Date'],
+            menu: row['Menu'],
+            contact: row['Contact'],
+            description: row['Description'],
+            category: row['Category'],
+        })
+    }
+    return builder;
+}
