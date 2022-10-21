@@ -27,10 +27,13 @@ export const generateToken = (payload, expiresIn = '7d') => new Promise((resolve
  * @param {string} token The token to check for.
  * @returns {Promise<boolean>}
  */
-export const checkToken = (token) => new Promise((resolve) => {
-    jwt.verify(token, privateKey, {}, (err) => {
+export const checkToken = (token) => new Promise((resolve, reject) => {
+    jwt.verify(token, privateKey, {}, (err, payload) => {
         if (!err)
-            resolve(true);
+            if (payload.hasOwnProperty('dni') && payload.hasOwnProperty('socioId'))
+                resolve(true);
+            else
+                reject('Payload missing data.');
         else
             resolve(false);
     });
