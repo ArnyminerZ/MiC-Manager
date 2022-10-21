@@ -98,7 +98,7 @@ export const login = async (dni, password, reqIp) => {
     if (!successful)
         throw new WrongPasswordException('Wrong password introduced.');
 
-    return await generateToken({dni});
+    return await generateToken({dni, socioId});
 };
 
 /**
