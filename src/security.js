@@ -41,12 +41,15 @@ export const checkToken = (token) => new Promise((resolve) => {
  * @author Arnau Mora
  * @since 20221021
  * @param {string} token The token to check for.
- * @returns {Promise<Object>}
+ * @returns {Promise<{dni:string,socioId:string}>}
  */
 export const decodeToken = (token) => new Promise((resolve, reject) => {
     jwt.verify(token, privateKey, {}, (err, payload) => {
         if (!err)
-            resolve(payload);
+            if (payload.hasOwnProperty('dni') && payload.hasOwnProperty('socioId'))
+                resolve(payload);
+            else
+                reject('Payload missing data.');
         else
             reject(err);
     });
