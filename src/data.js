@@ -10,9 +10,9 @@ export const getUserData = async (socioId) => {
         throw new UserNotFoundException(`Could not find socio#${socioId}.`);
     const row = result.recordset[0];
     return {
-        name: row['Nombre'],
-        familyName: row['Apellidos'],
-        address: row['Direccion'],
+        name: row['Nombre'].trim(),
+        familyName: row['Apellidos'].trim(),
+        address: row['Direccion'].trim(),
         postalCode: row['idCodPostal'],
         dni: row['Dni'],
         born: row['FecNacimiento'],
@@ -20,13 +20,15 @@ export const getUserData = async (socioId) => {
         homePhone: row['TlfTrabajo'],
         mobilePhone: row['TlfMovil'],
         email: row['eMail'],
-        wheelNumber: {
-            whites: row['nrRodaBlancos'],
-            blacks: row['nrRodaNegros'],
-        },
-        wheelLock: {
-            whites: row['bRodaBlancos'],
-            blacks: row['bRodaNegros'],
+        wheel: {
+            whites: (!row['nrRodaBlancos'] || !row['bRodaBlancos']) ? null : {
+                number: row['nrRodaBlancos'],
+                locked: row['bRodaBlancos'],
+            },
+            blacks: (!row['nrRodaNegros'] || !row['bRodaNegros']) ? null : {
+                number: row['nrRodaNegros'],
+                locked: row['bRodaNegros'],
+            },
         },
     };
 };
