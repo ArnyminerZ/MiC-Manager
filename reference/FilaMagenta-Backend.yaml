@@ -164,14 +164,25 @@ paths:
                       homePhone: 9876544321*
                       mobilePhone: 9876544321*
                       email: example@mail.com
-                      wheelNumber:
-                        whites: '23'
-                        blacks: '98'
-                      wheelLock:
-                        whites: 'true'
-                        blacks: 'false'
+                      wheel:
+                        whites:
+                          number: 23*
+                          locked: true*
+                        blacks:
+                          number: 87*
+                          locked: true*
         '400':
           description: Bad Request - The given token doesn't contain valid data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-400:
+                  value:
+                    success: false
+                    error:
+                      code: invalid-key
         '406':
           description: Not Acceptable - The given API Key is not valid.
           content:
@@ -186,6 +197,41 @@ paths:
                       code: invalid-key
       operationId: get-v1-user-data
       description: Fetches the currently logged in user's data.
+      security:
+        - API-Key: [ ]
+  /v1/events/list:
+    get:
+      summary: List Events
+      tags: [ ]
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request - The given token doesn't contain valid data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-400:
+                  value:
+                    success: false
+                    error:
+                      code: invalid-key
+        '406':
+          description: Not Acceptable - The given API Key is not valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-406:
+                  value:
+                    success: false
+                    error:
+                      code: invalid-key
+      operationId: get-v1-events-list
+      description: Get a list of all the available events.
       security:
         - API-Key: [ ]
 components:
