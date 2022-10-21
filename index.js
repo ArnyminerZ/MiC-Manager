@@ -8,7 +8,7 @@ import {check as dbCheck} from './src/database.js';
 import {changePassword, login} from "./src/auth.js";
 import {InvalidTokenException, PasswordlessUserException, WrongPasswordException} from './src/exceptions.js';
 import {checkToken, decodeToken} from "./src/security.js";
-import {getUserData} from "./src/data.js";
+import {getEvents, getUserData} from "./src/data.js";
 
 dotenv.config();
 
@@ -106,6 +106,16 @@ app.post('/v1/user/change_password', async (req, res) => {
         else
             res.status(500).json({error: 'work in progress'})
     }
+});
+app.get('/v1/events/list', async (req, res) => {
+    /**
+     * @type {string|null}
+     */
+    const apiKey = req.get('API-Key');
+    if (apiKey == null || !(await checkToken(apiKey)))
+        return res.status(406).send(errorResponse('invalid-key'));
+    const events = await getEvents();
+    res.json(successResponse(events));
 });
 
 app.listen(HTTP_PORT, () => console.info(`🖥️ Listening for requests on http://localhost:${HTTP_PORT}`));
