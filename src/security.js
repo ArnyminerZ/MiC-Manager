@@ -35,3 +35,19 @@ export const checkToken = (token) => new Promise((resolve) => {
             resolve(false);
     });
 });
+
+/**
+ * Returns the payload contained in a token.
+ * @author Arnau Mora
+ * @since 20221021
+ * @param {string} token The token to check for.
+ * @returns {Promise<Object>}
+ */
+export const decodeToken = (token) => new Promise((resolve, reject) => {
+    jwt.verify(token, privateKey, {}, (err, payload) => {
+        if (!err)
+            resolve(payload);
+        else
+            reject(err);
+    });
+});
