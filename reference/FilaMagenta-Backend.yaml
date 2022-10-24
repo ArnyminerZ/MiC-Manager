@@ -28,13 +28,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
+              examples:
+                example-success:
+                  value:
+                    success: true
+                    data:
+                      auth-token: ...
         '400':
           description: Bad Request - Missing parameters.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
-              examples: { }
+              examples: {}
         '403':
           description: Forbidden - Wrong credentials
           content:
@@ -81,7 +87,7 @@ paths:
           name: password
           description: The password of the user being authenticated.
           required: true
-    parameters: [ ]
+    parameters: []
   /v1/user/change_password:
     post:
       summary: Password Change
@@ -125,7 +131,7 @@ paths:
         Used for changing the password of a user. If the user doesn't have a password, this method also serves for setting one for the first time.
         "API key" is obviously only required if the user already has a password, this key will be used for checking if the user is authorised, or if it's updating its account.
       security:
-        - API-Key: [ ]
+        - API-Key: []
       requestBody:
         content:
           application/json:
@@ -141,7 +147,7 @@ paths:
   /v1/user/data:
     get:
       summary: Get User Data
-      tags: [ ]
+      tags: []
       responses:
         '200':
           description: OK - Returns the data of the user. See example for schema (fields ending with `*` can be null).
@@ -198,11 +204,11 @@ paths:
       operationId: get-v1-user-data
       description: Fetches the currently logged in user's data.
       security:
-        - API-Key: [ ]
+        - API-Key: []
   /v1/events/list:
     get:
       summary: List Events
-      tags: [ ]
+      tags: []
       responses:
         '200':
           description: OK
@@ -233,7 +239,7 @@ paths:
       operationId: get-v1-events-list
       description: Get a list of all the available events.
       security:
-        - API-Key: [ ]
+        - API-Key: []
 components:
   schemas:
     Error:
