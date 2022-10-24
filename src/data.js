@@ -66,7 +66,7 @@ export const getUserData = async (socioId) => {
  * @property {string?} description
  * @property {number} category
  * @property {number[]} attending
- * @property {TableData?} table
+ * @property {TableData[]} tables
  */
 
 /**
@@ -79,7 +79,8 @@ export const getEvents = async () => {
     const sql = `SELECT mEvents.*,
                         mA.Person      as AttPerson,
                         mT.Responsible as TableResponsible,
-                        mTP.Person     as TableMember
+                        mTP.Person     as TableMember,
+                        mT.Id          as TableId
                  FROM GesTro.dbo.mEvents
                           LEFT JOIN mAssistance mA ON mEvents.id = mA.Event
                           LEFT JOIN mTables mT on mEvents.id = mT.Event
@@ -94,17 +95,19 @@ export const getEvents = async () => {
      */
     let attendants = new Map();
     /**
-     * @type {Map<number, {responsible:number,members:number[]}>}
+     * @type {Map<number, Map<number, TableData>>}
      */
     let tables = new Map();
+    // TODO: Events may have multiple tables!
     const size = result.rowsAffected[0];
     /**
-     * @type {{'mEvents.id':number,DisplayName:string,Date:string,Menu:string?,Contact:string?,Description:string?,Category:number,'mA.Id':number?,'mA.Event':number?,'mA.Person':number?,'mT.Id':number?,Responsible:number?,'mT.Event':number?,'mTP.Id':number?,'mTP.Person':number?,'TableId':number?}}
+     * @type {{'mEvents.id':number,DisplayName:string,Date:string,Menu:string?,Contact:string?,Description:string?,Category:number,'mA.Id':number?,'mA.Event':number?,'mA.Person':number?,'mT.Id':number?,Responsible:number?,'mT.Event':number?,'mTP.Id':number?,'mTP.Person':number?,'TableId':string?}}
      */
     const rows = result.recordset;
     for (let c = 0; c < size; c++) {
         const row = rows[c];
         const eventId = row['id'];
+        const tableId = parseInt(row['TableId']);
 
         if (builder.hasOwnProperty(eventId)) {
             if (row['AttPerson'] != null) {
@@ -114,9 +117,13 @@ export const getEvents = async () => {
             }
 
             if (row['TableMember'] != null) {
-                const t = tables[eventId] ?? {responsible: -1, members: []};
-                t.members.push(row['TableMember']);
-                tables[eventId] = t;
+                /** @type {Map<number, TableData>} */
+                const t = tables.get(eventId) ?? new Map();
+                /** @type {TableData} */
+                const te = t.get(tableId) ?? {responsible: -1, members: []};
+                te.members.push(row['TableMember']);
+                t.set(tableId, te);
+                tables.set(eventId, t);
             }
         } else {
             builder.push({
@@ -128,6 +135,7 @@ export const getEvents = async () => {
                 description: row['Description'],
                 category: row['Category'],
                 attending: [],
+                tables: [],
             });
             const attendingPerson = row['AttPerson'];
             if (!!attendingPerson)
@@ -136,12 +144,13 @@ export const getEvents = async () => {
             const tableResponsible = row['TableResponsible'];
             const tableMember = row['TableMember'];
             if (!!tableResponsible || !!tableMember)
-                tables[eventId] = {responsible: tableResponsible, members: [tableMember]};
+                tables.set(eventId, new Map([[tableId, {responsible: tableResponsible, members: [tableMember]}]]));
         }
     }
     return builder.map((ev) => {
         ev.attending = attendants[ev.id];
-        ev.table = tables[ev.id];
+        let eventTables = tables.get(ev.id) ?? new Map();
+        ev.tables = Array.from(eventTables.values());
         return ev;
     });
 }
