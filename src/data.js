@@ -98,7 +98,6 @@ export const getEvents = async () => {
      * @type {Map<number, Map<number, TableData>>}
      */
     let tables = new Map();
-    // TODO: Events may have multiple tables!
     const size = result.rowsAffected[0];
     /**
      * @type {{'mEvents.id':number,DisplayName:string,Date:string,Menu:string?,Contact:string?,Description:string?,Category:number,'mA.Id':number?,'mA.Event':number?,'mA.Person':number?,'mT.Id':number?,Responsible:number?,'mT.Event':number?,'mTP.Id':number?,'mTP.Person':number?,'TableId':string?}}
