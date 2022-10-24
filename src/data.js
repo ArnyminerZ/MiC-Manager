@@ -12,6 +12,43 @@ import {UserNotFoundException} from "./exceptions.js";
  */
 const formatDayDate = (date) => dateFormat(new Date(date), 'yyyy-MM-dd');
 
+/**
+ * @typedef {Object} WheelData
+ * @property {number} number
+ * @property {boolean} locked
+ */
+
+/**
+ * @typedef {Object} TrebuchetData
+ * @property {boolean} shoots
+ * @property {string} obtained
+ * @property {string} expires
+ */
+
+/**
+ * @typedef {Object} UserData
+ * @property {string} name
+ * @property {string} familyName
+ * @property {string} address
+ * @property {number} postalCode
+ * @property {string} dni
+ * @property {string} born Follows `formatDayDate`
+ * @property {string} registration Follows `formatDayDate`
+ * @property {string} workPhone
+ * @property {string} homePhone
+ * @property {string} mobilePhone
+ * @property {string} email
+ * @property {{whites:WheelData,blacks:WheelData}} wheel
+ * @property {TrebuchetData} trebuchet
+ */
+
+/**
+ * Fetches the data of a given user.
+ * @author Arnau Mora
+ * @since 20221024
+ * @param {number} socioId The id of the user in the socios table.
+ * @return {Promise<UserData>}
+ */
 export const getUserData = async (socioId) => {
     const sql = `SELECT *
                  FROM GesTro.dbo.tbSocios
