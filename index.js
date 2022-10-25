@@ -70,11 +70,11 @@ app.get('/v1/user/auth', async (req, res) => {
     }
 });
 app.get('/v1/user/data', async (req, res) => {
-    const body = req.body;
+    const query = req.query;
     /** @type {string|null} */
     const apiKey = req.get('API-Key');
     /** @type {string|null} */
-    const userIdParam = body['user_id'];
+    const userIdParam = query['user_id'];
 
     if (apiKey == null || !(await checkToken(apiKey)))
         return res.status(406).send(errorResponse('invalid-key'));
