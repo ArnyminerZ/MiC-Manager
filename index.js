@@ -10,7 +10,8 @@ import {check as dbCheck} from './src/database.js';
 import {changePassword, login} from "./src/auth.js";
 import {InvalidTokenException, PasswordlessUserException, WrongPasswordException} from './src/exceptions.js';
 import {checkToken, decodeToken} from "./src/security.js";
-import {getEvents, getUserData} from "./src/data.js";
+import {getEvents, getSocioId, getUserData} from "./src/data.js";
+import {hasPermission} from "./src/permissions.js";
 
 dotenv.config();
 
@@ -69,17 +70,28 @@ app.get('/v1/user/auth', async (req, res) => {
     }
 });
 app.get('/v1/user/data', async (req, res) => {
-    /**
-     * @type {string|null}
-     */
+    const body = req.body;
+    /** @type {string|null} */
     const apiKey = req.get('API-Key');
+    /** @type {string|null} */
+    const userIdParam = body['user_id'];
+
     if (apiKey == null || !(await checkToken(apiKey)))
         return res.status(406).send(errorResponse('invalid-key'));
+
     const tokenData = await decodeToken(apiKey);
     if (!tokenData.hasOwnProperty('socioId'))
-        return res.status(400).send(errorResponse('invalid-key'));
-    const socioId = tokenData['socioId'];
-    const userData = await getUserData(socioId);
+        return res.status(401).send(errorResponse('invalid-key'));
+
+    let socioId, constrain = false;
+    if (userIdParam != null) {
+        const userId = parseInt(userIdParam);
+        socioId = await getSocioId(userId);
+        constrain = !(await hasPermission(userId, 'view-user-data'));
+    } else {
+        socioId = tokenData['socioId'];
+    }
+    const userData = await getUserData(socioId, constrain);
     res.json(successResponse(userData));
 });
 app.post('/v1/user/change_password', async (req, res) => {

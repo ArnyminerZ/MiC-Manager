@@ -40,7 +40,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
-              examples: {}
+              examples:
+                example-400:
+                  value:
+                    success: true
+                    error:
+                      code: missing-parameters
         '403':
           description: Forbidden - Wrong credentials
           content:
@@ -156,7 +161,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Response'
               examples:
-                example-1:
+                example:
                   value:
                     success: true
                     data:
@@ -177,7 +182,7 @@ paths:
                         blacks:
                           number: 87*
                           locked: true*
-        '400':
+        '401':
           description: Bad Request - The given token doesn't contain valid data.
           content:
             application/json:
@@ -204,7 +209,16 @@ paths:
       operationId: get-v1-user-data
       description: Fetches the currently logged in user's data.
       security:
-        - API-Key: []
+        - API-Key: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  description: The id of the user to check for. Can be null if the currently logged in user is the desired one.
   /v1/events/list:
     get:
       summary: List Events
@@ -212,6 +226,15 @@ paths:
       responses:
         '200':
           description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example:
+                  value:
+                    success: true
+                    data: { }
         '400':
           description: Bad Request - The given token doesn't contain valid data.
           content:
@@ -239,7 +262,53 @@ paths:
       operationId: get-v1-events-list
       description: Get a list of all the available events.
       security:
-        - API-Key: []
+        - API-Key: [ ]
+  /v1/events/join:
+    post:
+      summary: Join Event
+      operationId: post-v1-events-join
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request - The given token doesn't contain valid data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-400:
+                  value:
+                    success: false
+                    error:
+                      code: missing-parameters
+        '406':
+          description: Not Acceptable - The given API Key is not valid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-406:
+                  value:
+                    success: false
+                    error:
+                      code: invalid-key
+      description: Confirms the assistance of the given user to an event.
+      security:
+        - API-Key: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_id:
+                  type: integer
+                  description: The id of the event to join.
+              required:
+                - event_id
+        description: What parameters to use for joining the event.
 components:
   schemas:
     Error:
