@@ -88,6 +88,23 @@ export const getUserData = async (socioId) => {
 };
 
 /**
+ * Fetches the socioId of a given userId.
+ * @author Arnau Mora
+ * @since 20221025
+ * @param {number} userId The userId to search for.
+ * @throws UserNotFoundException If the given `userId` was not found.
+ * @return {Promise<number>}
+ */
+export const getSocioId = async (userId) => {
+    const query = await dbQuery(`SELECT SocioId
+                                 FROM GesTro.dbo.mUsers
+                                 WHERE Id = ${userId};`);
+    if (query.rowsAffected[0] <= 0)
+        throw new UserNotFoundException(`Could not find user#${userId}.`);
+    return query.recordset[0]['SocioId'];
+};
+
+/**
  * @typedef {Object} TableData
  * @property {number} responsible
  * @property {number} members
