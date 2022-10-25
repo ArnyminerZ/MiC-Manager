@@ -47,9 +47,10 @@ const formatDayDate = (date) => dateFormat(new Date(date), 'yyyy-MM-dd');
  * @author Arnau Mora
  * @since 20221024
  * @param {number} socioId The id of the user in the socios table.
+ * @param {boolean} constrain If the whole user data should be returned, or just the public one.
  * @return {Promise<UserData>}
  */
-export const getUserData = async (socioId) => {
+export const getUserData = async (socioId, constrain = false) => {
     const sql = `SELECT *
                  FROM GesTro.dbo.tbSocios
                  WHERE idSocio = '${socioId}';`;
@@ -59,17 +60,17 @@ export const getUserData = async (socioId) => {
     const row = result.recordset[0];
     return {
         name: row['Nombre'].trim(),
-        familyName: row['Apellidos'].trim(),
-        address: row['Direccion'].trim(),
-        postalCode: row['idCodPostal'],
-        dni: row['Dni'],
-        born: row['FecNacimiento'],
-        registration: row['FecAlta'],
-        workPhone: row['TlfParticular'],
-        homePhone: row['TlfTrabajo'],
-        mobilePhone: row['TlfMovil'],
-        email: row['eMail'],
-        wheel: {
+        familyName: constrain ? null : row['Apellidos'].trim(),
+        address: constrain ? null : row['Direccion'].trim(),
+        postalCode: constrain ? null : row['idCodPostal'],
+        dni: constrain ? null : row['Dni'],
+        born: constrain ? null : row['FecNacimiento'],
+        registration: constrain ? null : row['FecAlta'],
+        workPhone: constrain ? null : row['TlfParticular'],
+        homePhone: constrain ? null : row['TlfTrabajo'],
+        mobilePhone: constrain ? null : row['TlfMovil'],
+        email: constrain ? null : row['eMail'],
+        wheel: constrain ? null : {
             whites: (!row['nrRodaBlancos'] || !row['bRodaBlancos']) ? null : {
                 number: row['nrRodaBlancos'],
                 locked: row['bRodaBlancos'],
@@ -79,7 +80,7 @@ export const getUserData = async (socioId) => {
                 locked: row['bRodaNegros'],
             },
         },
-        trebuchet: !row['bCarnetAvancarga'] ? null : {
+        trebuchet: constrain ? null : !row['bCarnetAvancarga'] ? null : {
             shoots: row['bDisparaAvancarga'],
             obtained: formatDayDate(row['FecExpedicionAvancarga']),
             expires: formatDayDate(row['FecCaducidadAvancarga']),
