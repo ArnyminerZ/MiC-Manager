@@ -60,7 +60,7 @@ export const getUserData = async (socioId, constrain = false) => {
     const row = result.recordset[0];
     return {
         name: row['Nombre'].trim(),
-        familyName: constrain ? null : row['Apellidos'].trim(),
+        familyName: row['Apellidos'].trim(),
         address: constrain ? null : row['Direccion'].trim(),
         postalCode: constrain ? null : row['idCodPostal'],
         dni: constrain ? null : row['Dni'],
