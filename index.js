@@ -25,7 +25,7 @@ if (!fs.existsSync('private.key'))
     throw Error('❌ TOKEN_KEY is required and not defined.');
 
 console.info(`⏺️ Checking database...`);
-if (!(await dbCheck())) {
+if (!(await dbCheck(!!process.env.DEBUG))) {
     console.error(`❌  Could not connect to database. Host: ${process.env.DB_HOSTNAME}`)
     process.exitCode = 1;
 } else
