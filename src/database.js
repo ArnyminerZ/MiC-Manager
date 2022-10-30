@@ -89,6 +89,7 @@ export const query = async (query, shouldDisconnect = true) => {
     let result;
     try {
         await connect();
+        await conn.query('USE FilaMagenta;');
         result = await conn.query(query);
     } finally {
         if (shouldDisconnect)
