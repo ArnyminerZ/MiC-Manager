@@ -14,7 +14,7 @@ import {
     UsersTable
 } from "../model/Tables.js";
 import {DatabaseException} from "./exceptions.js";
-import {InsertDefaultRole} from "../model/Defaults.js";
+import {InsertDefaultRole, InsertPermissions} from "../model/Defaults.js";
 
 dotenv.config();
 
@@ -70,6 +70,7 @@ export const check = async (debug = false) => {
 
         // Insert default data
         await query(InsertDefaultRole);
+        for (const q of InsertPermissions) await query(q);
 
         await disconnect();
 
