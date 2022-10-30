@@ -146,4 +146,7 @@ app.post('/v1/events/join', async (req, res) => {
         return res.status(406).send(errorResponse('invalid-key'));
 });
 
+// Fallback
+app.get('*', (req, res) => res.status(404).json(errorResponse('invalid-request')));
+
 app.listen(HTTP_PORT, () => console.info(`🖥️ Listening for requests on http://localhost:${HTTP_PORT}`));
