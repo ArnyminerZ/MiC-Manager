@@ -41,6 +41,7 @@ app.use(reqIp.mw());
 app.use(express.json({strict: false}));
 app.use(express.urlencoded({extended: true}))
 
+app.get('/ping', (req, res) => res.send('pong'));
 app.get('/v1/user/auth', async (req, res) => {
     // const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
     const query = req.query;
