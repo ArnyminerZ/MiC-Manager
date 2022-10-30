@@ -54,10 +54,10 @@ export const getUserData = async (socioId, constrain = false) => {
     const sql = `SELECT *
                  FROM tbSocios
                  WHERE idSocio = '${socioId}';`;
-    const result = await dbQuery(sql);
-    if (result.rowsAffected[0] <= 0)
+    const rows = await dbQuery(sql);
+    if (rows.length <= 0)
         throw new UserNotFoundException(`Could not find socio#${socioId}.`);
-    const row = result.recordset[0];
+    const row = rows[0];
     return {
         name: row['Nombre'].trim(),
         familyName: row['Apellidos'].trim(),
@@ -97,12 +97,12 @@ export const getUserData = async (socioId, constrain = false) => {
  * @return {Promise<number>}
  */
 export const getSocioId = async (userId) => {
-    const query = await dbQuery(`SELECT SocioId
-                                 FROM mUsers
-                                 WHERE Id = ${userId};`);
-    if (query.rowsAffected[0] <= 0)
+    const rows = await dbQuery(`SELECT SocioId
+                                FROM mUsers
+                                WHERE Id = ${userId};`);
+    if (rows.length <= 0)
         throw new UserNotFoundException(`Could not find user#${userId}.`);
-    return query.recordset[0]['SocioId'];
+    return rows[0]['SocioId'];
 };
 
 /**
@@ -140,7 +140,7 @@ export const getEvents = async () => {
                           LEFT JOIN mAssistance mA ON mEvents.id = mA.EventId
                           LEFT JOIN mTables mT on mEvents.id = mT.EventId
                           LEFT JOIN mTablesPeople mTP on mT.Id = mTP.TableId;`;
-    const result = await dbQuery(sql);
+    const rows = await dbQuery(sql);
     /**
      * @type {EventData[]}
      */
@@ -153,11 +153,7 @@ export const getEvents = async () => {
      * @type {Map<number, Map<number, TableData>>}
      */
     let tables = new Map();
-    const size = result.rowsAffected[0];
-    /**
-     * @type {{'mEvents.id':number,DisplayName:string,Date:string,Menu:string?,Contact:string?,Description:string?,Category:number,'mA.Id':number?,'mA.Event':number?,'mA.Person':number?,'mT.Id':number?,Responsible:number?,'mT.Event':number?,'mTP.Id':number?,'mTP.Person':number?,'TableId':string?}}
-     */
-    const rows = result.recordset;
+    const size = rows.length;
     for (let c = 0; c < size; c++) {
         const row = rows[c];
         const eventId = row['id'];

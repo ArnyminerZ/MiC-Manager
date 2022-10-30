@@ -28,7 +28,7 @@ const loginAttemptsCount = async (ip) => {
                    AND Successful = 0
                    AND IP = 0x${longIp.toString(16)};`;
     const q = await query(sql);
-    return q?.recordset?.length ?? 0;
+    return q.length ?? 0;
 };
 
 /**
@@ -40,12 +40,12 @@ const loginAttemptsCount = async (ip) => {
  * @returns {Promise<number>}
  */
 const getSocioIdFromDni = async (dni) => {
-    const socioIdQuery = await query(`SELECT IdSocio
-                                      FROM tbSocios
-                                      WHERE Dni = '${dni}';`);
-    if (socioIdQuery.rowsAffected[0] <= 0 || socioIdQuery.recordset == null)
+    const rows = await query(`SELECT IdSocio
+                              FROM tbSocios
+                              WHERE Dni = '${dni}';`);
+    if (rows.length <= 0)
         throw new UserNotFoundException(`Could not find socio with DNI ${dni}.`);
-    return socioIdQuery.recordset[0]['IdSocio'];
+    return rows[0]['IdSocio'];
 };
 
 /**
@@ -66,10 +66,10 @@ const getUserFromSocioId = async (socioId) => {
     const sql = `SELECT Id, hash
                  FROM mUsers
                  WHERE SocioId = ${socioId}`;
-    const hashQuery = await query(sql);
-    if (hashQuery.rowsAffected[0] <= 0 || hashQuery.rowsAffected[0] <= 0)
+    const rows = await query(sql);
+    if (rows.length <= 0)
         throw new PasswordlessUserException(`The user with SocioId=${socioId} doesn't have a password defined, please, set.`);
-    const data = hashQuery.recordset[0];
+    const data = rows[0];
     return {hash: data['hash'], id: data['id']};
 };
 

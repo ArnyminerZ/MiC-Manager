@@ -26,6 +26,7 @@ const serverConfig = {
 };
 const pool = mariadb.createPool(serverConfig);
 
+/** @type {mariadb.PoolConnection} */
 let conn;
 
 const connect = async () => {
@@ -51,7 +52,7 @@ export const check = async (debug = false) => {
              FROM information_schema.SCHEMATA
              WHERE SCHEMA_NAME = '${process.env.DB_DATABASE}'`
         );
-        if (queryResult?.recordset?.get(0) <= 0)
+        if (queryResult.length <= 0)
             throw new DatabaseException(`❌ Could not find a database named`, process.env.DB_DATABASE);
 
         // Create tables
@@ -80,15 +81,18 @@ export const check = async (debug = false) => {
 };
 
 /**
- *
- * @param query
- * @param shouldDisconnect
- * @return {Promise<Request>}
+ * Makes a SQL query to the database.
+ * @author Arnau Mora
+ * @since 20221030
+ * @param {string} query The SQL query to make.
+ * @param {boolean} shouldDisconnect If false, the connection to the database won't get disconnected after fetching.
+ * @return {Promise<[]>} The rows fetched
  */
 export const query = async (query, shouldDisconnect = true) => {
     let result;
     try {
-        await connect();
+        if (conn == null || !conn.isValid())
+            await connect();
         await conn.query('USE FilaMagenta;');
         result = await conn.query(query);
     } finally {
