@@ -86,6 +86,8 @@ export const getUserData = async (socioId, constrain = false) => {
             obtained: formatDayDate(row['FecExpedicionAvancarga']),
             expires: formatDayDate(row['FecCaducidadAvancarga']),
         },
+        type: row['idTipoFestero'],
+        payment: row['idFormaPago'],
     };
 };
 
