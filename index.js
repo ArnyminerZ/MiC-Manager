@@ -8,7 +8,12 @@ import fs from 'fs';
 import {errorResponse, successResponse} from './src/response.js';
 import {check as dbCheck} from './src/database.js';
 import {changePassword, login} from "./src/auth.js";
-import {InvalidTokenException, PasswordlessUserException, WrongPasswordException} from './src/exceptions.js';
+import {
+    InvalidTokenException,
+    PasswordlessUserException,
+    SecurityException,
+    WrongPasswordException
+} from './src/exceptions.js';
 import {checkToken, decodeToken} from "./src/security.js";
 import {getEvents, getSocioId, getUserData} from "./src/data.js";
 import {hasPermission} from "./src/permissions.js";
@@ -64,6 +69,8 @@ app.get('/v1/user/auth', async (req, res) => {
             res.status(417).json(errorResponse('passwordless'));
         else if (e instanceof WrongPasswordException)
             res.status(403).json(errorResponse('wrong-credentials'));
+        else if (e instanceof SecurityException)
+            res.status(412).json(errorResponse('max-attempts-reached'));
         else {
             console.error('❌ Could not authenticate. Error:', e);
             res.status(500).json({success: false, error: 'unknown', errorData: e});
