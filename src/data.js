@@ -132,13 +132,13 @@ export const getSocioId = async (userId) => {
  */
 export const getEvents = async () => {
     const sql = `SELECT mEvents.*,
-                        mA.Person      as AttPerson,
+                        mA.UserId      as AttPerson,
                         mT.Responsible as TableResponsible,
-                        mTP.Person     as TableMember,
+                        mTP.UserId     as TableMember,
                         mT.Id          as TableId
                  FROM mEvents
-                          LEFT JOIN mAssistance mA ON mEvents.id = mA.Event
-                          LEFT JOIN mTables mT on mEvents.id = mT.Event
+                          LEFT JOIN mAssistance mA ON mEvents.id = mA.EventId
+                          LEFT JOIN mTables mT on mEvents.id = mT.EventId
                           LEFT JOIN mTablesPeople mTP on mT.Id = mTP.TableId;`;
     const result = await dbQuery(sql);
     /**

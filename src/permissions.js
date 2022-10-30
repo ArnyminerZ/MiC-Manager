@@ -13,12 +13,12 @@ import {query as dbQuery} from './database.js';
  * @return {Promise<boolean>}
  */
 export const hasPermission = async (userId, permission) => {
-    const query = await dbQuery(`SELECT mUsers.Role as UserRole, mP.Name as Permission
+    const query = await dbQuery(`SELECT mUsers.Role as UserRole, mP.DisplayName as Permission
                                  FROM mUsers
-                                          LEFT JOIN mRolesPermissions mRP ON mUsers.Role = mRP.Role
-                                          LEFT JOIN mRoles mR ON mRP.Role = mR.Id
-                                          LEFT JOIN mPermissions mP on mRP.Permission = mP.Id
+                                          LEFT JOIN mRolesPermissions mRP ON mUsers.Role = mRP.RoleId
+                                          LEFT JOIN mRoles mR ON mRP.RoleId = mR.Id
+                                          LEFT JOIN mPermissions mP on mRP.PermissionId = mP.Id
                                  WHERE mUsers.Id = ${userId}
-                                   AND mR.Name = '${permission}';`);
+                                   AND mR.DisplayName = '${permission}';`);
     return query.rowsAffected[0] > 0;
 };

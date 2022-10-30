@@ -22,7 +22,7 @@ import {ipToLong} from "./utils.js";
  */
 const loginAttemptsCount = async (ip) => {
     const longIp = ipToLong(ip);
-    const sql = `SELECT Id, IP, DNI, Timestamp
+    const sql = `SELECT Id, IP, UserId, Timestamp
                  FROM mLoginAttempts
                  WHERE Timestamp >= DATEADD(day, -1, getdate())
                    AND Successful = 0
@@ -41,7 +41,7 @@ const loginAttemptsCount = async (ip) => {
  */
 const getSocioIdFromDni = async (dni) => {
     const socioIdQuery = await query(`SELECT IdSocio
-                                      FROM GesTro.dbo.tbSocios
+                                      FROM tbSocios
                                       WHERE Dni = '${dni}';`);
     if (socioIdQuery.rowsAffected[0] <= 0 || socioIdQuery.recordset == null)
         throw new UserNotFoundException(`Could not find socio with DNI ${dni}.`);
@@ -49,21 +49,28 @@ const getSocioIdFromDni = async (dni) => {
 };
 
 /**
+ * @typedef {Object} UserData
+ * @property {string} hash The hashed password of the user.
+ * @property {number} id The user's id.
+ */
+
+/**
  * Returns the user data from a given socioId.
  * @author Arnau Mora
  * @since 20221019
  * @param {number} socioId The SocioId of the user to search for.
  * @throws {PasswordlessUserException} If the given user doesn't have a password. `changePassword` should be called.
- * @returns {Promise<string>} The hash of the user.
+ * @returns {Promise<UserData>} The hash of the user.
  */
 const getUserFromSocioId = async (socioId) => {
-    const sql = `SELECT hash
+    const sql = `SELECT Id, hash
                  FROM mUsers
                  WHERE SocioId = ${socioId}`;
     const hashQuery = await query(sql);
     if (hashQuery.rowsAffected[0] <= 0 || hashQuery.rowsAffected[0] <= 0)
         throw new PasswordlessUserException(`The user with SocioId=${socioId} doesn't have a password defined, please, set.`);
-    return hashQuery.recordset[0]['hash'];
+    const data = hashQuery.recordset[0];
+    return {hash: data['hash'], id: data['id']};
 };
 
 /**
@@ -89,13 +96,14 @@ export const login = async (dni, password, reqIp) => {
         throw new SecurityException(`Max attempts count reached (${maxAttempts}).`);
 
     const socioId = await getSocioIdFromDni(dni);
-    const userHash = await getUserFromSocioId(socioId);
+    const user = await getUserFromSocioId(socioId);
+    const userHash = user.hash;
 
     let successful = await bcrypt.compare(password, userHash);
 
     // Register the attempt
-    const queryStr = `INSERT INTO mLoginAttempts (DNI, IP, Successful)
-                      SELECT '${dni}', 0x${ipToLong(ip).toString(16)}, ${successful ? 1 : 0};`;
+    const queryStr = `INSERT INTO mLoginAttempts (UserId, IP, Successful)
+                      SELECT '${user.id}', 0x${ipToLong(ip).toString(16)}, ${successful ? 1 : 0};`;
     await query(queryStr);
 
     if (!successful)

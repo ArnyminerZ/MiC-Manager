@@ -1,7 +1,20 @@
 import mariadb from 'mariadb';
 import dotenv from 'dotenv';
-import {LoginAttemptsTable, SociosTable, UsersTable} from "../model/Users.js";
+import {
+    AssistanceTable,
+    CategoriesTable,
+    EventsTable,
+    LoginAttemptsTable,
+    PeopleTablesTable,
+    PermissionsTable,
+    RolesPermissionsTable,
+    RolesTable,
+    SociosTable,
+    TablesTable,
+    UsersTable
+} from "../model/Tables.js";
 import {DatabaseException} from "./exceptions.js";
+import {InsertDefaultRole} from "../model/Defaults.js";
 
 dotenv.config();
 
@@ -34,14 +47,28 @@ export const check = async (debug = false) => {
 
         // Check if database exists
         const queryResult = await query(
-            `SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='${process.env.DB_DATABASE}'`
+            `SELECT SCHEMA_NAME
+             FROM information_schema.SCHEMATA
+             WHERE SCHEMA_NAME = '${process.env.DB_DATABASE}'`
         );
         if (queryResult?.recordset?.get(0) <= 0)
             throw new DatabaseException(`❌ Could not find a database named`, process.env.DB_DATABASE);
 
+        // Create tables
         await query(UsersTable);
         await query(LoginAttemptsTable);
         await query(SociosTable);
+        await query(RolesTable);
+        await query(PermissionsTable);
+        await query(CategoriesTable);
+        await query(EventsTable);
+        await query(AssistanceTable);
+        await query(TablesTable);
+        await query(PeopleTablesTable);
+        await query(RolesPermissionsTable);
+
+        // Insert default data
+        await query(InsertDefaultRole);
 
         await disconnect();
 
