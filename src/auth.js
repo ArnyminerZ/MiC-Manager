@@ -11,6 +11,7 @@ import {
 } from './exceptions.js';
 
 import securityPolicy from '../security-policy.json' assert {type: 'json'};
+import {ipToLong} from "./utils.js";
 
 /**
  * Queries the amount of login attempts made by the given IP in the last 24 hours.
@@ -20,10 +21,12 @@ import securityPolicy from '../security-policy.json' assert {type: 'json'};
  * @returns {Promise<number>}
  */
 const loginAttemptsCount = async (ip) => {
-    const sql = `SELECT Id, dbo.fnDisplayIPv4(IP), DNI, Timestamp
+    const longIp = ipToLong(ip);
+    const sql = `SELECT Id, IP, DNI, Timestamp
                  FROM mLoginAttempts
                  WHERE Timestamp >= DATEADD(day, -1, getdate())
-                   AND Successful = 0;`;
+                   AND Successful = 0
+                   AND IP = 0x ${longIp.toString(16)};`;
     const q = await query(sql);
     return q?.recordset?.length ?? 0;
 };
@@ -55,7 +58,7 @@ const getSocioIdFromDni = async (dni) => {
  */
 const getUserFromSocioId = async (socioId) => {
     const sql = `SELECT hash
-                 FROM GesTro.dbo.mUsers
+                 FROM mUsers
                  WHERE SocioId = ${socioId}`;
     const hashQuery = await query(sql);
     if (hashQuery.rowsAffected[0] <= 0 || hashQuery.rowsAffected[0] <= 0)
@@ -91,8 +94,8 @@ export const login = async (dni, password, reqIp) => {
     let successful = await bcrypt.compare(password, userHash);
 
     // Register the attempt
-    const queryStr = `INSERT INTO GesTro.dbo.mLoginAttempts (DNI, IP, Successful)
-                      SELECT '${dni}', (SELECT bin FROM dbo.itvfBinaryIPv4('${ip}')), ${successful ? 1 : 0};`;
+    const queryStr = `INSERT INTO mLoginAttempts (DNI, IP, Successful)
+                      SELECT '${dni}', 0x${ipToLong(ip).toString(16)}, ${successful ? 1 : 0};`;
     await query(queryStr);
 
     if (!successful)
@@ -125,7 +128,7 @@ export const changePassword = async (dni, newPassword, apiKey) => {
         if (e instanceof PasswordlessUserException) {
             // Trying to set a password
             const passwordHash = await bcrypt.hash(newPassword, securityPolicy.crypto["salt-rounds"]);
-            const sql = `INSERT INTO GesTro.dbo.mUsers (SocioId, Hash)
+            const sql = `INSERT INTO mUsers (SocioId, Hash)
                          VALUES (${socioId}, '${passwordHash}');`;
             await query(sql);
         } else

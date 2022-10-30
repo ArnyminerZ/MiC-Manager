@@ -14,7 +14,7 @@ import {query as dbQuery} from './database.js';
  */
 export const hasPermission = async (userId, permission) => {
     const query = await dbQuery(`SELECT mUsers.Role as UserRole, mP.Name as Permission
-                                 FROM GesTro.dbo.mUsers
+                                 FROM mUsers
                                           LEFT JOIN mRolesPermissions mRP ON mUsers.Role = mRP.Role
                                           LEFT JOIN mRoles mR ON mRP.Role = mR.Id
                                           LEFT JOIN mPermissions mP on mRP.Permission = mP.Id

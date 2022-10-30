@@ -39,7 +39,7 @@ const app = express();
 // Middleware
 app.use(reqIp.mw());
 app.use(express.json({strict: false}));
-app.use(express.urlencoded())
+app.use(express.urlencoded({extended: true}))
 
 app.get('/v1/user/auth', async (req, res) => {
     // const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
@@ -130,6 +130,19 @@ app.get('/v1/events/list', async (req, res) => {
         return res.status(406).send(errorResponse('invalid-key'));
     const events = await getEvents();
     res.json(successResponse(events));
+});
+app.post('/v1/events/join', async (req, res) => {
+    const body = req.body;
+    /** @type {string|null} */
+    const eventId = body['event_id'];
+    /** @type {string|null} */
+    const apiKey = req.get('API-Key');
+
+    if (eventId == null)
+        return res.status(400).send(errorResponse('missing-parameters'));
+
+    if (apiKey == null || !(await checkToken(apiKey)))
+        return res.status(406).send(errorResponse('invalid-key'));
 });
 
 app.listen(HTTP_PORT, () => console.info(`🖥️ Listening for requests on http://localhost:${HTTP_PORT}`));

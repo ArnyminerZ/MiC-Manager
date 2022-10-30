@@ -52,7 +52,7 @@ const formatDayDate = (date) => dateFormat(new Date(date), 'yyyy-MM-dd');
  */
 export const getUserData = async (socioId, constrain = false) => {
     const sql = `SELECT *
-                 FROM GesTro.dbo.tbSocios
+                 FROM tbSocios
                  WHERE idSocio = '${socioId}';`;
     const result = await dbQuery(sql);
     if (result.rowsAffected[0] <= 0)
@@ -98,7 +98,7 @@ export const getUserData = async (socioId, constrain = false) => {
  */
 export const getSocioId = async (userId) => {
     const query = await dbQuery(`SELECT SocioId
-                                 FROM GesTro.dbo.mUsers
+                                 FROM mUsers
                                  WHERE Id = ${userId};`);
     if (query.rowsAffected[0] <= 0)
         throw new UserNotFoundException(`Could not find user#${userId}.`);
@@ -136,7 +136,7 @@ export const getEvents = async () => {
                         mT.Responsible as TableResponsible,
                         mTP.Person     as TableMember,
                         mT.Id          as TableId
-                 FROM GesTro.dbo.mEvents
+                 FROM mEvents
                           LEFT JOIN mAssistance mA ON mEvents.id = mA.Event
                           LEFT JOIN mTables mT on mEvents.id = mT.Event
                           LEFT JOIN mTablesPeople mTP on mT.Id = mTP.TableId;`;

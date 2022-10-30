@@ -5,6 +5,13 @@ export class SecurityException extends Error {
     }
 }
 
+export class DatabaseException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "DatabaseException";
+    }
+}
+
 export class UserNotFoundException extends Error {
     constructor(message) {
         super(message);

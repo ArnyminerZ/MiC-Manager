@@ -1,27 +1,25 @@
-import sql from 'mssql';
+import mariadb from 'mariadb';
 import dotenv from 'dotenv';
+import {LoginAttemptsTable, SociosTable, UsersTable} from "../model/Users.js";
+import {DatabaseException} from "./exceptions.js";
 
 dotenv.config();
 
-const sqlConfig = {
+const serverConfig = {
+    host: process.env.DB_HOSTNAME,
     user: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    server: process.env.DB_HOSTNAME,
-    pool: {
-        max: 10,
-        min: 0,
-        idleTimeoutMillis: 30000
-    },
-    options: {
-        encrypt: true, // for azure
-        trustServerCertificate: true // change to true for local dev / self-signed certs
-    },
-}
+    connectionLimit: 5,
+};
+const pool = mariadb.createPool(serverConfig);
 
-const connect = async () => await sql.connect(sqlConfig);
+let conn;
 
-const disconnect = async () => await sql.close();
+const connect = async () => {
+    conn = await pool.getConnection();
+};
+
+const disconnect = async () => await conn?.end();
 
 /**
  * Tries connecting to the database, then disconnects.
@@ -32,18 +30,39 @@ const disconnect = async () => await sql.close();
  */
 export const check = async (debug = false) => {
     try {
-        return !!(await connect()) && !!(await disconnect())
+        await connect();
+
+        // Check if database exists
+        const queryResult = await query(
+            `SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME='${process.env.DB_DATABASE}'`
+        );
+        if (queryResult?.recordset?.get(0) <= 0)
+            throw new DatabaseException(`❌ Could not find a database named`, process.env.DB_DATABASE);
+
+        await query(UsersTable);
+        await query(LoginAttemptsTable);
+        await query(SociosTable);
+
+        await disconnect();
+
+        return true;
     } catch (e) {
-        if (debug) console.error(e, 'Config:', sqlConfig);
+        if (debug) console.error(e, 'Config:', serverConfig);
         return false;
     }
 };
 
+/**
+ *
+ * @param query
+ * @param shouldDisconnect
+ * @return {Promise<Request>}
+ */
 export const query = async (query, shouldDisconnect = true) => {
     let result;
     try {
         await connect();
-        result = await sql.query(query);
+        result = await conn.query(query);
     } finally {
         if (shouldDisconnect)
             await disconnect();
