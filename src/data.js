@@ -59,6 +59,7 @@ export const getUserData = async (socioId, constrain = false) => {
         throw new UserNotFoundException(`Could not find socio#${socioId}.`);
     const row = rows[0];
     return {
+        id: row['idSocio'],
         name: row['Nombre'].trim(),
         familyName: row['Apellidos'].trim(),
         address: constrain ? null : row['Direccion'].trim(),
