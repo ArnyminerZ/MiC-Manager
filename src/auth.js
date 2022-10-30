@@ -70,7 +70,7 @@ const getUserFromSocioId = async (socioId) => {
     if (rows.length <= 0)
         throw new PasswordlessUserException(`The user with SocioId=${socioId} doesn't have a password defined, please, set.`);
     const data = rows[0];
-    return {hash: data['hash'], id: data['id']};
+    return {hash: data['hash'], id: data['Id']};
 };
 
 /**
