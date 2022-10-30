@@ -24,9 +24,9 @@ const loginAttemptsCount = async (ip) => {
     const longIp = ipToLong(ip);
     const sql = `SELECT Id, IP, UserId, Timestamp
                  FROM mLoginAttempts
-                 WHERE Timestamp >= DATEADD(day, -1, getdate())
+                 WHERE Timestamp >= now() - interval 1 day
                    AND Successful = 0
-                   AND IP = 0x ${longIp.toString(16)};`;
+                   AND IP = 0x${longIp.toString(16)};`;
     const q = await query(sql);
     return q?.recordset?.length ?? 0;
 };
