@@ -15,6 +15,11 @@ const insertIfNotExists = (table, pairs) => {
             });`
 };
 
+export const InsertInfo = [
+    // Database version
+    insertIfNotExists('mInfo', {Id: 1, Value: '1'}),
+];
+
 export const InsertDefaultRole = insertIfNotExists('mRoles', {Id: 1, DisplayName: 'DEFAULT'});
 
 export const InsertPermissions = [
@@ -24,4 +29,86 @@ export const InsertPermissions = [
     insertIfNotExists('mPermissions', {Id: 2, DisplayName: 'event_add'}),
     // See all the registered people
     insertIfNotExists('mPermissions', {Id: 3, DisplayName: 'people_see'}),
+];
+
+export const InsertGrades = [
+    insertIfNotExists('mGrades', {
+        Id: 1,
+        DisplayName: 'fester',
+        ActsRight: 1,
+        LockWhitesWheel: 0,
+        LockBlacksWheel: 0,
+        Votes: 1,
+        MinAge: 18
+    }),
+    insertIfNotExists('mGrades', {
+        Id: 2,
+        DisplayName: 'jubilat',
+        ActsRight: 1,
+        LockWhitesWheel: 1,
+        LockBlacksWheel: 1,
+        Votes: 0,
+        MinAge: 18
+    }),
+    insertIfNotExists('mGrades', {
+        Id: 3,
+        DisplayName: 'situ_esp',
+        ActsRight: 1,
+        LockWhitesWheel: 1,
+        LockBlacksWheel: 1,
+        Votes: 0,
+        MinAge: 18
+    }),
+    insertIfNotExists('mGrades', {
+        Id: 4,
+        DisplayName: 'colaborador',
+        ActsRight: 0,
+        LockWhitesWheel: 1,
+        LockBlacksWheel: 1,
+        Votes: 0,
+        MinAge: 18
+    }),
+    insertIfNotExists('mGrades', {
+        Id: 5,
+        DisplayName: 'juvenil',
+        ActsRight: 1,
+        LockWhitesWheel: 1,
+        LockBlacksWheel: 1,
+        Votes: 0,
+        MinAge: 16,
+        MaxAge: 18
+    }),
+    insertIfNotExists('mGrades', {
+        Id: 6,
+        DisplayName: 'infantil',
+        ActsRight: 1,
+        LockWhitesWheel: 1,
+        LockBlacksWheel: 1,
+        Votes: 0,
+        MinAge: 10,
+        MaxAge: 16
+    }),
+    insertIfNotExists('mGrades', {
+        Id: 7,
+        DisplayName: 'alevi',
+        ActsRight: 1,
+        LockWhitesWheel: 1,
+        LockBlacksWheel: 1,
+        Votes: 0,
+        MinAge: 0,
+        MaxAge: 10
+    }),
+];
+
+export const InsertPositions = [
+    insertIfNotExists('mPositions', {Id: 1, DisplayName: 'primer_tro'}),
+    insertIfNotExists('mPositions', {Id: 2, DisplayName: 'darrer_tro'}),
+    insertIfNotExists('mPositions', {Id: 3, DisplayName: 'tresorer'}),
+    insertIfNotExists('mPositions', {Id: 4, DisplayName: 'secretari'}),
+    insertIfNotExists('mPositions', {Id: 5, DisplayName: 'glorier'}),
+    insertIfNotExists('mPositions', {Id: 6, DisplayName: 'glorier_inf'}),
+    insertIfNotExists('mPositions', {Id: 7, DisplayName: 'dianer'}),
+    insertIfNotExists('mPositions', {Id: 8, DisplayName: 'dianer_inf'}),
+    insertIfNotExists('mPositions', {Id: 9, DisplayName: 'esquadra'}),
+    insertIfNotExists('mPositions', {Id: 10, DisplayName: 'esquadra_esp'}),
 ];

@@ -2,20 +2,39 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export const UsersTable = `
-    CREATE TABLE IF NOT EXISTS mUsers
+export const InfoTable = `
+    CREATE TABLE IF NOT EXISTS mInfo
     (
-        Id      INT(10) UNSIGNED auto_increment NOT NULL,
-        Hash    varchar(256)                    NOT NULL,
-        SocioId INT(10) UNSIGNED                NOT NULL,
-        Role    INT(10) UNSIGNED DEFAULT 1      NOT NULL,
-        CONSTRAINT mUsers_PK PRIMARY KEY (Id),
-        CONSTRAINT mUsers_FK FOREIGN KEY (Role) REFERENCES mRoles (Id)
+        Id    int(10) unsigned auto_increment NOT NULL,
+        Value varchar(16)                     NOT NULL,
+        CONSTRAINT mInfo_PK PRIMARY KEY (Id)
     )
         ENGINE = InnoDB
         DEFAULT CHARSET = utf8mb3
         COLLATE = utf8mb3_general_ci
-        COMMENT = 'A table that keeps track of the users that make use of the platform. Data is available at tbSocios.'`;
+        COMMENT ='Provides some information about the database.';
+`;
+
+export const UsersTable = `
+    CREATE TABLE IF NOT EXISTS mUsers
+    (
+        Id          INT(10) UNSIGNED auto_increment NOT NULL,
+        Hash        varchar(256)                    NOT NULL,
+        Uid         INT(10) UNSIGNED                NOT NULL COMMENT 'The UID of the user in the WebDAV address book.',
+        Role        INT(10) UNSIGNED DEFAULT 1      NOT NULL,
+        Grade       INT(10) UNSIGNED                NOT NULL,
+        WhitesWheel INT(10) UNSIGNED DEFAULT 0      NOT NULL,
+        BlacksWheel INT(10) UNSIGNED DEFAULT 0      NOT NULL,
+        Associated  INT(10) UNSIGNED DEFAULT NULL   NULL COMMENT 'Can be linked with another user. The indicated will be the supervisor of the current user.',
+        CONSTRAINT mUsers_PK PRIMARY KEY (Id),
+        CONSTRAINT mUsers_FK FOREIGN KEY (Role) REFERENCES mRoles (Id),
+        CONSTRAINT mUsers_GR FOREIGN KEY (Grade) REFERENCES mGrades (Id),
+        CONSTRAINT mUsers_AS FOREIGN KEY (Associated) REFERENCES mUsers (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT = 'A table that keeps track of the users that make use of the platform.'`;
 
 export const LoginAttemptsTable = `
     CREATE TABLE IF NOT EXISTS mLoginAttempts
@@ -149,4 +168,117 @@ export const RolesPermissionsTable = `
         DEFAULT CHARSET = utf8mb3
         COLLATE = utf8mb3_general_ci
         COMMENT ='Relates permissions with roles';
+`;
+
+export const GradesTable = `
+    CREATE TABLE IF NOT EXISTS mGrades
+    (
+        Id              int(10) unsigned auto_increment NOT NULL COMMENT 'The id of the grade.',
+        DisplayName     varchar(16)                     NOT NULL COMMENT 'A descriptive name of the role.',
+        ActsRight       bit      DEFAULT 0              NOT NULL COMMENT 'If the grade provides right to participate on public acts.',
+        LockWhitesWheel bit      DEFAULT 0              NOT NULL COMMENT 'If the grade locks the position of the person in the whites wheel.',
+        LockBlacksWheel bit      DEFAULT 0              NOT NULL COMMENT 'If the grade locks the position of the person in the blacks wheel.',
+        Votes           bit      DEFAULT 0              NOT NULL COMMENT 'If the grade grants the user the possibility to vote.',
+        MinAge          smallint DEFAULT 18             NOT NULL COMMENT 'The minimum age required to have this grade.',
+        MaxAge          smallint DEFAULT NULL           NULL COMMENT 'The maximum age allowed to have this grade.',
+        CONSTRAINT mGrades_PK PRIMARY KEY (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='Stores the different grades that each person can get. These define which rights they have in the organization.';
+`;
+
+export const RegistrationsTable = `
+    CREATE TABLE IF NOT EXISTS mUserRegistrations
+    (
+        Id            int(10) unsigned auto_increment     NOT NULL,
+        UserId        int(10) unsigned                    NOT NULL,
+        \`Left\`      bit       DEFAULT 0                 NOT NULL COMMENT '1 if the user is leaving, 0 if the user is entering.',
+        \`Timestamp\` timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'The time in which the registration was made.',
+        CONSTRAINT mUserRegistrations_PK PRIMARY KEY (Id),
+        CONSTRAINT mUserRegistrations_FK FOREIGN KEY (UserId) REFERENCES mUsers (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='Stores the different sign ups and downs users have made.';
+`;
+
+export const AscentsTable = `
+    CREATE TABLE IF NOT EXISTS mUserAscents
+    (
+        Id        int(10) unsigned auto_increment     NOT NULL,
+        Timestamp timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'The time in which the ascent was made.',
+        UserId    int(10) unsigned                    NOT NULL,
+        FromGrade int(10) unsigned                    NOT NULL,
+        ToGrade   int(10) unsigned                    NOT NULL,
+        CONSTRAINT mUserAscents_PK PRIMARY KEY (Id),
+        CONSTRAINT mUserAscents_FK_User FOREIGN KEY (UserId) REFERENCES mUsers (Id),
+        CONSTRAINT mUserAscents_FK_Grade1 FOREIGN KEY (FromGrade) REFERENCES mGrades (Id),
+        CONSTRAINT mUserAscents_FK_Grade2 FOREIGN KEY (ToGrade) REFERENCES mGrades (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='Stores the different movements between categories that the users have made.';
+`;
+
+export const PositionsTable = `
+    CREATE TABLE IF NOT EXISTS mPositions
+    (
+        Id          int(10) unsigned auto_increment NOT NULL COMMENT 'The id of the position.',
+        DisplayName varchar(16)                     NOT NULL COMMENT 'A descriptive name of the position.',
+        CONSTRAINT mPositions_PK PRIMARY KEY (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='Stores the different positions that each person can get.';
+`;
+
+export const UserPositionsTable = `
+    CREATE TABLE IF NOT EXISTS mUserPositions
+    (
+        Id        int(10) unsigned auto_increment     NOT NULL,
+        Timestamp timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL COMMENT 'The time in which the ascent was made.',
+        UserId    int(10) unsigned                    NOT NULL,
+        Position  int(10) unsigned                    NOT NULL,
+        CONSTRAINT mUserPositions_PK PRIMARY KEY (Id),
+        CONSTRAINT mUserPositions_FK_User FOREIGN KEY (UserId) REFERENCES mUsers (Id),
+        CONSTRAINT mUserPositions_FK_Position FOREIGN KEY (Position) REFERENCES mPositions (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='Stores the positions that people have made over time. This includes ruling charges, and public charges.';
+`;
+
+export const UserTrebuchetTable = `
+    CREATE TABLE IF NOT EXISTS mUserTrebuchet
+    (
+        Id       int(10) unsigned auto_increment NOT NULL,
+        UserId   int(10) unsigned                NOT NULL,
+        Obtained date                            NOT NULL,
+        Expires  date                            NOT NULL,
+        CONSTRAINT mUserTrebuchet_PK PRIMARY KEY (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='Stores every time an user has obtained a shooting permission.';
+`;
+
+export const UserShootsTable = `
+    CREATE TABLE IF NOT EXISTS mUserShoots
+    (
+        Id     int(10) unsigned auto_increment NOT NULL,
+        UserId int(10) unsigned                NOT NULL,
+        Year   int(10) unsigned                NOT NULL,
+        CONSTRAINT mUserShoots_PK PRIMARY KEY (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='Stores every time an user has shot.';
 `;

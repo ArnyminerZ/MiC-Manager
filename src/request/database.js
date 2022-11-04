@@ -1,19 +1,27 @@
 import mariadb from 'mariadb';
 import dotenv from 'dotenv';
 import {
+    AscentsTable,
     AssistanceTable,
     CategoriesTable,
     EventsTable,
+    GradesTable,
+    InfoTable,
     LoginAttemptsTable,
     PeopleTablesTable,
     PermissionsTable,
+    PositionsTable,
+    RegistrationsTable,
     RolesPermissionsTable,
     RolesTable,
     TablesTable,
-    UsersTable
+    UserPositionsTable,
+    UserShootsTable,
+    UsersTable,
+    UserTrebuchetTable
 } from "../../model/Tables.js";
 import {DatabaseException} from "../exceptions.js";
-import {InsertDefaultRole, InsertPermissions} from "../../model/Defaults.js";
+import {InsertDefaultRole, InsertGrades, InsertInfo, InsertPermissions, InsertPositions} from "../../model/Defaults.js";
 
 dotenv.config();
 
@@ -55,9 +63,11 @@ export const check = async (debug = false) => {
             throw new DatabaseException(`❌ Could not find a database named`, process.env.DB_DATABASE);
 
         // Create tables
+        await query(InfoTable);
+        await query(RolesTable);
+        await query(GradesTable);
         await query(UsersTable);
         await query(LoginAttemptsTable);
-        await query(RolesTable);
         await query(PermissionsTable);
         await query(CategoriesTable);
         await query(EventsTable);
@@ -65,10 +75,19 @@ export const check = async (debug = false) => {
         await query(TablesTable);
         await query(PeopleTablesTable);
         await query(RolesPermissionsTable);
+        await query(RegistrationsTable);
+        await query(AscentsTable);
+        await query(PositionsTable);
+        await query(UserPositionsTable);
+        await query(UserTrebuchetTable);
+        await query(UserShootsTable);
 
         // Insert default data
+        for (const q of InsertInfo) await query(q);
         await query(InsertDefaultRole);
         for (const q of InsertPermissions) await query(q);
+        for (const q of InsertGrades) await query(q);
+        for (const q of InsertPositions) await query(q);
 
         await disconnect();
 
