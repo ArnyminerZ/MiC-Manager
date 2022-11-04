@@ -19,7 +19,7 @@ import {getSocioId, getUserData} from "./src/data/users.js";
 import {getEvents} from "./src/data/events.js";
 import {hasPermission} from "./src/permissions.js";
 import {checkVariables} from './src/variables.js';
-import {createClient} from "./src/request/caldav.js";
+import {createClient as calCreateClient} from "./src/request/caldav.js";
 
 dotenv.config();
 
@@ -40,6 +40,10 @@ if (!(await dbCheck(!!process.env.DEBUG))) {
     process.exitCode = 1;
 } else
     console.info(`✅ Database connected.`);
+
+console.info(`⏺️ Checking CalDAV server...`);
+await calCreateClient();
+console.info(`✅ CalDAV server ready.`);
 
 if (process.exitCode === 1)
     throw Error('Could not initialize the server. Errors have occurred.');
