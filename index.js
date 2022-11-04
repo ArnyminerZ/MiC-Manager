@@ -17,8 +17,11 @@ import {
 import {checkToken, decodeToken} from "./src/security.js";
 import {getEvents, getSocioId, getUserData} from "./src/data.js";
 import {hasPermission} from "./src/permissions.js";
+import {checkVariables} from './src/variables.js';
 
 dotenv.config();
+
+checkVariables();
 
 /**
  * The port number used for listening for http requests.
