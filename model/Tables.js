@@ -261,7 +261,8 @@ export const UserTrebuchetTable = `
         UserId   int(10) unsigned                NOT NULL,
         Obtained date                            NOT NULL,
         Expires  date                            NOT NULL,
-        CONSTRAINT mUserTrebuchet_PK PRIMARY KEY (Id)
+        CONSTRAINT mUserTrebuchet_PK PRIMARY KEY (Id),
+        CONSTRAINT mUserTrebuchet_FK FOREIGN KEY (UserId) REFERENCES mUsers (Id)
     )
         ENGINE = InnoDB
         DEFAULT CHARSET = utf8mb3
@@ -275,7 +276,8 @@ export const UserShootsTable = `
         Id     int(10) unsigned auto_increment NOT NULL,
         UserId int(10) unsigned                NOT NULL,
         Year   int(10) unsigned                NOT NULL,
-        CONSTRAINT mUserShoots_PK PRIMARY KEY (Id)
+        CONSTRAINT mUserShoots_PK PRIMARY KEY (Id),
+        CONSTRAINT mUserShoots_FK FOREIGN KEY (UserId) REFERENCES mUsers (Id)
     )
         ENGINE = InnoDB
         DEFAULT CHARSET = utf8mb3
