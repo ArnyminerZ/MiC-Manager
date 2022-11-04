@@ -15,7 +15,7 @@ import {
     WrongPasswordException
 } from './src/exceptions.js';
 import {checkToken, decodeToken} from "./src/security.js";
-import {getEvents, getSocioId, getUserData} from "./src/data.js";
+import {getEvents, getSocioId, getUserData} from "./src/data/users.js";
 import {hasPermission} from "./src/permissions.js";
 import {checkVariables} from './src/variables.js';
 
