@@ -12,9 +12,9 @@ import {
     SociosTable,
     TablesTable,
     UsersTable
-} from "../model/Tables.js";
-import {DatabaseException} from "./exceptions.js";
-import {InsertDefaultRole, InsertPermissions} from "../model/Defaults.js";
+} from "../../model/Tables.js";
+import {DatabaseException} from "../exceptions.js";
+import {InsertDefaultRole, InsertPermissions} from "../../model/Defaults.js";
 
 dotenv.config();
 

@@ -6,7 +6,7 @@ import reqIp from 'request-ip';
 import fs from 'fs';
 
 import {errorResponse, successResponse} from './src/response.js';
-import {check as dbCheck} from './src/database.js';
+import {check as dbCheck} from './src/request/database.js';
 import {changePassword, login} from "./src/auth.js";
 import {
     InvalidTokenException,

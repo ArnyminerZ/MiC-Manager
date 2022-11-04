@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 
-import {query} from './database.js';
+import {query} from './request/database.js';
 import {checkToken, generateToken} from "./security.js";
 import {
     InvalidTokenException,

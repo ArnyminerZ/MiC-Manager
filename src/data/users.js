@@ -1,6 +1,6 @@
 import dateFormat from 'dateformat';
 
-import {query as dbQuery} from '../database.js';
+import {query as dbQuery} from '../request/database.js';
 import {UserNotFoundException} from "../exceptions.js";
 
 /**

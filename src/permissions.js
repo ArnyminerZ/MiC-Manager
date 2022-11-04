@@ -1,4 +1,4 @@
-import {query as dbQuery} from './database.js';
+import {query as dbQuery} from './request/database.js';
 
 /**
  * @typedef {("view-user-data")} Permission

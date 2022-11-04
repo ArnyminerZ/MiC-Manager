@@ -17,7 +17,7 @@
  * @property {TableData[]} tables
  */
 
-import {query as dbQuery} from "../database.js";
+import {query as dbQuery} from "../request/database.js";
 
 /**
  * Gets a list of all the available events.
