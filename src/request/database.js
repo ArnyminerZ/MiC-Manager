@@ -21,7 +21,14 @@ import {
     UserTrebuchetTable
 } from "../../model/Tables.js";
 import {DatabaseException} from "../exceptions.js";
-import {InsertDefaultRole, InsertGrades, InsertInfo, InsertPermissions, InsertPositions} from "../../model/Defaults.js";
+import {
+    InsertDefaultRoles,
+    InsertGrades,
+    InsertInfo,
+    InsertPermissions,
+    InsertPositions,
+    InsertRolesPermissions
+} from "../../model/Defaults.js";
 
 dotenv.config();
 
@@ -84,7 +91,8 @@ export const check = async (debug = false) => {
 
         // Insert default data
         for (const q of InsertInfo) await query(q);
-        await query(InsertDefaultRole);
+        for (const q of InsertDefaultRoles) await query(q);
+        for (const q of InsertRolesPermissions) await query(q);
         for (const q of InsertPermissions) await query(q);
         for (const q of InsertGrades) await query(q);
         for (const q of InsertPositions) await query(q);
