@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "github_structure": [
+      ".github"
+    ],
+    "documentation": [
+      "*.md"
+    ],
+    "docker": [
+      "Dockerfile",
+      ".dockerignore"
+    ]
+  }
+}
