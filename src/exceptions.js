@@ -39,3 +39,10 @@ export class InvalidTokenException extends Error {
         this.name = 'InvalidTokenException';
     }
 }
+
+export class EnvironmentVariableException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'EnvironmentVariableException';
+    }
+}
