@@ -79,12 +79,9 @@ paths:
         - schema:
             type: string
             example: 12345678A
-            pattern: '^\d{8}[TRWAGMYFPDXBNJZSQVHLCKE]$'
-            minLength: 9
-            maxLength: 9
           in: query
-          name: dni
-          description: 'The DNI of the user being authorised. Case sensitive, and must include letter.'
+          name: nif
+          description: The NIF of the user being authorised.
           required: true
         - schema:
             type: string
@@ -120,6 +117,18 @@ paths:
                     success: false
                     error:
                       code: missing-parameters
+        '404':
+          description: Not Found - Could not find the given user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-404:
+                  value:
+                    success: true
+                    error:
+                      code: missing-parameters
         '406':
           description: Not Acceptable - The given API Key is not valid.
           content:
@@ -146,6 +155,9 @@ paths:
                 password:
                   type: string
                   description: The new password to give to the user.
+                nif:
+                  type: string
+                  description: If the user doesn't have a password. This field can be provided instead of the "API Key" header for setting a new password to the user.
               required:
                 - password
         description: The new password to set.
