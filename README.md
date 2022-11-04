@@ -34,9 +34,30 @@ There are some environment variables which are required for the server to work. 
 
 **Required**. The name of the database to use. `DB_USERNAME` must be granted to modify and access it.
 
+### `CALDAV_HOSTNAME`
+
+**Required**. The server address for the CalDAV server.
+
+### `CALDAV_USERNAME`
+
+**Required**. The username to use for signing in to the CalDAV server.
+
+### `CALDAV_PASSWORD`
+
+**Required**. The password to use with `CALDAV_USERNAME`.
+
+### `CALDAV_AB_URL`
+
+**Required**. The url of the address book to use.
+
 ### `DEBUG`
 
 Default: `false`. If `true`, debug mode will be enabled, and errors will give a deeper output.
+
+# User information
+
+By default, MiC Manager doesn't support storing any users' information. For this, a WebDAV server must be used.
+We recommend [Radicale](https://radicale.org).
 
 ---
 

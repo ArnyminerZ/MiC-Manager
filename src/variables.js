@@ -21,16 +21,30 @@ export const checkVariables = () => {
     );
     process.env.HTTP_PORT = '3000';
   }
-  const host = process.env.DB_HOSTNAME;
-  const user = process.env.DB_USERNAME;
-  const pass = process.env.DB_PASSWORD;
-  const dbnm = process.env.DB_DATABASE;
-  if (host == null)
+
+  const dbHost = process.env.DB_HOSTNAME;
+  const dbUser = process.env.DB_USERNAME;
+  const dbPass = process.env.DB_PASSWORD;
+  const dbName = process.env.DB_DATABASE;
+  if (dbHost == null)
     throw new EnvironmentVariableException("DB_HOSTNAME was not set.");
-  if (user == null)
+  if (dbUser == null)
     throw new EnvironmentVariableException("DB_USERNAME was not set.");
-  if (pass == null)
+  if (dbPass == null)
     throw new EnvironmentVariableException("DB_PASSWORD was not set.");
-  if (dbnm == null)
+  if (dbName == null)
     throw new EnvironmentVariableException("DB_DATABASE was not set.");
+
+  const calHost = process.env.CALDAV_HOSTNAME;
+  const calUser = process.env.CALDAV_USERNAME;
+  const calPass = process.env.CALDAV_PASSWORD;
+  const calAb = process.env.CALDAV_AB_URL;
+  if (calHost == null)
+    throw new EnvironmentVariableException("CALDAV_HOSTNAME was not set.");
+  if (calUser == null)
+    throw new EnvironmentVariableException("CALDAV_USERNAME was not set.");
+  if (calPass == null)
+    throw new EnvironmentVariableException("CALDAV_PASSWORD was not set.");
+  if (calAb == null)
+    throw new EnvironmentVariableException("CALDAV_AB_URL was not set.");
 };
