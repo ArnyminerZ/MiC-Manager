@@ -90,20 +90,3 @@ export const getUserData = async (socioId, constrain = false) => {
         payment: row['idFormaPago'],
     };
 };
-
-/**
- * Fetches the socioId of a given userId.
- * @author Arnau Mora
- * @since 20221025
- * @param {number} userId The userId to search for.
- * @throws UserNotFoundException If the given `userId` was not found.
- * @return {Promise<number>}
- */
-export const getSocioId = async (userId) => {
-    const rows = await dbQuery(`SELECT SocioId
-                                FROM mUsers
-                                WHERE Id = ${userId};`);
-    if (rows.length <= 0)
-        throw new UserNotFoundException(`Could not find user#${userId}.`);
-    return rows[0]['SocioId'];
-};
