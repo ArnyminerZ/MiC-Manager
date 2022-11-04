@@ -1,13 +1,13 @@
 {
-  "name": "filamagenta_backend",
-  "version": "1.0.0",
-  "description": "The server code for managing the Fila Magenta's Apps.",
+  "name": "mic_manager",
+  "version": "1.0.0-indev01",
+  "description": "A backend server API for managing local groups data.",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node --no-warnings index.js"
   },
-  "repository": "https://github.com/ArnyminerZ/Backend.git",
+  "repository": "https://github.com/ArnyminerZ/MiC-Manager.git",
   "author": "Arnau Mora <arnyminer.z@gmail.com>",
   "license": "GPL-3.0-or-later",
   "dependencies": {
