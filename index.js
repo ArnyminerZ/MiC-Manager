@@ -15,9 +15,11 @@ import {
     WrongPasswordException
 } from './src/exceptions.js';
 import {checkToken, decodeToken} from "./src/security.js";
-import {getEvents, getSocioId, getUserData} from "./src/data/users.js";
+import {getSocioId, getUserData} from "./src/data/users.js";
+import {getEvents} from "./src/data/events.js";
 import {hasPermission} from "./src/permissions.js";
 import {checkVariables} from './src/variables.js';
+import {createClient} from "./src/request/caldav.js";
 
 dotenv.config();
 
