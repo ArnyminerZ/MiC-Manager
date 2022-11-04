@@ -269,7 +269,15 @@ paths:
       operationId: post-v1-events-join
       responses:
         '200':
-          description: OK
+          description: OK - Joined event successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example:
+                  value:
+                    success: true
         '400':
           description: Bad Request - The given token doesn't contain valid data.
           content:
