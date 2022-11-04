@@ -9,7 +9,6 @@ import {
     PermissionsTable,
     RolesPermissionsTable,
     RolesTable,
-    SociosTable,
     TablesTable,
     UsersTable
 } from "../../model/Tables.js";
@@ -58,7 +57,6 @@ export const check = async (debug = false) => {
         // Create tables
         await query(UsersTable);
         await query(LoginAttemptsTable);
-        await query(SociosTable);
         await query(RolesTable);
         await query(PermissionsTable);
         await query(CategoriesTable);
