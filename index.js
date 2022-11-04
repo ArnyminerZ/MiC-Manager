@@ -109,7 +109,10 @@ app.get('/v1/user/data', async (req, res) => {
         userId = tokenData['userId'];
     }
     const userData = await getUserData(userId);
-    res.json(successResponse(userData));
+    if (constrain)
+        res.json(successResponse(userData.vCard));
+    else
+        res.json(successResponse(userData));
 });
 app.post('/v1/user/change_password', async (req, res) => {
     const body = req.body;

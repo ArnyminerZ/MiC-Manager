@@ -26,23 +26,14 @@
  * @property {number} WhitesWheelNumber
  * @property {number} BlacksWheelNumber
  * @property {number} AssociatedTo
+ * @property {Object} vCard
  */
-
-import dateFormat from 'dateformat';
 
 import {query as dbQuery} from '../request/database.js';
 import {UserNotFoundException} from "../exceptions.js";
+import {getCard} from "../request/caldav.js";
 
-/**
- * Returns the given string as a formatted date following yyyy-MM-dd.
- * @author Arnau Mora
- * @since 20221021
- * @param {string} date The date to parse.
- * @return {string}
- */
-const formatDayDate = (date) => dateFormat(new Date(date), 'yyyy-MM-dd');
-
-export const findUserWithQuery = async (where) => {
+const findUserWithQuery = async (where) => {
     const rows = await dbQuery(`
         SELECT mUsers.*,
                mR.DisplayName as RoleDisplayName,
@@ -63,6 +54,7 @@ export const findUserWithQuery = async (where) => {
     if (rows.length <= 0) throw new UserNotFoundException('Could not find user that matches "' + where + '"');
     // console.log('rows:', rows);
     const data = rows[0];
+    const card = getCard(data['Uid'])
     const permissions = rows.map(r => r['PermDisplayName']).filter(v => v != null);
     return {
         Id: data['Id'],
@@ -85,6 +77,7 @@ export const findUserWithQuery = async (where) => {
         WhitesWheelNumber: data['WhitesWheel'],
         BlacksWheelNumber: data['BlacksWheel'],
         AssociatedTo: data['Associated'],
+        vCard: card,
     };
 };
 
@@ -95,7 +88,13 @@ export const findUserWithQuery = async (where) => {
  * @param {string} nif
  * @return {Promise<UserData|null>}
  */
-export const findUserWithNif = async nif => findUserWithQuery(`NIF = '${nif}'`);
+export const findUserWithNif = async nif => {
+    try {
+        return await findUserWithQuery(`NIF = '${nif}'`);
+    } catch (e) {
+        return null
+    }
+};
 
 /**
  * Fetches the data of a given user.
@@ -104,4 +103,10 @@ export const findUserWithNif = async nif => findUserWithQuery(`NIF = '${nif}'`);
  * @param {number} userId The id of the user.
  * @return {Promise<UserData|null>}
  */
-export const getUserData = async (userId) => findUserWithQuery(`mUsers.Id = '${userId}'`);
+export const getUserData = async (userId) => {
+    try {
+        return await findUserWithQuery(`mUsers.Id = '${userId}'`)
+    } catch (e) {
+        return null
+    }
+};
