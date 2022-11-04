@@ -19,14 +19,16 @@ export const UsersTable = `
     CREATE TABLE IF NOT EXISTS mUsers
     (
         Id          INT(10) UNSIGNED auto_increment NOT NULL,
-        Hash        varchar(256)                    NOT NULL,
-        Uid         INT(10) UNSIGNED                NOT NULL COMMENT 'The UID of the user in the WebDAV address book.',
+        NIF         varchar(20)                     NOT NULL,
+        Hash        varchar(256)     DEFAULT NULL   NULL,
+        Uid         varchar(36)                     NOT NULL COMMENT 'The UID of the user in the WebDAV address book.',
         Role        INT(10) UNSIGNED DEFAULT 1      NOT NULL,
         Grade       INT(10) UNSIGNED                NOT NULL,
         WhitesWheel INT(10) UNSIGNED DEFAULT 0      NOT NULL,
         BlacksWheel INT(10) UNSIGNED DEFAULT 0      NOT NULL,
         Associated  INT(10) UNSIGNED DEFAULT NULL   NULL COMMENT 'Can be linked with another user. The indicated will be the supervisor of the current user.',
         CONSTRAINT mUsers_PK PRIMARY KEY (Id),
+        CONSTRAINT mUsers_UK UNIQUE KEY (NIF),
         CONSTRAINT mUsers_FK FOREIGN KEY (Role) REFERENCES mRoles (Id),
         CONSTRAINT mUsers_GR FOREIGN KEY (Grade) REFERENCES mGrades (Id),
         CONSTRAINT mUsers_AS FOREIGN KEY (Associated) REFERENCES mUsers (Id)
