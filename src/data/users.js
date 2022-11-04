@@ -1,13 +1,11 @@
 /**
  * @typedef {Object} RoleData
- * @property {number} Id
  * @property {string} DisplayName
  * @property {string[]} Permissions
  */
 
 /**
  * @typedef {Object} GradeData
- * @property {number} Id
  * @property {string} DisplayName
  * @property {boolean} ActsRight
  * @property {boolean} LockWhitesWheel
@@ -47,9 +45,9 @@ const formatDayDate = (date) => dateFormat(new Date(date), 'yyyy-MM-dd');
 export const findUserWithQuery = async (where) => {
     const rows = await dbQuery(`
         SELECT mUsers.*,
-               mR.DisplayName  as RoleDisplayName,
-               mP.PermissionId as RolePermission,
-               mG.DisplayName  as GradeDisplayName,
+               mR.DisplayName as RoleDisplayName,
+               m.DisplayName  as PermDisplayName,
+               mG.DisplayName as GradeDisplayName,
                mG.ActsRight,
                mG.LockBlacksWheel,
                mG.LockWhitesWheel,
@@ -60,16 +58,30 @@ export const findUserWithQuery = async (where) => {
                  LEFT JOIN mRoles mR ON mUsers.Role = mR.Id
                  LEFT JOIN mRolesPermissions mP ON mR.Id = mP.RoleId
                  LEFT JOIN mGrades mG on mUsers.Grade = mG.Id
+                 LEFT JOIN mPermissions m on mP.PermissionId = m.Id
         WHERE ${where};`);
     if (rows.length <= 0) throw new UserNotFoundException('Could not find user that matches "' + where + '"');
+    // console.log('rows:', rows);
     const data = rows[0];
+    const permissions = rows.map(r => r['PermDisplayName']).filter(v => v != null);
     return {
         Id: data['Id'],
         Hash: data['Hash'],
         Uid: data['Uid'],
         NIF: data['NIF'],
-        Role: {}, // TODO: Parse Role Data
-        Grade: {}, // TODO: Parse Grade Data
+        Role: {
+            DisplayName: data['RoleDisplayName'],
+            Permissions: permissions,
+        },
+        Grade: {
+            DisplayName: data['GradeDisplayName'],
+            ActsRight: data['ActsRight'],
+            LockBlacksWheel: data['LockBlacksWheel'],
+            LockWhitesWheel: data['LockWhitesWheel'],
+            MinAge: data['MinAge'],
+            MaxAge: data['MaxAge'],
+            Votes: data['Votes'],
+        },
         WhitesWheelNumber: data['WhitesWheel'],
         BlacksWheelNumber: data['BlacksWheel'],
         AssociatedTo: data['Associated'],
