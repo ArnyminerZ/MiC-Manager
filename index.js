@@ -94,9 +94,12 @@ app.get('/v1/user/data', async (req, res) => {
     if (apiKey == null || !(await checkToken(apiKey)))
         return res.status(406).send(errorResponse('invalid-key'));
 
-    const tokenData = await decodeToken(apiKey);
-    if (!tokenData.hasOwnProperty('socioId'))
+    let tokenData;
+    try {
+        tokenData = await decodeToken(apiKey);
+    } catch (e) {
         return res.status(401).send(errorResponse('invalid-key'));
+    }
 
     let userId, constrain = false;
     if (userIdParam != null) {

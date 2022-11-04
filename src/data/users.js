@@ -92,4 +92,4 @@ export const findUserWithNif = async nif => findUserWithQuery(`NIF = '${nif}'`);
  * @param {number} userId The id of the user.
  * @return {Promise<UserData|null>}
  */
-export const getUserData = async (userId) => findUserWithQuery(`Id = '${userId}'`);
+export const getUserData = async (userId) => findUserWithQuery(`mUsers.Id = '${userId}'`);
