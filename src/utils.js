@@ -10,3 +10,10 @@ export const ipToLong = (ip) => {
     });
     return (ipl >>> 0);
 }
+
+/**
+ * Checks if a given value is a number.
+ * @param {string} value The value to check against
+ * @returns {boolean}
+ */
+export const isNumber = value => /^-?\d+$/.test(value);
