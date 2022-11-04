@@ -20,7 +20,16 @@ export const InsertInfo = [
     insertIfNotExists('mInfo', {Id: 1, Value: '1'}),
 ];
 
-export const InsertDefaultRole = insertIfNotExists('mRoles', {Id: 1, DisplayName: 'DEFAULT'});
+export const InsertDefaultRoles = [
+    insertIfNotExists('mRoles', {Id: 1, DisplayName: 'DEFAULT'}),
+    insertIfNotExists('mRoles', {Id: 2, DisplayName: 'ADMIN'}),
+];
+
+export const InsertRolesPermissions = [
+    insertIfNotExists('mRolesPermissions', {Id: 1, RoleId: 2, PermissionId: 1}),
+    insertIfNotExists('mRolesPermissions', {Id: 2, RoleId: 2, PermissionId: 2}),
+    insertIfNotExists('mRolesPermissions', {Id: 3, RoleId: 2, PermissionId: 3}),
+];
 
 export const InsertPermissions = [
     // See all the tables for events
