@@ -1,3 +1,35 @@
+/**
+ * @typedef {Object} RoleData
+ * @property {number} Id
+ * @property {string} DisplayName
+ * @property {string[]} Permissions
+ */
+
+/**
+ * @typedef {Object} GradeData
+ * @property {number} Id
+ * @property {string} DisplayName
+ * @property {boolean} ActsRight
+ * @property {boolean} LockWhitesWheel
+ * @property {boolean} LockBlacksWheel
+ * @property {boolean} Votes
+ * @property {boolean} MinAge
+ * @property {boolean|null} MaxAge
+ */
+
+/**
+ * @typedef {Object} UserData
+ * @property {number} Id
+ * @property {string} Hash
+ * @property {string} Uid
+ * @property {string} NIF
+ * @property {RoleData} Role
+ * @property {GradeData} Grade
+ * @property {number} WhitesWheelNumber
+ * @property {number} BlacksWheelNumber
+ * @property {number} AssociatedTo
+ */
+
 import dateFormat from 'dateformat';
 
 import {query as dbQuery} from '../request/database.js';
@@ -12,81 +44,52 @@ import {UserNotFoundException} from "../exceptions.js";
  */
 const formatDayDate = (date) => dateFormat(new Date(date), 'yyyy-MM-dd');
 
-/**
- * @typedef {Object} WheelData
- * @property {number} number
- * @property {boolean} locked
- */
+export const findUserWithQuery = async (where) => {
+    const rows = await dbQuery(`
+        SELECT mUsers.*,
+               mR.DisplayName  as RoleDisplayName,
+               mP.PermissionId as RolePermission,
+               mG.DisplayName  as GradeDisplayName,
+               mG.ActsRight,
+               mG.LockBlacksWheel,
+               mG.LockWhitesWheel,
+               mG.MinAge,
+               mG.MaxAge,
+               mG.Votes
+        FROM mUsers
+                 LEFT JOIN mRoles mR ON mUsers.Role = mR.Id
+                 LEFT JOIN mRolesPermissions mP ON mR.Id = mP.RoleId
+                 LEFT JOIN mGrades mG on mUsers.Grade = mG.Id
+        WHERE ${where};`);
+    if (rows.length <= 0) throw new UserNotFoundException('Could not find user that matches "' + where + '"');
+    const data = rows[0];
+    return {
+        Id: data['Id'],
+        Hash: data['Hash'],
+        Uid: data['Uid'],
+        NIF: data['NIF'],
+        Role: {}, // TODO: Parse Role Data
+        Grade: {}, // TODO: Parse Grade Data
+        WhitesWheelNumber: data['WhitesWheel'],
+        BlacksWheelNumber: data['BlacksWheel'],
+        AssociatedTo: data['Associated'],
+    };
+};
 
 /**
- * @typedef {Object} TrebuchetData
- * @property {boolean} shoots
- * @property {string} obtained
- * @property {string} expires
+ * Searches for the data of a user with the given DNI.
+ * @author Arnau Mora
+ * @since 20221104
+ * @param {string} nif
+ * @return {Promise<UserData|null>}
  */
-
-/**
- * @typedef {Object} UserData
- * @property {string} name
- * @property {string} familyName
- * @property {string} address
- * @property {number} postalCode
- * @property {string} dni
- * @property {string} born Follows `formatDayDate`
- * @property {string} registration Follows `formatDayDate`
- * @property {string} workPhone
- * @property {string} homePhone
- * @property {string} mobilePhone
- * @property {string} email
- * @property {{whites:WheelData,blacks:WheelData}} wheel
- * @property {TrebuchetData} trebuchet
- */
+export const findUserWithNif = async nif => findUserWithQuery(`NIF = '${nif}'`);
 
 /**
  * Fetches the data of a given user.
  * @author Arnau Mora
  * @since 20221024
- * @param {number} socioId The id of the user in the socios table.
- * @param {boolean} constrain If the whole user data should be returned, or just the public one.
- * @return {Promise<UserData>}
+ * @param {number} userId The id of the user.
+ * @return {Promise<UserData|null>}
  */
-export const getUserData = async (socioId, constrain = false) => {
-    const sql = `SELECT *
-                 FROM tbSocios
-                 WHERE idSocio = '${socioId}';`;
-    const rows = await dbQuery(sql);
-    if (rows.length <= 0)
-        throw new UserNotFoundException(`Could not find socio#${socioId}.`);
-    const row = rows[0];
-    return {
-        id: row['idSocio'],
-        name: row['Nombre'].trim(),
-        familyName: row['Apellidos'].trim(),
-        address: constrain ? null : row['Direccion'].trim(),
-        postalCode: constrain ? null : row['idCodPostal'],
-        dni: constrain ? null : row['Dni'],
-        born: constrain ? null : row['FecNacimiento'],
-        registration: constrain ? null : row['FecAlta'],
-        workPhone: constrain ? null : row['TlfParticular'],
-        homePhone: constrain ? null : row['TlfTrabajo'],
-        mobilePhone: constrain ? null : row['TlfMovil'],
-        email: constrain ? null : row['eMail'],
-        wheel: constrain ? null : {
-            whites: (!row['nrRodaBlancos'] || !row['bRodaBlancos']) ? null : {
-                number: row['nrRodaBlancos'],
-                locked: row['bRodaBlancos'],
-            },
-            blacks: (!row['nrRodaNegros'] || !row['bRodaNegros']) ? null : {
-                number: row['nrRodaNegros'],
-                locked: row['bRodaNegros'],
-            },
-        },
-        trebuchet: constrain ? null : !row['bCarnetAvancarga'] ? null : {
-            shoots: row['bDisparaAvancarga'],
-            obtained: formatDayDate(row['FecExpedicionAvancarga']),
-            expires: formatDayDate(row['FecCaducidadAvancarga']),
-        },
-        type: row['idTipoFestero'],
-        payment: row['idFormaPago'],
-    };
-};
+export const getUserData = async (userId) => findUserWithQuery(`Id = '${userId}'`);

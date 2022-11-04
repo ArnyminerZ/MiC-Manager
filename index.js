@@ -12,14 +12,15 @@ import {
     InvalidTokenException,
     PasswordlessUserException,
     SecurityException,
+    UserNotFoundException,
     WrongPasswordException
 } from './src/exceptions.js';
 import {checkToken, decodeToken} from "./src/security.js";
-import {getSocioId, getUserData} from "./src/data/users.js";
+import {getUserData} from "./src/data/users.js";
 import {getEvents} from "./src/data/events.js";
 import {hasPermission} from "./src/permissions.js";
 import {checkVariables} from './src/variables.js';
-import {createClient as calCreateClient} from "./src/request/caldav.js";
+import {createClient as calCreateClient, getCards} from "./src/request/caldav.js";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ if (!(await dbCheck(!!process.env.DEBUG))) {
 
 console.info(`⏺️ Checking CalDAV server...`);
 await calCreateClient();
+await getCards();
 console.info(`✅ CalDAV server ready.`);
 
 if (process.exitCode === 1)
@@ -59,19 +61,15 @@ app.get('/ping', (req, res) => res.send('pong'));
 app.get('/v1/user/auth', async (req, res) => {
     // const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
     const query = req.query;
-    /**
-     * @type {string|null}
-     */
-    const dni = query['dni'];
-    /**
-     * @type {string|null}
-     */
+    /** @type {string|null} */
+    const nif = query['nif'];
+    /** @type {string|null} */
     const password = query['password'];
 
-    if (dni == null || password == null)
+    if (nif == null || password == null)
         return res.status(400).json(errorResponse('missing-parameters'));
     try {
-        const token = await login(dni, password, req.clientIp);
+        const token = await login(nif, password, req.clientIp);
         res.status(200).json(successResponse({token}));
     } catch (e) {
         if (e instanceof PasswordlessUserException)
@@ -100,42 +98,38 @@ app.get('/v1/user/data', async (req, res) => {
     if (!tokenData.hasOwnProperty('socioId'))
         return res.status(401).send(errorResponse('invalid-key'));
 
-    let socioId, constrain = false;
+    let userId, constrain = false;
     if (userIdParam != null) {
-        const userId = parseInt(userIdParam);
-        socioId = await getSocioId(userId);
+        userId = parseInt(userIdParam);
         constrain = !(await hasPermission(userId, 'view-user-data'));
     } else {
-        socioId = tokenData['socioId'];
+        userId = tokenData['userId'];
     }
-    const userData = await getUserData(socioId, constrain);
+    const userData = await getUserData(userId);
     res.json(successResponse(userData));
 });
 app.post('/v1/user/change_password', async (req, res) => {
     const body = req.body;
-    /**
-     * @type {string|null}
-     */
-    const dni = body['dni'];
-    /**
-     * @type {string|null}
-     */
+    /** @type {string|null} */
+    const nif = body['nif'];
+    /** @type {string|null} */
     const password = body['password'];
-    /**
-     * @type {string|null}
-     */
+    /** @type {string|null} */
     const apiKey = req.get('API-Key');
 
-    if (dni == null || password == null)
+    if (nif == null || password == null)
         return res.status(400).json(errorResponse('missing-parameters'));
     try {
-        await changePassword(dni, password, apiKey);
+        await changePassword(nif, password, apiKey);
         res.status(200).json(successResponse());
     } catch (e) {
         if (e instanceof InvalidTokenException)
             res.status(406).json(errorResponse('invalid-key'));
+        else if (e instanceof UserNotFoundException)
+            res.status(406).json(errorResponse('not-found'));
         else
-            res.status(500).json({error: 'work in progress'})
+            res.status(500).json({error: e})
+        console.error(e);
     }
 });
 app.get('/v1/events/list', async (req, res) => {
