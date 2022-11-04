@@ -94,7 +94,7 @@ export const query = async (query, shouldDisconnect = true) => {
     try {
         if (conn == null || !conn.isValid())
             await connect();
-        await conn.query('USE FilaMagenta;');
+        await conn.query(`USE ${process.env.DB_DATABASE};`);
         result = await conn.query(query);
     } finally {
         if (shouldDisconnect)
