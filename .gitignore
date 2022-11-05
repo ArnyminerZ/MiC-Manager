@@ -4,8 +4,8 @@ node_modules
 # Environment file
 .env
 
-# Private key file
-private.key
+# Lock files
+*.lock
 
 # Docker data directories
 .docker
