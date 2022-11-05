@@ -95,6 +95,19 @@ To know which url to set. First access the web interface for Radicale. Eg: http:
 Then, log in, and choose one of the options provided, either creating an empty address book, or import an existing one.
 ![Creation options](./docs/RadicaleCreation.png)
 
+# Migration
+## GesTro
+MiC Manager provides the option to migrate all the data from GesTro. There's a script at `/migrations` called
+`gestro.js` that has all the tools necessary. To run, first install all the dependencies:
+```shell
+yarn install
+```
+And now run the script. Replace all the fields accordingly.
+```shell
+yarn run migrate-gestro HOSTNAME={hostname} PORT=1433 DATABASE=GesTro SCHEMA=dbo USERNAME={username} PASSWORD={password} INSTANCE={mic-instance}
+```
+*Note: The given MiC instance must contain the protocol (e.g. https://...) and be without a trailing `/`*
+
 ---
 
 [docker-badge-url]: https://img.shields.io/docker/v/arnyminerz/mic_manager?style=for-the-badge&logo=docker
