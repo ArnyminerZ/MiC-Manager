@@ -25,6 +25,7 @@ import {addEndpoints as addMigrationEndpoints} from "./src/endpoints/migration.j
 dotenv.config();
 
 checkVariables();
+const props = getProps();
 
 /**
  * The port number used for listening for http requests.
