@@ -53,3 +53,12 @@ export const checkVariables = () => {
   if (calPort == null) process.env.CALDAV_PORT = '5232';
   if (calSsl == null) process.env.CALDAV_SSL_ENABLE = 'false';
 };
+
+/**
+ * Gets all the enabled props.
+ * @return {string[]}
+ */
+export const getProps = () => {
+  const props = process.env.PROPS;
+  return props != null ? props.split(';') : [];
+}
