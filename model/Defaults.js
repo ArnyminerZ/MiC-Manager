@@ -107,6 +107,15 @@ export const InsertGrades = [
         MinAge: 0,
         MaxAge: 10
     }),
+    insertIfNotExists('mGrades', {
+        Id: 8,
+        DisplayName: 'baixa',
+        ActsRight: 0,
+        LockWhitesWheel: 1,
+        LockBlacksWheel: 1,
+        Votes: 0,
+        MinAge: 0,
+    }),
 ];
 
 export const InsertPositions = [
