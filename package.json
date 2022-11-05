@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node --no-warnings index.js"
+    "start": "node --no-warnings index.js",
+    "migrate-gestro": "node migrate/gestro.js"
   },
   "repository": "https://github.com/ArnyminerZ/MiC-Manager.git",
   "author": "Arnau Mora <arnyminer.z@gmail.com>",
