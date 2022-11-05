@@ -6,7 +6,7 @@ const privateKeyFilePath = process.env.PRIVATE_KEY_FILE ?? './secrets/private.ke
 if (!fs.existsSync(privateKeyFilePath)) {
     console.warn('❌ Private key file is required but doesn\'t exist.');
     process.exitCode = 1;
-    return;
+    throw Error(`Private key file is required but doesn't exist. Path: ` + privateKeyFilePath);
 }
 
 const privateKey = fs.readFileSync(privateKeyFilePath).toString();
