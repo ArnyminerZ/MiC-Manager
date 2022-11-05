@@ -77,15 +77,19 @@ export const getCard = async (uid) => {
 /**
  *
  * @param {PersonData} data
- * @return {Promise<Response>}
+ * @return {Promise<[string,Response]>}
  * @throws {ParseException} If the data given is missing one or more parameters.
  */
 export const newCard = async (data) => {
     if (addressBook == null) throw new Error('Address book not found. Please, run createClient before.');
     const vCard = personDataToVCard(data);
-    return await client.createVCard({
-        addressBook,
-        filename: uuidv4() + '.vcf',
-        vCardString: vCard,
-    });
+    const uuid = uuidv4();
+    return [
+        uuid,
+        await client.createVCard({
+            addressBook,
+            filename: uuid + '.vcf',
+            vCardString: vCard,
+        })
+    ];
 };
