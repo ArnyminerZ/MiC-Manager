@@ -22,6 +22,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "mssql": "^9.0.1"
+    "mssql": "^9.0.1",
+    "axios": "^1.1.3"
   }
 }
