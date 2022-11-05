@@ -5,6 +5,9 @@ import {ParseException} from "../exceptions.js";
 
 export const addEndpoints = app => {
     warn('The "migration" prop is enabled. Do not keep enabled longer than needed.');
+
+    app.get('/v1/migration/ping', (req, res) => res.send('pong'));
+
     app.post('/v1/migration/add_person', async (req, res) => {
         const body = req.body;
 
