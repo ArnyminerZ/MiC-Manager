@@ -37,9 +37,11 @@ export const checkVariables = () => {
     throw new EnvironmentVariableException("DB_DATABASE was not set.");
 
   const calHost = process.env.CALDAV_HOSTNAME;
+  const calPort = process.env.CALDAV_PORT;
+  const calSsl = process.env.CALDAV_SSL_ENABLE;
   const calUser = process.env.CALDAV_USERNAME;
   const calPass = process.env.CALDAV_PASSWORD;
-  const calAb = process.env.CALDAV_AB_URL;
+  const calAb = process.env.CALDAV_AB_UUID;
   if (calHost == null)
     throw new EnvironmentVariableException("CALDAV_HOSTNAME was not set.");
   if (calUser == null)
@@ -47,5 +49,7 @@ export const checkVariables = () => {
   if (calPass == null)
     throw new EnvironmentVariableException("CALDAV_PASSWORD was not set.");
   if (calAb == null)
-    throw new EnvironmentVariableException("CALDAV_AB_URL was not set.");
+    throw new EnvironmentVariableException("CALDAV_AB_UUID was not set.");
+  if (calPort == null) process.env.CALDAV_PORT = '5232';
+  if (calSsl == null) process.env.CALDAV_SSL_ENABLE = 'false';
 };
