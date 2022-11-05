@@ -18,9 +18,9 @@ export const addEndpoints = app => {
         const data = JSON.parse(dataRaw);
 
         try {
-            const response = await newCard(data);
+            const [uuid, response] = await newCard(data);
             if (response.ok === true)
-                return res.send(successResponse());
+                return res.json(successResponse({uuid}));
             log('Could not add person. Response:', response);
             res.status(500).json(errorResponse('invalid-request'));
         } catch (e) {
