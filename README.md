@@ -11,7 +11,7 @@
 ## Generating private file
 
 ```shell
-openssl rand -base64 756 > private.key
+openssl rand -base64 756 > ./secrets/private.key
 ```
 
 ## Environment variables
@@ -58,6 +58,42 @@ Default: `false`. If `true`, debug mode will be enabled, and errors will give a 
 
 By default, MiC Manager doesn't support storing any users' information. For this, a WebDAV server must be used.
 We recommend [Radicale](https://radicale.org).
+
+# Docker configuration
+
+We provide you a docker compose file ([`docker-compose.yml`](./docker-compose.yml)) that is almost ready to go, with all
+the necessary containers configured. However, there are some extra options you must set.
+
+Just as a note, the Radicale users match the server's registered users. You might want to create a specific user for
+this purpose.
+
+## Secrets
+
+We need some secret keys and files for the system to work. You can define them with the following commands.
+
+```shell
+# Create the secrets directory
+mkdir -p secrets
+
+# Replace {password} with the password to use for the database user.
+echo "{password}" > secrets/password.txt
+
+# Replace {password} with the password to use for identifying as {username}. Choose wisely.
+echo "{root-password}" > secrets/root-password.txt
+```
+
+Note that it's required to have swarm mode enabled. You can do so with:
+
+```shell
+docker swarm init
+```
+
+## Setting `CALDAV_AB_URL`
+
+To know which url to set. First access the web interface for Radicale. Eg: http://localhost:5232/.web/.
+
+Then, log in, and choose one of the options provided, either creating an empty address book, or import an existing one.
+![Creation options](./docs/RadicaleCreation.png)
 
 ---
 
