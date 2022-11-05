@@ -1,7 +1,15 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 
-const privateKey = fs.readFileSync('./private.key').toString();
+const privateKeyFilePath = './certs/private.key';
+
+if (!fs.existsSync(privateKeyFilePath)) {
+    console.warn('❌ Private key file is required and not defined.');
+    process.exitCode = 1;
+    return;
+}
+
+const privateKey = fs.readFileSync(privateKeyFilePath).toString();
 
 /**
  * Generates a new JSON Web Token with the given payload.
@@ -44,7 +52,7 @@ export const checkToken = (token) => new Promise((resolve) => {
  * @author Arnau Mora
  * @since 20221021
  * @param {string} token The token to check for.
- * @returns {Promise<{dni:string,socioId:string}>}
+ * @returns {Promise<{nif:string,userId:string}>}
  */
 export const decodeToken = (token) => new Promise((resolve, reject) => {
     jwt.verify(token, privateKey, {}, (err, payload) => {
