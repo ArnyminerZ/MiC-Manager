@@ -104,8 +104,8 @@ export const check = async (debug = false) => {
         // Insert default data
         for (const q of InsertInfo) await query(q);
         for (const q of InsertDefaultRoles) await query(q);
-        for (const q of InsertRolesPermissions) await query(q);
         for (const q of InsertPermissions) await query(q);
+        for (const q of InsertRolesPermissions) await query(q);
         for (const q of InsertGrades) await query(q);
         for (const q of InsertPositions) await query(q);
 
