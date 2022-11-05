@@ -12,6 +12,8 @@ let client,
     /** @type {DAVObject[]} */
     vCards;
 
+const serverUrl = () => (process.env.CALDAV_SSL_ENABLE === 'true' ? 'https' : 'http') + '://' + process.env.CALDAV_HOSTNAME + ':' + process.env.CALDAV_PORT;
+
 /**
  * Fetches the cards data from the server, and stores it locally.
  * @author Arnau Mora
@@ -19,15 +21,18 @@ let client,
  * @return {Promise<void>}
  */
 export const fetchCards = async () => {
-    addressBook = (await client.fetchAddressBooks()).find(v => v.url === process.env.CALDAV_AB_URL);
-    if (addressBook == null) throw Error('Could not find an address book with the url: ' + process.env.CALDAV_AB_URL);
+    const abs = await client.fetchAddressBooks();
+    addressBook = abs.find(v => v.url.endsWith(process.env.CALDAV_AB_UUID));
+
+    if (addressBook == null) throw Error('Could not find an address book with the uid: ' + process.env.CALDAV_AB_UUID);
+
     vCards = await client.fetchVCards({addressBook: addressBook});
 }
 
 export const createClient = async (debug = process.env.DEBUG) => {
     if (client == null) try {
         client = await createDAVClient({
-            serverUrl: process.env.CALDAV_HOSTNAME,
+            serverUrl: serverUrl(),
             credentials: {
                 username: process.env.CALDAV_USERNAME,
                 password: process.env.CALDAV_PASSWORD,
@@ -36,7 +41,12 @@ export const createClient = async (debug = process.env.DEBUG) => {
             defaultAccountType: 'carddav',
         });
     } catch (e) {
-        console.error(`CalDAV settings: CALDAV_HOSTNAME:`, process.env.CALDAV_HOSTNAME, 'CALDAV_USERNAME:', process.env.CALDAV_USERNAME, 'CALDAV_PASSWORD:', process.env.CALDAV_PASSWORD);
+        console.error(
+            `CalDAV settings: CALDAV_HOSTNAME:`, process.env.CALDAV_HOSTNAME,
+            'Server url:', serverUrl(),
+            'CALDAV_USERNAME:', process.env.CALDAV_USERNAME,
+            'CALDAV_PASSWORD:', process.env.CALDAV_PASSWORD,
+        );
         console.error(`Could not connect to the CalDAV server. Error:`, e);
         return false;
     }
