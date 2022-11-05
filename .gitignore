@@ -6,3 +6,6 @@ node_modules
 
 # Private key file
 private.key
+
+# Docker data directories
+.docker
