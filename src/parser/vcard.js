@@ -33,7 +33,7 @@
 import {ParseException} from "../exceptions.js";
 import {v4 as uuidv4} from 'uuid';
 
-import {version} from '../../package.json' assert {type: 'json'};
+import package_json from '../../package.json' assert {type: 'json'};
 
 /**
  * Splits all the given cards from a source to individual elements from an array, and divided into lines.
@@ -188,7 +188,7 @@ export const personDataToVCard = (data) => {
     return [
         "BEGIN:VCARD",
         "VERSION:3.0", // Right now only 3.0 is supported
-        "PRODID:MiC_Manager//" + version,
+        "PRODID:MiC_Manager//" + package_json.version,
         "REV:" + (new Date()).toISOString(),
         data.address != null ? 'ADR;TYPE=' + data.address[0] + ':' + data.address[1] : null,
         data.agent != null ? `AGENT:${data.agent}` : null,
