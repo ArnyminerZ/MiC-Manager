@@ -17,3 +17,19 @@ export const ipToLong = (ip) => {
  * @returns {boolean}
  */
 export const isNumber = value => /^-?\d+$/.test(value);
+
+/**
+ * Capitalizes the first letter of each word.
+ * @author Arnau Mora
+ * @since 20221105
+ * @param {string} text
+ * @return {string}
+ */
+export const capitalize = text =>
+    text.toLowerCase()
+        .split(' ')
+        .map(t => {
+            const newChar = t.charAt(0).toUpperCase();
+            return newChar + t.substring(1);
+        })
+        .join(' ');
