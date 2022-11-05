@@ -164,6 +164,9 @@ app.post('/v1/events/join', async (req, res) => {
         return res.status(406).send(errorResponse('invalid-key'));
 });
 
+// Extra endpoints
+if (props.includes('migration')) addMigrationEndpoints(app);
+
 // Fallback
 app.get('*', (req, res) => res.status(404).json(errorResponse('invalid-request')));
 
