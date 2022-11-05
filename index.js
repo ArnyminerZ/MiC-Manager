@@ -17,8 +17,10 @@ import {checkToken, decodeToken} from "./src/security.js";
 import {getUserData} from "./src/data/users.js";
 import {getEvents} from "./src/data/events.js";
 import {hasPermission} from "./src/permissions.js";
-import {checkVariables} from './src/variables.js';
+import {checkVariables, getProps} from './src/variables.js';
 import {createClient as calCreateClient, getCards} from "./src/request/caldav.js";
+import {error, info, infoSuccess} from './cli/logger.js';
+import {addEndpoints as addMigrationEndpoints} from "./src/endpoints/migration.js";
 
 dotenv.config();
 
@@ -30,20 +32,20 @@ checkVariables();
  */
 const HTTP_PORT = process.env.HTTP_PORT ?? 3000;
 
-console.info(`⏺️ Checking database...`);
+info(`Checking database...`);
 if (!(await dbCheck(!!process.env.DEBUG))) {
-    console.error(`❌  Could not connect to database. Host: ${process.env.DB_HOSTNAME}`)
-    process.exitCode = 1;
+    error(`Could not connect to database. Host: ${process.env.DB_HOSTNAME}`)
+    process.exit(1);
 } else
-    console.info(`✅ Database connected.`);
+    infoSuccess(`Database connected.`);
 
-console.info(`⏺️ Checking CalDAV server...`);
-await calCreateClient();
+info(`Checking CalDAV server...`);
+if (!(await calCreateClient())) {
+    error(`Could not connect to the CalDAV server.`)
+    process.exit(1);
+}
 await getCards();
-console.info(`✅ CalDAV server ready.`);
-
-if (process.exitCode === 1)
-    throw Error('Could not initialize the server. Errors have occurred.');
+infoSuccess(`CalDAV server ready.`);
 
 const app = express();
 
@@ -78,7 +80,7 @@ app.get('/v1/user/auth', async (req, res) => {
         else if (e instanceof SecurityException)
             res.status(412).json(errorResponse('max-attempts-reached'));
         else {
-            console.error('❌ Could not authenticate. Error:', e);
+            error('❌ Could not authenticate. Error:', e);
             res.status(500).json({success: false, error: 'unknown', errorData: e});
         }
     }
@@ -134,7 +136,7 @@ app.post('/v1/user/change_password', async (req, res) => {
             res.status(406).json(errorResponse('not-found'));
         else
             res.status(500).json({error: e})
-        console.error(e);
+        error(e);
     }
 });
 app.get('/v1/events/list', async (req, res) => {
@@ -164,4 +166,4 @@ app.post('/v1/events/join', async (req, res) => {
 // Fallback
 app.get('*', (req, res) => res.status(404).json(errorResponse('invalid-request')));
 
-app.listen(HTTP_PORT, () => console.info(`🖥️ Listening for requests on http://localhost:${HTTP_PORT}`));
+app.listen(HTTP_PORT, () => info(`Listening for requests on http://localhost:${HTTP_PORT}`));
