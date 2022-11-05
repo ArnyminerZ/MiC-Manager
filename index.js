@@ -4,7 +4,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import reqIp from 'request-ip';
 import {errorResponse, successResponse} from './src/response.js';
-import {check as dbCheck} from './src/request/database.js';
+import {check as dbCheck, info as dbInfo} from './src/request/database.js';
 import {changePassword, login} from "./src/auth.js";
 import {
     InvalidTokenException,
@@ -53,6 +53,10 @@ app.use(express.json({strict: false}));
 app.use(express.urlencoded({extended: true}))
 
 app.get('/ping', (req, res) => res.send('pong'));
+app.get('/v1/info', async (req, res) => {
+    const database = await dbInfo();
+    res.json(successResponse({database}));
+});
 app.get('/v1/user/auth', async (req, res) => {
     // const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
     const query = req.query;

@@ -144,3 +144,20 @@ export const query = async (query, shouldDisconnect = true) => {
     }
     return result;
 };
+
+/**
+ * Fetches the database information.
+ * @author Arnau Mora
+ * @since 20221105
+ * @return {Promise<{version:string}>}
+ */
+export const info = async () => {
+    /**
+     * @type {{Id:number,Value:string}[]}
+     */
+    const info = await query(`SELECT *
+                              FROM mInfo`);
+    return {
+        version: info.find(v => v.Id === 1)?.Value,
+    };
+}
