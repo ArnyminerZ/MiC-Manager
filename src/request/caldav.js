@@ -25,7 +25,7 @@ export const fetchCards = async () => {
 }
 
 export const createClient = async (debug = process.env.DEBUG) => {
-    if (client == null)
+    if (client == null) try {
         client = await createDAVClient({
             serverUrl: process.env.CALDAV_HOSTNAME,
             credentials: {
@@ -35,11 +35,17 @@ export const createClient = async (debug = process.env.DEBUG) => {
             authMethod: 'Basic',
             defaultAccountType: 'carddav',
         });
+    } catch (e) {
+        console.error(`CalDAV settings: CALDAV_HOSTNAME:`, process.env.CALDAV_HOSTNAME, 'CALDAV_USERNAME:', process.env.CALDAV_USERNAME, 'CALDAV_PASSWORD:', process.env.CALDAV_PASSWORD);
+        console.error(`Could not connect to the CalDAV server. Error:`, e);
+        return false;
+    }
 
     await fetchCards();
 
     if (debug === 'true')
         console.debug('There are', vCards.length, 'vCards.');
+    return true;
 };
 
 export const getCards = async () => vCards.map(t => parseCards(t.data));

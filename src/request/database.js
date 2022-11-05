@@ -33,30 +33,35 @@ import fs from "fs";
 
 dotenv.config();
 
-let dbPassword = process.env.DB_PASSWORD;
-const dbPasswordFile = process.env.DB_PASSWORD_FILE;
-if (dbPassword == null)
-    if (dbPasswordFile != null)
-        if (fs.existsSync(dbPasswordFile))
-            dbPassword = fs.readFileSync(dbPasswordFile);
-        else
-            console.error(`The Database's password file is defined but doesn't exist:`, dbPasswordFile);
-    else
-        console.error(`It's required to give either DB_PASSWORD or DB_PASSWORD_FILE`);
-
-const serverConfig = {
-    host: process.env.DB_HOSTNAME,
-    user: process.env.DB_USERNAME,
-    password: dbPassword,
-    connectionLimit: 5,
-};
-const pool = mariadb.createPool(serverConfig);
-
 /** @type {mariadb.PoolConnection} */
 let conn;
 
-const connect = async () => {
-    conn = await pool.getConnection();
+const connect = async (debug = false) => {
+    let dbPassword = process.env.DB_PASSWORD;
+    const dbPasswordFile = process.env.DB_PASSWORD_FILE;
+    if (dbPassword == null)
+        if (dbPasswordFile != null)
+            if (fs.existsSync(dbPasswordFile))
+                dbPassword = fs.readFileSync(dbPasswordFile);
+            else
+                console.error(`The Database's password file is defined but doesn't exist:`, dbPasswordFile);
+        else
+            console.error(`It's required to give either DB_PASSWORD or DB_PASSWORD_FILE`);
+
+    const serverConfig = {
+        host: process.env.DB_HOSTNAME,
+        user: process.env.DB_USERNAME,
+        password: dbPassword,
+        connectionLimit: 5,
+    };
+
+    try {
+        const pool = mariadb.createPool(serverConfig);
+        conn = await pool.getConnection();
+    } catch (e) {
+        if (debug) console.error(e, 'Database Config:', serverConfig);
+        throw e;
+    }
 };
 
 const disconnect = async () => await conn?.end();
@@ -70,7 +75,7 @@ const disconnect = async () => await conn?.end();
  */
 export const check = async (debug = false) => {
     try {
-        await connect();
+        await connect(debug);
 
         // Check if database exists
         const queryResult = await query(
@@ -113,7 +118,7 @@ export const check = async (debug = false) => {
 
         return true;
     } catch (e) {
-        if (debug) console.error(e, 'Config:', serverConfig);
+        console.error('Could not connect to the database. Error:', e);
         return false;
     }
 };
