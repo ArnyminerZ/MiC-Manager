@@ -9,3 +9,4 @@ private.key
 
 # Docker data directories
 .docker
+secrets
