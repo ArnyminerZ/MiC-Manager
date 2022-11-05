@@ -25,13 +25,14 @@ export const checkVariables = () => {
   const dbHost = process.env.DB_HOSTNAME;
   const dbUser = process.env.DB_USERNAME;
   const dbPass = process.env.DB_PASSWORD;
+  const dbPassFile = process.env.DB_PASSWORD_FILE;
   const dbName = process.env.DB_DATABASE;
   if (dbHost == null)
     throw new EnvironmentVariableException("DB_HOSTNAME was not set.");
   if (dbUser == null)
     throw new EnvironmentVariableException("DB_USERNAME was not set.");
-  if (dbPass == null)
-    throw new EnvironmentVariableException("DB_PASSWORD was not set.");
+  if (dbPass == null && dbPassFile == null)
+    throw new EnvironmentVariableException("DB_PASSWORD and DB_PASSWORD_FILE were not set.");
   if (dbName == null)
     throw new EnvironmentVariableException("DB_DATABASE was not set.");
 
