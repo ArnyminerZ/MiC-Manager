@@ -30,6 +30,11 @@
  * @property {Object} data Extra data stored in the user.
  */
 
+import {ParseException} from "../exceptions.js";
+import {v4 as uuidv4} from 'uuid';
+
+import {version} from '../../package.json' assert {type: 'json'};
+
 /**
  * Splits all the given cards from a source to individual elements from an array, and divided into lines.
  * @author Arnau Mora
@@ -175,28 +180,43 @@ export const parseCards = source => {
  * @since 20221105
  * @param {PersonData} data
  * @return {string}
+ * @throws {ParseException} If the data given is missing one or more parameters.
  */
-export const personDataToVCard = (data) => [
-    "BEGIN:VCARD",
-    "VERSION:3.0", // Right now only 3.0 is supported
-    data.address != null ? 'ADR;TYPE=' + data.address[0] + ':' + data.address[1] : null,
-    data.agent != null ? `AGENT:${data.agent}` : null,
-    data.birthday != null ? `BDAY:${data.birthday}` : null,
-    data.categories != null ? `CATEGORIES:${data.categories.join(',')}` : null,
-    data.email != null ? `EMAIL:${data.email}` : null,
-    data.formattedName != null ? `FN:${data.formattedName}` : null,
-    data.geo != null ? `GEO:${data.geo.join(';')}` : null,
-    data.label != null ? `LABEL:${data.label}` : null,
-    data.logo != null ? `LOGO:${data.logo}` : null,
-    data.name != null ? `N:${Array(5).fill('').map((_, i) => data.name[i] ?? '').join(';')}` : null,
-    data.nickname != null ? `NICKNAME:${data.nickname}` : null,
-    data.note != null ? `NOTE:${data.note}` : null,
-    data.org != null ? `ORG:${data.org}` : null,
-    data.photo != null ? `PHOTO:${data.photo}` : null,
-    data.revision != null ? `REV:${data.revision}` : null,
-    data.role != null ? `ROLE:${data.role}` : null,
-    data.telephones != null ? data.telephones.map(t => `TEL;TYPE=${t[0]}:${t[1]}`).join('\n') : null,
-    data.title != null ? `TITLE:${data.title}` : null,
-    data.uid != null ? `UID:${data.uid}` : null,
-    "END:VCARD",
-].filter(i => i != null).join('\n');
+export const personDataToVCard = (data) => {
+    if (!checkV3(data)) throw new ParseException('The data is incomplete.');
+
+    return [
+        "BEGIN:VCARD",
+        "VERSION:3.0", // Right now only 3.0 is supported
+        "PRODID:MiC_Manager//" + version,
+        "REV:" + (new Date()).toISOString(),
+        data.address != null ? 'ADR;TYPE=' + data.address[0] + ':' + data.address[1] : null,
+        data.agent != null ? `AGENT:${data.agent}` : null,
+        data.birthday != null ? `BDAY:${data.birthday}` : null,
+        data.categories != null ? `CATEGORIES:${data.categories.join(',')}` : null,
+        data.email != null ? `EMAIL:${data.email}` : null,
+        data.formattedName != null ? `FN:${data.formattedName}` : null,
+        data.geo != null ? `GEO:${data.geo.join(';')}` : null,
+        data.label != null ? `LABEL:${data.label}` : null,
+        data.logo != null ? `LOGO:${data.logo}` : null,
+        data.name != null ? `N:${Array(5).fill('').map((_, i) => data.name[i] ?? '').join(';')}` : null,
+        data.nickname != null ? `NICKNAME:${data.nickname}` : null,
+        data.note != null ? `NOTE:${data.note}` : null,
+        data.org != null ? `ORG:${data.org}` : null,
+        data.photo != null ? `PHOTO:${data.photo}` : null,
+        data.role != null ? `ROLE:${data.role}` : null,
+        data.telephones != null ? data.telephones.map(t => `TEL;TYPE=${t[0]}:${t[1]}`).join('\n') : null,
+        data.title != null ? `TITLE:${data.title}` : null,
+        data.uid != null ? `UID:${data.uid}` : `UID:${uuidv4()}`,
+        "END:VCARD",
+    ].filter(i => i != null).join('\n');
+};
+
+/**
+ * Checks if a given `PersonData` object is valid or not.
+ * @author Arnau Mora
+ * @since 20221105
+ * @param {PersonData} data
+ * @return {boolean} If the data given is valid. This is, if it's not missing any property.
+ */
+export const checkV3 = data => !(data.formattedName == null || data.name == null);
