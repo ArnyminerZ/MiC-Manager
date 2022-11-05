@@ -4,7 +4,6 @@ import express from 'express';
 import dotenv from 'dotenv';
 import reqIp from 'request-ip';
 import fs from 'fs';
-
 import {errorResponse, successResponse} from './src/response.js';
 import {check as dbCheck} from './src/request/database.js';
 import {changePassword, login} from "./src/auth.js";
@@ -22,6 +21,12 @@ import {hasPermission} from "./src/permissions.js";
 import {checkVariables} from './src/variables.js';
 import {createClient as calCreateClient, getCards} from "./src/request/caldav.js";
 
+if (!fs.existsSync('private.key')) {
+    console.warn('❌ Private key file is required and not defined.');
+    process.exitCode = 1;
+    return;
+}
+
 dotenv.config();
 
 checkVariables();
@@ -31,9 +36,6 @@ checkVariables();
  * @type {number}
  */
 const HTTP_PORT = process.env.HTTP_PORT ?? 3000;
-
-if (!fs.existsSync('private.key'))
-    throw Error('❌ TOKEN_KEY is required and not defined.');
 
 console.info(`⏺️ Checking database...`);
 if (!(await dbCheck(!!process.env.DEBUG))) {
