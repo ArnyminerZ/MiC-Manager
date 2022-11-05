@@ -46,3 +46,10 @@ export class EnvironmentVariableException extends Error {
         this.name = 'EnvironmentVariableException';
     }
 }
+
+export class ParseException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ParseException';
+    }
+}
