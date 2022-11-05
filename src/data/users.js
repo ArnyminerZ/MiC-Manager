@@ -29,6 +29,19 @@
  * @property {Object} vCard
  */
 
+/**
+ * @typedef {Object} UserRow
+ * @property {number} Id
+ * @property {string,null} Hash
+ * @property {string} Uid
+ * @property {number} Role
+ * @property {number} Grade
+ * @property {number} WhitesWheel
+ * @property {number} BlacksWheel
+ * @property {number,null} Associated
+ * @property {string} NIF
+ */
+
 import {query as dbQuery} from '../request/database.js';
 import {UserNotFoundException} from "../exceptions.js";
 import {getCard} from "../request/caldav.js";
@@ -110,3 +123,15 @@ export const getUserData = async (userId) => {
         return null
     }
 };
+
+/**
+ * Creates a new user in the database.
+ * @param {UserRow} data
+ * @return {Promise<[]>}
+ */
+export const newUser = async (data) => await dbQuery(
+    `INSERT INTO mUsers (Hash, Uid, Role, Grade, WhitesWheel, BlacksWheel, Associated, NIF)
+     VALUES (NULL, '${data.Uid}', ${data.Role}, ${data.Grade},
+             ${data.WhitesWheel}, ${data.BlacksWheel},
+             ${data.Associated}, '${data.NIF}');`
+);
