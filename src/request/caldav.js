@@ -1,6 +1,8 @@
 import tsdav from 'tsdav';
 import dotenv from 'dotenv';
-import {parseCards} from "../parser/vcard.js";
+import {parseCards, personDataToVCard} from "../parser/vcard.js";
+import {error, log} from '../../cli/logger.js';
+import {v4 as uuidv4} from 'uuid';
 
 const {createDAVClient, DAVObject, DAVCollection} = tsdav;
 
@@ -41,24 +43,24 @@ export const createClient = async (debug = process.env.DEBUG) => {
             defaultAccountType: 'carddav',
         });
     } catch (e) {
-        console.error(
+        error(
             `CalDAV settings: CALDAV_HOSTNAME:`, process.env.CALDAV_HOSTNAME,
             'Server url:', serverUrl(),
             'CALDAV_USERNAME:', process.env.CALDAV_USERNAME,
             'CALDAV_PASSWORD:', process.env.CALDAV_PASSWORD,
         );
-        console.error(`Could not connect to the CalDAV server. Error:`, e);
+        error(`Could not connect to the CalDAV server. Error:`, e);
         return false;
     }
 
     await fetchCards();
 
     if (debug === 'true')
-        console.debug('There are', vCards.length, 'vCards.');
+        log('There are', vCards.length, 'vCards.');
     return true;
 };
 
-export const getCards = async () => vCards.map(t => parseCards(t.data));
+export const getCards = async () => parseCards(vCards.map(t => t.data).join('\n'));
 
 /**
  * Tries to get the card of a user that has `uid` as user data.
@@ -69,7 +71,21 @@ export const getCards = async () => vCards.map(t => parseCards(t.data));
  */
 export const getCard = async (uid) => {
     const cards = await getCards();
-    return cards
-        .flat()
-        .find(v => v.uid === uid);
+    return cards.find(v => v.uid === uid);
+};
+
+/**
+ *
+ * @param {PersonData} data
+ * @return {Promise<Response>}
+ * @throws {ParseException} If the data given is missing one or more parameters.
+ */
+export const newCard = async (data) => {
+    if (addressBook == null) throw new Error('Address book not found. Please, run createClient before.');
+    const vCard = personDataToVCard(data);
+    return await client.createVCard({
+        addressBook,
+        filename: uuidv4() + '.vcf',
+        vCardString: vCard,
+    });
 };
