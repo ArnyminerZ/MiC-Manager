@@ -1,0 +1,103 @@
+version: '3.7'
+
+services:
+  mic_interface:
+    build: .
+    # image: arnyminerz/mic_manager:development
+    container_name: mic_interface
+    # restart: unless-stopped
+    networks:
+      - backend
+    depends_on:
+      - mariadb
+      - radicale
+    environment:
+      - DEBUG=true
+      - DB_USERNAME
+      - DB_DATABASE
+      - DB_HOSTNAME=mariadb
+      - PRIVATE_KEY_FILE=/run/secrets/private_key
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      - CALDAV_HOSTNAME=<ip>
+      - CALDAV_SSL_ENABLE=false
+      - CALDAV_PORT=5232
+      - CALDAV_USERNAME
+      - CALDAV_PASSWORD
+      - CALDAV_AB_UUID
+      - PROPS=migration
+    ports:
+      - '3000:3000'
+    secrets:
+      - db_password
+      - private_key
+
+  mariadb:
+    image: linuxserver/mariadb
+    container_name: mic_mariadb
+    restart: unless-stopped
+    # TODO: Remove, just for testing
+    ports:
+      - "3306:3306"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_DATABASE=${DB_DATABASE}
+
+      - FILE__MYSQL_PASSWORD=/run/secrets/db_password
+      - FILE__MYSQL_ROOT_PASSWORD=/run/secrets/db_root_password
+    secrets:
+      - db_password
+      - db_root_password
+    volumes:
+      - ./.docker/mariadb/config:/config
+    networks:
+      - backend
+
+  radicale:
+    image: tomsquest/docker-radicale
+    container_name: mic_radicale
+    ports:
+      - "5232:5232"
+    networks:
+      - backend
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+      - CHOWN
+      - KILL
+    healthcheck:
+      test: curl -f http://localhost:5232 || exit 1
+      interval: 30s
+      retries: 3
+    restart: unless-stopped
+    volumes:
+      - ./.docker/radicale:/data
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mariadb-data:
+    driver: local
+
+secrets:
+  db_username:
+    file: ./secrets/username.txt
+  db_password:
+    file: ./secrets/password.txt
+  db_root_password:
+    file: ./secrets/root-password.txt
+  db_database:
+    file: ./secrets/database.txt
+  private_key:
+    file: ./secrets/private.key
