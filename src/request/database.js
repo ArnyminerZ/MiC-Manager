@@ -29,13 +29,25 @@ import {
     InsertPositions,
     InsertRolesPermissions
 } from "../../model/Defaults.js";
+import fs from "fs";
 
 dotenv.config();
+
+let dbPassword = process.env.DB_PASSWORD;
+const dbPasswordFile = process.env.DB_PASSWORD_FILE;
+if (dbPassword == null)
+    if (dbPasswordFile != null)
+        if (fs.existsSync(dbPasswordFile))
+            dbPassword = fs.readFileSync(dbPasswordFile);
+        else
+            console.error(`The Database's password file is defined but doesn't exist:`, dbPasswordFile);
+    else
+        console.error(`It's required to give either DB_PASSWORD or DB_PASSWORD_FILE`);
 
 const serverConfig = {
     host: process.env.DB_HOSTNAME,
     user: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
+    password: dbPassword,
     connectionLimit: 5,
 };
 const pool = mariadb.createPool(serverConfig);
