@@ -1,10 +1,10 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 
-const privateKeyFilePath = './certs/private.key';
+const privateKeyFilePath = process.env.PRIVATE_KEY_FILE ?? './secrets/private.key';
 
 if (!fs.existsSync(privateKeyFilePath)) {
-    console.warn('❌ Private key file is required and not defined.');
+    console.warn('❌ Private key file is required but doesn\'t exist.');
     process.exitCode = 1;
     return;
 }
