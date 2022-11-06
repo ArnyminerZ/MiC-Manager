@@ -68,13 +68,12 @@ app.get('/v1/info', async (req, res) => {
     const database = await dbInfo();
     res.json(successResponse({database}));
 });
-app.get('/v1/user/auth', async (req, res) => {
-    // const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress
-    const query = req.query;
+app.post('/v1/user/auth', async (req, res) => {
+    const body = req.body;
     /** @type {string|null} */
-    const nif = query['nif'];
+    const nif = body['nif'];
     /** @type {string|null} */
-    const password = query['password'];
+    const password = body['password'];
 
     if (nif == null || password == null)
         return res.status(400).json(errorResponse('missing-parameters'));
@@ -89,7 +88,7 @@ app.get('/v1/user/auth', async (req, res) => {
         else if (e instanceof SecurityException)
             res.status(412).json(errorResponse('max-attempts-reached'));
         else {
-            error('❌ Could not authenticate. Error:', e);
+            error('Could not authenticate. Error:', e);
             res.status(500).json({success: false, error: 'unknown', errorData: e});
         }
     }

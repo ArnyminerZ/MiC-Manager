@@ -16,11 +16,10 @@ servers:
     description: Development Server
 paths:
   /v1/user/auth:
-    get:
+    parameters: [ ]
+    post:
       summary: Authenticate
-      tags:
-        - Users
-        - Authentication
+      operationId: post-v1-user-auth
       responses:
         '200':
           description: OK - Authorised
@@ -70,26 +69,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
-      operationId: get-user-auth
       description: |-
         Requests an access token to the server.
         If returned `200`, `data` contains:
         * `auth-token`: The token generated. Is valid for 30 days, this time gets extended every time it's used. May be disposed manually.
-      parameters:
-        - schema:
-            type: string
-            example: 12345678A
-          in: query
-          name: nif
-          description: The NIF of the user being authorised.
-          required: true
-        - schema:
-            type: string
-          in: query
-          name: password
-          description: The password of the user being authenticated.
-          required: true
-    parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nif:
+                  type: string
+                  description: The NIF of the user being authorised.
+                password:
+                  type: string
+                  description: The password of the user being authenticated.
+              required:
+                - nif
+                - password
+        description: The parameters to use for the request.
   /v1/user/change_password:
     post:
       summary: Password Change
