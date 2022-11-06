@@ -223,6 +223,14 @@ try {
     process.exit(1);
 }
 
+// Notify the server that the migration has been completed
+info('Wrapping up...');
+try {
+    await axios.post(v1Request('migration/finish'));
+} catch (e) {
+    error('Could not wrap up. Error:', e);
+}
+
 // Finish the connection
 info('Disconnecting...');
 await sql.close();
