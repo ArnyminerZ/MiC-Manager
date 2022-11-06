@@ -62,4 +62,15 @@ export const addEndpoints = app => {
             res.status(500).json(errorResponse(e));
         }
     });
+    app.post('/v1/migration/finish', async (req, res) => {
+        info('Migration has finished. Updating vCards...');
+        try {
+            await createClient();
+            infoSuccess('vCards updated.');
+            res.json(successResponse());
+        } catch (e) {
+            error('Could not update vCards. Error:', e);
+            res.json(errorResponse(e));
+        }
+    });
 };
