@@ -95,6 +95,7 @@ export const check = async (debug = false) => {
             InfoTable, RolesTable, GradesTable, UsersTable, LoginAttemptsTable, PermissionsTable, CategoriesTable,
             EventsTable, AssistanceTable, TablesTable, PeopleTablesTable, RolesPermissionsTable, RegistrationsTable,
             AscentsTable, PositionsTable, UserPositionsTable, UserTrebuchetTable, UserShootsTable, EventMenusTable,
+            MenuPricingTable,
         ];
         for (let table of tables) await query(table);
 
@@ -102,7 +103,7 @@ export const check = async (debug = false) => {
         /** @type {string[][]} */
         const defaults = [
             InsertInfo, InsertDefaultRoles, InsertPermissions, InsertRolesPermissions, InsertGrades, InsertPositions,
-            InsertCategories, MenuPricingTable,
+            InsertCategories,
         ];
         for (let i of defaults) for (let q of i) await query(q);
 
