@@ -22,6 +22,7 @@ import {
 } from "../../model/Tables.js";
 import {DatabaseException} from "../exceptions.js";
 import {
+    InsertCategories,
     InsertDefaultRoles,
     InsertGrades,
     InsertInfo,
@@ -113,6 +114,7 @@ export const check = async (debug = false) => {
         for (const q of InsertRolesPermissions) await query(q);
         for (const q of InsertGrades) await query(q);
         for (const q of InsertPositions) await query(q);
+        for (const q of InsertCategories) await query(q);
 
         await disconnect();
 
