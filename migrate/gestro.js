@@ -145,6 +145,7 @@ try {
     c = 1;
     const usersBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     usersBar.start(uuids.length, 0);
+    let errors = [];
     for (let [uuid, row] of uuids) {
         usersBar.update(c);
         let Grade;
@@ -200,14 +201,23 @@ try {
             await axios.post(v1Request('migration/add_user'), {data: JSON.stringify(data)});
         } catch (e) {
             if (e instanceof AxiosError) {
-                error(`Could not add user #${c}. Response:`, e.response.data);
+                const rData = e.response.data;
+                const eText = rData.error?.code?.text;
+                if (eText != null)
+                    errors.push([`Could not add user #${c}. Error:`, eText])
+                else
+                    errors.push([`Could not add user #${c}. Response:`, rData])
             } else
-                error(`Could not add user #${c}. Error:`, e);
+                errors.push([`Could not add user #${c}. Error:`, e])
         } finally {
             c++;
         }
     }
     usersBar.stop();
+
+    // Log all errors
+    for (let e of errors)
+        error(...e);
 } catch (e) {
     error('Could not fetch data from tbSocios. Error:', e);
     process.exit(1);
