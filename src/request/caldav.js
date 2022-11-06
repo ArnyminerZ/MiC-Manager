@@ -82,8 +82,9 @@ export const getCard = async (uid) => {
  */
 export const newCard = async (data) => {
     if (addressBook == null) throw new Error('Address book not found. Please, run createClient before.');
-    const vCard = personDataToVCard(data);
     const uuid = uuidv4();
+    data.uid = uuid;
+    const vCard = personDataToVCard(data);
     return [
         uuid,
         await client.createVCard({
