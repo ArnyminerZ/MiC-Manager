@@ -3,6 +3,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import reqIp from 'request-ip';
+import rateLimit from 'express-rate-limit';
 import {errorResponse, successResponse} from './src/response.js';
 import {check as dbCheck, info as dbInfo} from './src/request/database.js';
 import {changePassword, login} from "./src/auth.js";
@@ -50,10 +51,17 @@ infoSuccess(`CalDAV server ready. AB Url:`, getAddressBookUrl());
 
 const app = express();
 
+// Limits the maximum amount of concurrent requests that can be made. If migration is enabled, the max rate is greatly
+// increased for allowing quick data write.
+const rateLimitOptions = {windowMs: 60 * 1000, max: props.includes('migration') ? 500 : 10};
+const limiter = rateLimit(rateLimitOptions);
+info('Per minute rate limit:', rateLimitOptions.max);
+
 // Middleware
 app.use(reqIp.mw());
 app.use(express.json({strict: false}));
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({extended: true}));
+app.use(limiter);
 
 app.get('/ping', (req, res) => res.send('pong'));
 app.get('/v1/info', async (req, res) => {
