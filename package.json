@@ -1,6 +1,6 @@
 {
   "name": "mic_manager",
-  "version": "1.0.0-indev01",
+  "version": "1.0.0-indev02",
   "description": "A backend server API for managing local groups data.",
   "main": "index.js",
   "type": "module",
