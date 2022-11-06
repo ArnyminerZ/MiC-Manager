@@ -311,13 +311,13 @@ export const EventMenusTable = `
 export const MenuPricingTable = `
     CREATE TABLE IF NOT EXISTS mMenuPricing
     (
-        Id     int(10) unsigned auto_increment NOT NULL,
-        MenuId int(10) unsigned                NOT NULL,
-        RoleId int(10) unsigned                NOT NULL,
-        Price  float(10) unsigned              NOT NULL,
+        Id      int(10) unsigned auto_increment NOT NULL,
+        MenuId  int(10) unsigned                NOT NULL,
+        GradeId int(10) unsigned DEFAULT NULL   NULL COMMENT 'The grade that corresponds to the price. If null, will be considered as default.',
+        Price   float(10) unsigned              NOT NULL,
         CONSTRAINT mMenuPricing_PK PRIMARY KEY (Id),
         CONSTRAINT mMenuPricing_MI FOREIGN KEY (MenuId) REFERENCES mMenus (Id),
-        CONSTRAINT mMenuPricing_RI FOREIGN KEY (RoleId) REFERENCES mRoles (Id)
+        CONSTRAINT mMenuPricing_GI FOREIGN KEY (GradeId) REFERENCES mGrades (Id)
     )
         ENGINE = InnoDB
         DEFAULT CHARSET = utf8mb3
