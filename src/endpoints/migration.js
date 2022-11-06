@@ -1,8 +1,9 @@
-import {error, log, warn} from "../../cli/logger.js";
+import {error, info, infoSuccess, log, warn} from "../../cli/logger.js";
 import {errorResponse, successResponse} from "../response.js";
-import {newCard} from "../request/caldav.js";
+import {createClient, newCard} from "../request/caldav.js";
 import {newUser} from "../data/users.js";
 import {ParseException} from "../exceptions.js";
+import {SqlError} from "mariadb";
 
 export const addEndpoints = app => {
     warn('The "migration" prop is enabled. Do not keep enabled longer than needed.');
@@ -46,11 +47,18 @@ export const addEndpoints = app => {
                 return res.status(401).json(errorResponse('invalid-request'));
 
             const r = await newUser(data);
-            log('Add user:', r);
-
-            res.json(successResponse());
+            if (r instanceof SqlError) {
+                log('Add user:', r.text);
+                res.json(errorResponse(r));
+            } else {
+                infoSuccess(`Add user (${data.NIF}): OK`);
+                res.json(successResponse());
+            }
         } catch (e) {
-            error('Could not add user. Error:', e);
+            if (e instanceof SqlError)
+                error('Could not add user. Error:', e.text);
+            else
+                error('Could not add user. Error:', e);
             res.status(500).json(errorResponse(e));
         }
     });
