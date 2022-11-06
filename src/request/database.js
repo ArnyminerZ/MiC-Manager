@@ -4,10 +4,12 @@ import {
     AscentsTable,
     AssistanceTable,
     CategoriesTable,
+    EventMenusTable,
     EventsTable,
     GradesTable,
     InfoTable,
     LoginAttemptsTable,
+    MenuPricingTable,
     PeopleTablesTable,
     PermissionsTable,
     PositionsTable,
@@ -88,33 +90,21 @@ export const check = async (debug = false) => {
             throw new DatabaseException(`❌ Could not find a database named`, process.env.DB_DATABASE);
 
         // Create tables
-        await query(InfoTable);
-        await query(RolesTable);
-        await query(GradesTable);
-        await query(UsersTable);
-        await query(LoginAttemptsTable);
-        await query(PermissionsTable);
-        await query(CategoriesTable);
-        await query(EventsTable);
-        await query(AssistanceTable);
-        await query(TablesTable);
-        await query(PeopleTablesTable);
-        await query(RolesPermissionsTable);
-        await query(RegistrationsTable);
-        await query(AscentsTable);
-        await query(PositionsTable);
-        await query(UserPositionsTable);
-        await query(UserTrebuchetTable);
-        await query(UserShootsTable);
+        /** @type {string[]} */
+        const tables = [
+            InfoTable, RolesTable, GradesTable, UsersTable, LoginAttemptsTable, PermissionsTable, CategoriesTable,
+            EventsTable, AssistanceTable, TablesTable, PeopleTablesTable, RolesPermissionsTable, RegistrationsTable,
+            AscentsTable, PositionsTable, UserPositionsTable, UserTrebuchetTable, UserShootsTable, EventMenusTable,
+        ];
+        for (let table of tables) await query(table);
 
         // Insert default data
-        for (const q of InsertInfo) await query(q);
-        for (const q of InsertDefaultRoles) await query(q);
-        for (const q of InsertPermissions) await query(q);
-        for (const q of InsertRolesPermissions) await query(q);
-        for (const q of InsertGrades) await query(q);
-        for (const q of InsertPositions) await query(q);
-        for (const q of InsertCategories) await query(q);
+        /** @type {string[][]} */
+        const defaults = [
+            InsertInfo, InsertDefaultRoles, InsertPermissions, InsertRolesPermissions, InsertGrades, InsertPositions,
+            InsertCategories, MenuPricingTable,
+        ];
+        for (let i of defaults) for (let q of i) await query(q);
 
         await disconnect();
 
