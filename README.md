@@ -1,6 +1,7 @@
 # Fila Magenta Backend
 
 [![Building][build-badge]][build-url]
+[![CodeQL Analysis][codeql-badge-url]][codeql-url]
 
 [![Docker Hub Version][docker-badge-url]][docker-hub-url]
 
@@ -99,16 +100,24 @@ Then, log in, and choose one of the options provided, either creating an empty a
 ## GesTro
 MiC Manager provides the option to migrate all the data from GesTro. There's a script at `/migrations` called
 `gestro.js` that has all the tools necessary. To run, first install all the dependencies:
+
 ```shell
 yarn install
 ```
+
 And now run the script. Replace all the fields accordingly.
+
 ```shell
 yarn run migrate-gestro HOSTNAME={hostname} PORT=1433 DATABASE=GesTro SCHEMA=dbo USERNAME={username} PASSWORD={password} INSTANCE={mic-instance}
 ```
+
 *Note: The given MiC instance must contain the protocol (e.g. https://...) and be without a trailing `/`*
 
 ---
+
+[codeql-badge-url]: https://img.shields.io/github/workflow/status/ArnyminerZ/MiC-Manager/CodeQL?label=CodeQL&style=for-the-badge&logo=github
+
+[codeql-url]:https://github.com/ArnyminerZ/MiC-Manager/security/code-scanning
 
 [docker-badge-url]: https://img.shields.io/docker/v/arnyminerz/mic_manager?style=for-the-badge&logo=docker
 
