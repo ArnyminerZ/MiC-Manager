@@ -2,6 +2,7 @@
 
 [![Building][build-badge]][build-url]
 [![CodeQL Analysis][codeql-badge-url]][codeql-url]
+[![Documentation][docs-badge-url]][docs-url]
 
 [![Docker Hub Version][docker-badge-url]][docker-hub-url]
 
@@ -134,3 +135,7 @@ yarn run migrate-gestro HOSTNAME={hostname} PORT=1433 DATABASE=GesTro SCHEMA=dbo
 [build-badge]: https://img.shields.io/github/workflow/status/ArnyminerZ/MiC-Manager/docker-ci?style=for-the-badge
 
 [build-url]: https://github.com/ArnyminerZ/MiC-Manager/actions/workflows/docker-ci.yml
+
+[docs-url]: http://arnaumora.me/MiC-Manager/
+
+[docs-badge-url]: https://img.shields.io/github/workflow/status/Arnyminerz/MiC-Manager/Deploy%20static%20content%20to%20Pages?label=Documentation&style=for-the-badge&logo=swagger
