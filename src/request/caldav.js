@@ -85,6 +85,7 @@ export const newCard = async (data) => {
     const uuid = uuidv4();
     data.uid = uuid;
     const vCard = personDataToVCard(data);
+    log('Creating new vCard. Uid:', uuid, 'vCard:', vCard.replaceAll('\n', '\\n'));
     return [
         uuid,
         await client.createVCard({
