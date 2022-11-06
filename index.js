@@ -15,7 +15,7 @@ import {
 } from './src/exceptions.js';
 import {checkToken, decodeToken} from "./src/security.js";
 import {getUserData} from "./src/data/users.js";
-import {getEvents} from "./src/data/events.js";
+import {create as createEvent, getEvents} from "./src/data/events.js";
 import {hasPermission} from "./src/permissions.js";
 import {checkVariables, getProps} from './src/variables.js';
 import {createClient as calCreateClient, getAddressBookUrl, getCard, getCards} from "./src/request/caldav.js";
@@ -173,6 +173,53 @@ app.post('/v1/events/join', async (req, res) => {
 
     if (apiKey == null || !(await checkToken(apiKey)))
         return res.status(406).send(errorResponse('invalid-key'));
+
+    // TODO: Join event
+});
+app.post('/v1/events/create', async (req, res) => {
+    const body = req.body;
+    /** @type {string|null} */
+    const displayName = body['displayName'];
+    /** @type {string|null} */
+    const description = body['description'];
+    /** @type {string|null} */
+    const date = body['date'];
+    /** @type {string|null} */
+    const contact = body['contact'];
+    /** @type {string|null} */
+    const category = body['category'];
+    /** @type {string|null} */
+    const apiKey = req.get('API-Key');
+
+    // Check for the mandatory parameters
+    if (displayName == null || date == null || category == null)
+        return res.status(400).json(errorResponse('missing-parameters'));
+
+    // Check API key
+    if (apiKey == null || !(await checkToken(apiKey)))
+        return res.status(406).json(errorResponse('invalid-key'));
+
+    /** @type {{nif: string, userId: number}} */
+    let tokenData;
+    try {
+        tokenData = await decodeToken(apiKey);
+    } catch (e) {
+        return res.status(406).json(errorResponse('invalid-key'));
+    }
+
+    // Check if user has permission to add events
+    if (!(await hasPermission(tokenData.userId, 'event_add'))) {
+        error('User', tokenData.userId, 'tried to add a new event. Error: unauthorised');
+        return res.status(401).json(errorResponse('unauthorised'));
+    }
+
+    // Create the event
+    try {
+        await createEvent(displayName, description, new Date(date), contact, category);
+        res.json(successResponse());
+    } catch (e) {
+        res.status(500).json(errorResponse(e));
+    }
 });
 
 // Extra endpoints

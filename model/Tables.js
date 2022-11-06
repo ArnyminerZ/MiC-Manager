@@ -97,7 +97,7 @@ export const EventsTable = `
         Description TEXT                 DEFAULT NULL NULL COMMENT 'An extra description to use for the event.',
         Date        DATETIME                          NOT NULL COMMENT 'The moment at which the event will take place.',
         Contact     varchar(100)         DEFAULT NULL NULL COMMENT 'Some contact information for the responsible of the event.',
-        Category    INTEGER(10) UNSIGNED DEFAULT 0    NOT NULL COMMENT 'The category to assign to the event.',
+        Category    INTEGER(10) UNSIGNED DEFAULT 1    NOT NULL COMMENT 'The category to assign to the event.',
         CONSTRAINT PK_mEvents PRIMARY KEY (Id),
         CONSTRAINT FK_mEvents_cat FOREIGN KEY (Category) REFERENCES mCategories (Id)
     )
@@ -285,4 +285,42 @@ export const UserShootsTable = `
         DEFAULT CHARSET = utf8mb3
         COLLATE = utf8mb3_general_ci
         COMMENT ='Stores every time an user has shot.';
+`;
+
+export const EventMenusTable = `
+    CREATE TABLE IF NOT EXISTS mMenus
+    (
+        Id             int(10) unsigned auto_increment NOT NULL,
+        EventId        int(10) unsigned                NOT NULL,
+        Firsts         varchar(512) DEFAULT NULL       NULL COMMENT 'A list of the first plates, separated by ";"',
+        Seconds        varchar(512) DEFAULT NULL       NULL COMMENT 'A list of the seconds plates, separated by ";"',
+        Thirds         varchar(512) DEFAULT NULL       NULL COMMENT 'A list of the thirds plates, separated by ";"',
+        Desserts       varchar(512) DEFAULT NULL       NULL COMMENT 'A list of the desserts plates, separated by ";"',
+        DrinkIncluded  bit          DEFAULT 0          NOT NULL COMMENT 'If drinks are included.',
+        CoffeeIncluded bit          DEFAULT 0          NOT NULL COMMENT 'If coffees are included.',
+        TeaIncluded    bit          DEFAULT 0          NOT NULL COMMENT 'If tea and infusions are included.',
+        CONSTRAINT mMenus_PK PRIMARY KEY (Id),
+        CONSTRAINT mMenus_FK FOREIGN KEY (EventId) REFERENCES mEvents (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='Stores the menus for all the events that apply.';
+`;
+
+export const MenuPricingTable = `
+    CREATE TABLE IF NOT EXISTS mMenuPricing
+    (
+        Id      int(10) unsigned auto_increment NOT NULL,
+        MenuId  int(10) unsigned                NOT NULL,
+        GradeId int(10) unsigned DEFAULT NULL   NULL COMMENT 'The grade that corresponds to the price. If null, will be considered as default.',
+        Price   float(10) unsigned              NOT NULL,
+        CONSTRAINT mMenuPricing_PK PRIMARY KEY (Id),
+        CONSTRAINT mMenuPricing_MI FOREIGN KEY (MenuId) REFERENCES mMenus (Id),
+        CONSTRAINT mMenuPricing_GI FOREIGN KEY (GradeId) REFERENCES mGrades (Id)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='Stores the prices for the different roles for a menu.';
 `;

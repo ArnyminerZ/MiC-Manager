@@ -130,3 +130,9 @@ export const InsertPositions = [
     insertIfNotExists('mPositions', {Id: 9, DisplayName: 'esquadra'}),
     insertIfNotExists('mPositions', {Id: 10, DisplayName: 'esquadra_esp'}),
 ];
+
+export const InsertCategories = [
+    insertIfNotExists('mCategories', {Id: 1, DisplayName: 'generic'}),
+    insertIfNotExists('mCategories', {Id: 2, DisplayName: 'assaig'}),
+    insertIfNotExists('mCategories', {Id: 3, DisplayName: 'entradeta'}),
+];
