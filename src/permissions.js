@@ -19,6 +19,6 @@ export const hasPermission = async (userId, permission) => {
                                           LEFT JOIN mRoles mR ON mRP.RoleId = mR.Id
                                           LEFT JOIN mPermissions mP on mRP.PermissionId = mP.Id
                                  WHERE mUsers.Id = ${userId}
-                                   AND mR.DisplayName = '${permission}';`);
+                                   AND mP.DisplayName = '${permission}';`);
     return query.length > 0;
 };
