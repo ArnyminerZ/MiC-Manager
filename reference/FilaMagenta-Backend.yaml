@@ -3,7 +3,7 @@ x-stoplight:
   id: 9dctvl5eer2w8
 info:
   title: FilaMagenta-Backend
-  version: 1.0.0
+  version: 1.0.0-indev02
   description: The server code for managing the Fila Magenta's Apps.
   contact:
     name: Arnau Mora
