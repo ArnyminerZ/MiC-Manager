@@ -26,7 +26,7 @@
  * @property {number} WhitesWheelNumber
  * @property {number} BlacksWheelNumber
  * @property {number} AssociatedTo
- * @property {Object} vCard
+ * @property {PersonData} vCard
  */
 
 /**
