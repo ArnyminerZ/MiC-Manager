@@ -24,7 +24,8 @@ services:
       - CALDAV_USERNAME
       - CALDAV_PASSWORD
       - CALDAV_AB_UUID
-      - PROPS=migration
+      # Enable props when necessary
+      # - PROPS=migration
     ports:
       - '3000:3000'
     secrets:
