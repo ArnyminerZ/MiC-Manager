@@ -97,7 +97,7 @@ export const EventsTable = `
         Description TEXT                 DEFAULT NULL NULL COMMENT 'An extra description to use for the event.',
         Date        DATETIME                          NOT NULL COMMENT 'The moment at which the event will take place.',
         Contact     varchar(100)         DEFAULT NULL NULL COMMENT 'Some contact information for the responsible of the event.',
-        Category    INTEGER(10) UNSIGNED DEFAULT 0    NOT NULL COMMENT 'The category to assign to the event.',
+        Category    INTEGER(10) UNSIGNED DEFAULT 1    NOT NULL COMMENT 'The category to assign to the event.',
         CONSTRAINT PK_mEvents PRIMARY KEY (Id),
         CONSTRAINT FK_mEvents_cat FOREIGN KEY (Category) REFERENCES mCategories (Id)
     )
