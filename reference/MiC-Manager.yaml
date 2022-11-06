@@ -2,12 +2,12 @@ openapi: 3.0.0
 x-stoplight:
   id: 9dctvl5eer2w8
 info:
-  title: FilaMagenta-Backend
+  title: MiC Manager
   version: 1.0.0-indev02
-  description: The server code for managing the Fila Magenta's Apps.
+  description: A backend server for managing communities.
   contact:
     name: Arnau Mora
-    email: filamagenta@arnaumora.me
+    email: mic.manager@arnaumora.me
   license:
     name: GNU AGPL v3
     url: 'https://github.com/ArnyminerZ/Backend/blob/master/LICENSE'
