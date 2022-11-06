@@ -110,7 +110,18 @@ app.get('/v1/user/data', async (req, res) => {
     } else {
         userId = tokenData['userId'];
     }
+
     const userData = await getUserData(userId);
+    if (userData == null)
+        return res.status(404).json(errorResponse('not-found'));
+
+    const vCard = await getCard(userData.Uid);
+    log('vCard:', vCard)
+    if (vCard == null)
+        warn(`Could not find vCard for user #${userId}. Uid:`, userData.Uid);
+    else
+        userData.vCard = vCard;
+
     if (constrain)
         res.json(successResponse(userData.vCard));
     else
