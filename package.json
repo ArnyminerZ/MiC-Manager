@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node --no-warnings index.js",
+    "serve": "./scripts/start-container.sh",
     "migrate-gestro": "node migrate/gestro.js"
   },
   "repository": "https://github.com/ArnyminerZ/MiC-Manager.git",
