@@ -98,4 +98,28 @@ export const getEvents = async () => {
         ev.tables = Array.from(eventTables.values());
         return ev;
     });
-}
+};
+
+/**
+ * Creates a new event.
+ * @author Arnau Mora
+ * @since 20221106
+ * @param {string} displayName
+ * @param {string,null} description
+ * @param {Date} date
+ * @param {string,null} contact
+ * @param {string} category
+ * @throws {SqlError}
+ */
+export const create = async (displayName, description, date, contact, category) => {
+    const categoryQuery = await dbQuery(`SELECT Id
+                                         FROM mCategories
+                                         WHERE DisplayName = '${category}'
+                                         LIMIT 1;`);
+    const categoryId = categoryQuery[0].Id;
+    await dbQuery(`INSERT INTO mEvents(DisplayName, Description, Date, Contact, Category)
+                   VALUES ('${displayName}', ${description != null ? `'${description}'` : 'NULL'},
+                           '${date.toISOString().slice(0, 19).replace('T', ' ')}',
+                           ${contact != null ? `'${contact}'` : 'NULL'},
+                           ${categoryId})`);
+};
