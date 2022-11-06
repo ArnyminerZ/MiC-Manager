@@ -18,7 +18,7 @@ services:
       - DB_HOSTNAME=mariadb
       - PRIVATE_KEY_FILE=/run/secrets/private_key
       - DB_PASSWORD_FILE=/run/secrets/db_password
-      - CALDAV_HOSTNAME=<ip>
+      - CALDAV_HOSTNAME=radicale
       - CALDAV_SSL_ENABLE=false
       - CALDAV_PORT=5232
       - CALDAV_USERNAME
