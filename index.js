@@ -18,8 +18,8 @@ import {getUserData} from "./src/data/users.js";
 import {getEvents} from "./src/data/events.js";
 import {hasPermission} from "./src/permissions.js";
 import {checkVariables, getProps} from './src/variables.js';
-import {createClient as calCreateClient, getCards} from "./src/request/caldav.js";
-import {error, info, infoSuccess} from './cli/logger.js';
+import {createClient as calCreateClient, getAddressBookUrl, getCard, getCards} from "./src/request/caldav.js";
+import {error, info, infoSuccess, log, warn} from './cli/logger.js';
 import {addEndpoints as addMigrationEndpoints} from "./src/endpoints/migration.js";
 
 dotenv.config();
@@ -46,7 +46,7 @@ if (!(await calCreateClient())) {
     process.exit(1);
 }
 await getCards();
-infoSuccess(`CalDAV server ready.`);
+infoSuccess(`CalDAV server ready. AB Url:`, getAddressBookUrl());
 
 const app = express();
 
