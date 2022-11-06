@@ -1,5 +1,7 @@
 import mariadb from 'mariadb';
 import dotenv from 'dotenv';
+import fs from 'fs';
+
 import {
     AscentsTable,
     AssistanceTable,
@@ -32,7 +34,7 @@ import {
     InsertPositions,
     InsertRolesPermissions
 } from "../../model/Defaults.js";
-import fs from "fs";
+import {error} from '../../cli/logger.js';
 
 dotenv.config();
 
@@ -47,9 +49,9 @@ const connect = async (debug = false) => {
             if (fs.existsSync(dbPasswordFile))
                 dbPassword = fs.readFileSync(dbPasswordFile);
             else
-                console.error(`The Database's password file is defined but doesn't exist:`, dbPasswordFile);
+                error(`The Database's password file is defined but doesn't exist:`, dbPasswordFile);
         else
-            console.error(`It's required to give either DB_PASSWORD or DB_PASSWORD_FILE`);
+            error(`It's required to give either DB_PASSWORD or DB_PASSWORD_FILE`);
 
     const serverConfig = {
         host: process.env.DB_HOSTNAME,
@@ -62,7 +64,7 @@ const connect = async (debug = false) => {
         const pool = mariadb.createPool(serverConfig);
         conn = await pool.getConnection();
     } catch (e) {
-        if (debug) console.error(e, 'Database Config:', serverConfig);
+        if (debug) error(e, 'Database Host:', serverConfig.host, 'User:', serverConfig.user);
         throw e;
     }
 };
@@ -111,7 +113,7 @@ export const check = async (debug = false) => {
 
         return true;
     } catch (e) {
-        console.error('Could not connect to the database. Error:', e);
+        error('Could not connect to the database. Error:', e);
         return false;
     }
 };
