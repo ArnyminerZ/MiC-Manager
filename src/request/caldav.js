@@ -94,3 +94,5 @@ export const newCard = async (data) => {
         })
     ];
 };
+
+export const getAddressBookUrl = () => addressBook?.url;
