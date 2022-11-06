@@ -5,11 +5,23 @@
  */
 
 /**
+ * @typedef {Object} MenuData
+ * @property {string[]} firsts
+ * @property {string[]} seconds
+ * @property {string[]} thirds
+ * @property {string[]} desserts
+ * @property {boolean} drinkIncluded
+ * @property {boolean} coffeeIncluded
+ * @property {boolean} teaIncluded
+ * @property {{role:string,price:number}[]} pricing
+ */
+
+/**
  * @typedef {Object} EventData
  * @property {number} id
  * @property {string} displayName
  * @property {string} date
- * @property {Object?} menu
+ * @property {MenuData?} menu
  * @property {string?} contact
  * @property {string?} description
  * @property {number} category
@@ -36,21 +48,13 @@ export const getEvents = async () => {
                           LEFT JOIN mTables mT on mEvents.id = mT.EventId
                           LEFT JOIN mTablesPeople mTP on mT.Id = mTP.TableId;`;
     const rows = await dbQuery(sql);
-    /**
-     * @type {EventData[]}
-     */
+    /** @type {EventData[]} */
     let builder = [];
-    /**
-     * @type {Map<number, number[]>}
-     */
+    /** @type {Map<number, number[]>} */
     let attendants = new Map();
-    /**
-     * @type {Map<number, Map<number, TableData>>}
-     */
+    /** @type {Map<number, Map<number, TableData>>} */
     let tables = new Map();
-    const size = rows.length;
-    for (let c = 0; c < size; c++) {
-        const row = rows[c];
+    for (let row of rows) {
         const eventId = row['id'];
         const tableId = parseInt(row['TableId']);
 
@@ -71,17 +75,47 @@ export const getEvents = async () => {
                 tables.set(eventId, t);
             }
         } else {
-            builder.push({
-                id: row['id'],
+            const event = {
+                id: row['Id'],
                 displayName: row['DisplayName'],
                 date: row['Date'],
-                menu: JSON.parse(row['Menu']),
                 contact: row['Contact'],
                 description: row['Description'],
                 category: row['Category'],
                 attending: [],
                 tables: [],
-            });
+            }
+
+            // Add menu if any
+            const menuSearch = await dbQuery(
+                `SELECT mMenus.*, mP.Price, mG.DisplayName as GradeDisplayName
+                 FROM mMenus
+                          LEFT JOIN mMenuPricing mP ON MenuId = mMenus.Id
+                          LEFT JOIN mGrades mG ON mG.Id = mP.GradeId
+                 WHERE EventId = '1';`
+            );
+            if (menuSearch.length > 0) {
+                const menu = menuSearch[0];
+                const pricing = menuSearch.map(row => {
+                    return {
+                        grade: row['GradeDisplayName'],
+                        price: row['Price'],
+                    };
+                })
+                event.menu = {
+                    firsts: menu['Firsts'],
+                    seconds: menu['Seconds'],
+                    thirds: menu['Thirds'],
+                    desserts: menu['Desserts'],
+                    drinkIncluded: menu['DrinkIncluded'],
+                    coffeeIncluded: menu['CoffeeIncluded'],
+                    teaIncluded: menu['TeaIncluded'],
+                    pricing,
+                };
+            }
+
+            builder.push(event);
+
             const attendingPerson = row['AttPerson'];
             if (!!attendingPerson)
                 attendants[eventId] = [attendingPerson];
