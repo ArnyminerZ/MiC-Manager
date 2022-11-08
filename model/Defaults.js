@@ -132,7 +132,7 @@ export const InsertPositions = [
 ];
 
 export const InsertCategories = [
-    insertIfNotExists('mCategories', {Id: 1, DisplayName: 'generic'}),
-    insertIfNotExists('mCategories', {Id: 2, DisplayName: 'assaig'}),
-    insertIfNotExists('mCategories', {Id: 3, DisplayName: 'entradeta'}),
+    insertIfNotExists('mCategories', {Id: 1, DisplayName: 'generic', Eat: 0}),
+    insertIfNotExists('mCategories', {Id: 2, DisplayName: 'assaig', Eat: 1}),
+    insertIfNotExists('mCategories', {Id: 3, DisplayName: 'entradeta', Eat: 0}),
 ];

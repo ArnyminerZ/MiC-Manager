@@ -81,6 +81,7 @@ export const CategoriesTable = `
     (
         Id          int(10) UNSIGNED auto_increment NOT NULL COMMENT 'The id of the category.',
         DisplayName varchar(16)                     NOT NULL COMMENT 'A name for identifying the category.',
+        Eat         bit default 0                   NOT NULL COMMENT 'If 1, the category defines an eating event. It must contain a menu.',
         CONSTRAINT PK_mCategories PRIMARY KEY (Id)
     )
         ENGINE = InnoDB
