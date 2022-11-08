@@ -157,3 +157,24 @@ export const create = async (displayName, description, date, contact, category) 
                            ${contact != null ? `'${contact}'` : 'NULL'},
                            ${categoryId})`);
 };
+
+/**
+ * Checks if the event is an eat event.
+ * @author Arnau Mora
+ * @since 20221108
+ * @param {number} eventId The id of the event to check.
+ * @return {Promise<boolean>}
+ * @throws {SqlError}
+ */
+export const isEatEvent = async (eventId) => {
+    const rows = await dbQuery(
+        `SELECT mC.Eat as EatEvent
+         FROM mEvents
+                  LEFT JOIN mCategories mC on mEvents.Category = mC.Id
+         WHERE mEvents.Id = ${eventId};`
+    );
+    if (rows.length <= 0)
+        return false;
+    const row = rows[0];
+    return row['EatEvent'];
+};
