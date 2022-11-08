@@ -328,6 +328,31 @@ paths:
               required:
                 - event_id
         description: What parameters to use for joining the event.
+  /v1/events/set_menu:
+    post:
+      summary: Set event's menu
+      operationId: post-v1-events-set_menu
+      responses:
+        '200':
+          description: OK
+      description: Sets the menu of an event.
+      parameters: [ ]
+      security:
+        - API-Key: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_id:
+                  type: integer
+                  description: The id of the event.
+                menu:
+                  $ref: '#/components/schemas/Menu'
+              required:
+                - event_id
+                - menu
 components:
   schemas:
     Error:
@@ -369,6 +394,71 @@ components:
           description: May contain data. See the corresponding endpoint.
       required:
         - success
+    Menu:
+      title: Menu
+      x-stoplight:
+        id: ctwey9s796xq0
+      type: object
+      description: The contents of an event's menu.
+      properties:
+        firsts:
+          type: array
+          description: A list of plates for firsts.
+          items:
+            type: string
+        seconds:
+          type: array
+          description: A list of plates for seconds.
+          items:
+            type: string
+        thirds:
+          type: array
+          description: A list of plates for thirds-
+          items:
+            type: string
+        desserts:
+          type: array
+          description: A list of plates for desserts.
+          items:
+            type: string
+        drink_included:
+          type: boolean
+          description: If drinks are included.
+        coffee_included:
+          type: boolean
+          description: If coffee is included.
+        tea_included:
+          type: boolean
+          description: If tea and infusions are included.
+        pricing:
+          type: array
+          description: Relates different grades to different prices.
+          items:
+            type: object
+            properties:
+              grade:
+                type: string
+                description: 'The grade to assign the price to. If null or not set, will be used as default.'
+                enum:
+                  - fester
+                  - jubilat
+                  - situ_esp
+                  - colaborador
+                  - juvenil
+                  - infantil
+                  - alevi
+                  - baixa
+                example: fester
+              price:
+                type: number
+                description: The price in euros to assign. 0 indicates that it is included.
+            required:
+              - price
+      required:
+        - drink_included
+        - coffee_included
+        - tea_included
+        - pricing
   securitySchemes:
     API-Key:
       name: API Key
