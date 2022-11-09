@@ -13,7 +13,7 @@
  * @property {boolean} drinkIncluded
  * @property {boolean} coffeeIncluded
  * @property {boolean} teaIncluded
- * @property {{role:string,price:number}[]} pricing
+ * @property {{grade:string,price:number}[]} pricing
  */
 
 /**
@@ -29,7 +29,9 @@
  * @property {TableData[]} tables
  */
 
-import {query as dbQuery} from "../request/database.js";
+import {query as dbQuery, removeIfExists} from "../request/database.js";
+import {SqlError} from "mariadb";
+import {log} from "../../cli/logger.js";
 
 /**
  * Gets a list of all the available events.
@@ -177,4 +179,57 @@ export const isEatEvent = async (eventId) => {
         return false;
     const row = rows[0];
     return row['EatEvent'];
+};
+
+/**
+ * Updates the menu of an event.
+ * @author Arnau Mora
+ * @since 20221109
+ * @param {number} eventId
+ * @param {MenuData} menu
+ * @return {Promise<void>}
+ */
+export const setMenu = async (eventId, menu) => {
+    const firsts = menu.firsts, seconds = menu.seconds, thirds = menu.thirds, desserts = menu.desserts;
+    const firstsTxt = firsts.length > 0 ? `'${firsts.join(';')}'` : 'NULL',
+        secondsTxt = seconds.length > 0 ? `'${seconds.join(';')}'` : 'NULL',
+        thirdsTxt = thirds.length > 0 ? `'${thirds.join(';')}'` : 'NULL',
+        dessertsTxt = desserts.length > 0 ? `'${desserts.join(';')}'` : 'NULL';
+    /** @type {{Id:number}[]} */
+    const menus = await dbQuery(`SELECT Id
+                                 FROM mMenus
+                                 WHERE EventId = '${eventId}'
+                                 LIMIT 1;`);
+
+    // If there's already a menu, remove it
+    for (let menu of menus) {
+        await removeIfExists('mMenuPricing', (new Map()).set('MenuId', menu.Id));
+        await removeIfExists('mMenus', (new Map()).set('EventId', eventId));
+        log('Removed menu with id', menu.Id, 'for event with id', eventId);
+    }
+
+    // Add the new menu
+    const q = await dbQuery(`INSERT INTO mMenus (EventId, Firsts, Seconds, Thirds, Desserts, DrinkIncluded,
+                                                 CoffeeIncluded,
+                                                 TeaIncluded)
+                             VALUES (${eventId}, ${firstsTxt}, ${secondsTxt}, ${thirdsTxt}, ${dessertsTxt},
+                                     ${menu.drinkIncluded ? '1' : 0}, ${menu.coffeeIncluded ? '1' : '0'},
+                                     ${menu.teaIncluded ? '1' : '0'})`);
+    const menuId = parseInt(q.insertId);
+
+    // Add the pricing
+    for (let {grade, price} of menu.pricing) {
+        let gradeId;
+        if (grade == null)
+            gradeId = 'null';
+        else {
+            const rows = await dbQuery(`SELECT Id
+                                        FROM mGrades
+                                        WHERE DisplayName = '${grade}'
+                                        LIMIT 1;`);
+            gradeId = rows[0]?.Id ?? 'null';
+        }
+        await dbQuery(`INSERT INTO mMenuPricing (MenuId, GradeId, Price)
+                       VALUES (${menuId}, ${gradeId}, ${price})`);
+    }
 };
