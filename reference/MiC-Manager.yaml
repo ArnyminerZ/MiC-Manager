@@ -328,31 +328,83 @@ paths:
               required:
                 - event_id
         description: What parameters to use for joining the event.
-  /v1/events/set_menu:
+  '/v1/events/{event_id}/set_menu':
+    parameters:
+      - schema:
+          type: integer
+        name: event_id
+        in: path
+        required: true
+        description: The id of the event.
     post:
-      summary: Set event's menu
-      operationId: post-v1-events-set_menu
+      summary: Set the event's menu
+      operationId: post-v1-events-event_id-set_menu
       responses:
         '200':
           description: OK
-      description: Sets the menu of an event.
-      parameters: [ ]
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example:
+                  value:
+                    success: true
+        '400':
+          description: Bad Request - Missing body arguments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-400:
+                  value:
+                    success: true
+                    error:
+                      code: missing-parameters
+        '404':
+          description: Not Found - The event was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-404:
+                  value:
+                    success: true
+                    error:
+                      code: not-found
+        '405':
+          description: Method Not Allowed - The event is not an eat event.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-405:
+                  value:
+                    success: true
+                    error:
+                      code: not-allowed
+        '406':
+          description: Not Acceptable - The event id is not a valid id.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-406:
+                  value:
+                    success: true
+                    error:
+                      code: invalid-request
       security:
         - API-Key: [ ]
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                event_id:
-                  type: integer
-                  description: The id of the event.
-                menu:
-                  $ref: '#/components/schemas/Menu'
-              required:
-                - event_id
-                - menu
+              $ref: '#/components/schemas/Menu'
 components:
   schemas:
     Error:
