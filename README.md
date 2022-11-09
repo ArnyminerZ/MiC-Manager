@@ -1,4 +1,4 @@
-# Fila Magenta Backend
+# MiC Manager
 
 [![Building][build-badge]][build-url]
 [![CodeQL Analysis][codeql-badge-url]][codeql-url]
