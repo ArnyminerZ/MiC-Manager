@@ -105,10 +105,10 @@ export const getEvents = async () => {
                     };
                 })
                 event.menu = {
-                    firsts: menu['Firsts'],
-                    seconds: menu['Seconds'],
-                    thirds: menu['Thirds'],
-                    desserts: menu['Desserts'],
+                    firsts: menu['Firsts']?.split(';'),
+                    seconds: menu['Seconds']?.split(';'),
+                    thirds: menu['Thirds']?.split(';'),
+                    desserts: menu['Desserts']?.split(';'),
                     drinkIncluded: menu['DrinkIncluded'],
                     coffeeIncluded: menu['CoffeeIncluded'],
                     teaIncluded: menu['TeaIncluded'],
