@@ -1,7 +1,7 @@
 import {query as dbQuery} from './request/database.js';
 
 /**
- * @typedef {("tables_see","event_add","people_see")} Permission
+ * @typedef {("tables_see","event_add","event_edit","people_see")} Permission
  */
 
 /**
