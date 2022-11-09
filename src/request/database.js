@@ -35,6 +35,7 @@ import {
     InsertRolesPermissions
 } from "../../model/Defaults.js";
 import {error} from '../../cli/logger.js';
+import {isNumber} from "../utils.js";
 
 dotenv.config();
 
@@ -124,7 +125,7 @@ export const check = async (debug = false) => {
  * @since 20221030
  * @param {string} query The SQL query to make.
  * @param {boolean} shouldDisconnect If false, the connection to the database won't get disconnected after fetching.
- * @return {Promise<[]>} The rows fetched
+ * @return {Promise<Object[]>} The rows fetched
  */
 export const query = async (query, shouldDisconnect = true) => {
     let result;
@@ -156,3 +157,21 @@ export const info = async () => {
         version: info.find(v => v.Id === 1)?.Value,
     };
 }
+
+/**
+ * Removes a row if it exists, using the where clause.
+ * @author Arnau Mora
+ * @since 20221109
+ * @param {string} table
+ * @param {Map<string, string>} where
+ * @return {Promise<Object[]>}
+ */
+export const removeIfExists = async (table, where) => {
+    const whereQuery = [];
+    where.forEach((w, k) => whereQuery.push(`${k}=${isNumber(w) || w == null ? w : `'${w}'`}`));
+
+    return await query(`DELETE
+                        FROM ${table}
+                        WHERE ${whereQuery.join(' AND ')}
+                          AND EXISTS(SELECT 1 FROM ${table} WHERE ${whereQuery.join(' AND ')})`)
+};
