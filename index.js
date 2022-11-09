@@ -307,5 +307,6 @@ if (props.includes('migration')) addMigrationEndpoints(app);
 
 // Fallback
 app.get('*', (req, res) => res.status(404).json(errorResponse('invalid-request')));
+app.post('*', (req, res) => res.status(404).json(errorResponse('invalid-request')));
 
 app.listen(HTTP_PORT, () => info(`Listening for requests on http://localhost:${HTTP_PORT}`));
