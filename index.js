@@ -16,7 +16,7 @@ import {
 } from './src/exceptions.js';
 import {checkToken, decodeToken} from "./src/security.js";
 import {getUserData} from "./src/data/users.js";
-import {create as createEvent, getEvents} from "./src/data/events.js";
+import {create as createEvent, getEvents, isEatEvent, setMenu} from "./src/data/events.js";
 import {hasPermission} from "./src/permissions.js";
 import {checkVariables, getProps} from './src/variables.js';
 import {createClient as calCreateClient, getAddressBookUrl, getCard, getCards} from "./src/request/caldav.js";
@@ -229,6 +229,77 @@ app.post('/v1/events/create', async (req, res) => {
     } catch (e) {
         res.status(500).json(errorResponse(e));
     }
+});
+app.post('/v1/events/:event_id/set_menu', async (req, res) => {
+    const params = req.params;
+    const body = req.body;
+    /** @type {number} */
+    const eventId = parseInt(params['event_id']);
+
+    /** @type {string[]} */
+    const firsts = body['firsts'];
+    /** @type {string[]} */
+    const seconds = body['seconds'];
+    /** @type {string[]} */
+    const thirds = body['thirds'];
+    /** @type {string[]} */
+    const desserts = body['desserts'];
+    /** @type {boolean|null} */
+    const drinkIncluded = body['drink_included'];
+    /** @type {boolean|null} */
+    const coffeeIncluded = body['coffee_included'];
+    /** @type {boolean|null} */
+    const teaIncluded = body['tea_included'];
+    /** @type {{grade:string|null,price:number}[]|null} */
+    const pricing = body['pricing'];
+
+    /** @type {string|null} */
+    const apiKey = req.get('API-Key');
+
+    if (drinkIncluded == null || coffeeIncluded == null || teaIncluded == null || pricing == null)
+        return res.status(400).json(errorResponse('missing-parameters'));
+
+    if (isNaN(eventId)) return res.status(406).json(errorResponse('invalid-request'));
+
+    // Check API key
+    if (apiKey == null || !(await checkToken(apiKey)))
+        return res.status(406).json(errorResponse('invalid-key'));
+
+    /** @type {{nif: string, userId: number}} */
+    let tokenData;
+    try {
+        tokenData = await decodeToken(apiKey);
+    } catch (e) {
+        return res.status(406).json(errorResponse('invalid-key'));
+    }
+
+    // Check if user has permission to add events
+    if (!(await hasPermission(tokenData.userId, 'event_edit'))) {
+        error('User', tokenData.userId, 'tried to add a new event. Error: unauthorised');
+        return res.status(401).json(errorResponse('unauthorised'));
+    }
+
+    const events = await getEvents();
+    /** @type {EventData,null} */
+    const event = events.find(v => v.id === eventId);
+
+    if (event == null) return res.status(404).json(errorResponse('not-found'));
+
+    const eatEvent = isEatEvent(eventId);
+    if (!eatEvent) return res.status(405).json(errorResponse('not-allowed'));
+
+    await setMenu(eventId, {
+        firsts: firsts ?? [],
+        seconds: seconds ?? [],
+        thirds: thirds ?? [],
+        desserts: desserts ?? [],
+        drinkIncluded,
+        coffeeIncluded,
+        teaIncluded,
+        pricing,
+    });
+
+    res.json(successResponse());
 });
 
 // Extra endpoints
