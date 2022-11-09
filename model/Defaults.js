@@ -38,6 +38,8 @@ export const InsertPermissions = [
     insertIfNotExists('mPermissions', {Id: 2, DisplayName: 'event_add'}),
     // See all the registered people
     insertIfNotExists('mPermissions', {Id: 3, DisplayName: 'people_see'}),
+    // Edit events
+    insertIfNotExists('mPermissions', {Id: 4, DisplayName: 'event_edit'}),
 ];
 
 export const InsertGrades = [
