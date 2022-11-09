@@ -55,6 +55,8 @@ export const login = async (nif, password, reqIp) => {
         throw new SecurityException(`Max attempts count reached (${maxAttempts}).`);
 
     const user = await findUserWithNif(nif);
+    if (user == null)
+        throw new UserNotFoundException('Could not find any user with NIF ' + nif);
     const userHash = user.Hash;
 
     if (userHash == null)

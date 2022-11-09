@@ -87,6 +87,8 @@ app.post('/v1/user/auth', async (req, res) => {
             res.status(403).json(errorResponse('wrong-credentials'));
         else if (e instanceof SecurityException)
             res.status(412).json(errorResponse('max-attempts-reached'));
+        else if (e instanceof UserNotFoundException)
+            res.status(404).json(errorResponse('not-found'));
         else {
             error('Could not authenticate. Error:', e);
             res.status(500).json({success: false, error: 'unknown', errorData: e});
