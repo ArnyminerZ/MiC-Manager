@@ -42,7 +42,7 @@ import package_json from '../../package.json' assert {type: 'json'};
  * @param {string} source The source to get the cards from.
  * @returns {VCardProperty[][]}
  */
-const splitCards = source => {
+export const splitCards = source => {
     /** @type {VCardProperty[][]} */
     const cards = [];
     let cardBegin = source.indexOf('BEGIN:VCARD');
@@ -57,6 +57,8 @@ const splitCards = source => {
         block
             .split('\n')
             .forEach(line => {
+                if (line.length <= 0) return;
+
                 const keyEnd = line.indexOf(':');
                 /** @type {string[]} */
                 const rawKey = line.substring(0, keyEnd).split(';');
@@ -103,7 +105,7 @@ export const parseCards = source => {
                         console.warn('Got unsupported vCard version:', data, "Errors may occur.");
                     break;
                 case 'ADR':
-                    person.address = [properties['TYPE'], data];
+                    person.address = [properties.get('TYPE'), data];
                     break;
                 case 'AGENT':
                     person.agent = data;
@@ -157,9 +159,9 @@ export const parseCards = source => {
                     break;
                 case 'TEL':
                     if (person.telephones == null)
-                        person.telephones = [properties['TYPE'], data];
+                        person.telephones = [[properties.get('TYPE'), data]];
                     else
-                        person.telephones.push([properties['TYPE'], data]);
+                        person.telephones.push([properties.get('TYPE'), data]);
                     break;
                 case 'TITLE':
                     person.title = data;
