@@ -19,6 +19,20 @@ export class UserNotFoundException extends Error {
     }
 }
 
+export class EventNotFoundException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'EventNotFoundException';
+    }
+}
+
+export class TableNotFoundException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'TableNotFoundException';
+    }
+}
+
 export class PasswordlessUserException extends Error {
     constructor(message) {
         super(message);
@@ -51,5 +65,19 @@ export class ParseException extends Error {
     constructor(message) {
         super(message);
         this.name = 'ParseException';
+    }
+}
+
+export class TableAlreadyExistsException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'TableAlreadyExistsException';
+    }
+}
+
+export class AlreadyInTableException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'AlreadyInTableException';
     }
 }
