@@ -274,13 +274,13 @@ paths:
       description: Get a list of all the available events.
       security:
         - API-Key: [ ]
-  /v1/events/join:
+  '/v1/events/{event_id}/join':
     post:
       summary: Join Event
       operationId: post-v1-events-join
       responses:
         '200':
-          description: OK - Joined event successfully
+          description: 'OK - Joined event, table, or created a new one successfully'
           content:
             application/json:
               schema:
@@ -301,6 +301,18 @@ paths:
                     success: false
                     error:
                       code: missing-parameters
+        '404':
+          description: Not Found - Event id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-404:
+                  value:
+                    success: true
+                    error:
+                      code: not-found
         '406':
           description: Not Acceptable - The given API Key is not valid.
           content:
@@ -313,7 +325,43 @@ paths:
                     success: false
                     error:
                       code: invalid-key
-      description: Confirms the assistance of the given user to an event.
+        '409':
+          description: 'Conflict - The logged in user already is part of a table, either as a responsible, or as a member.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-409:
+                  value:
+                    success: true
+                    error:
+                      code: conflict
+        '410':
+          description: Gone - The given table doesn't exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-410:
+                  value:
+                    success: true
+                    error:
+                      code: not-found
+        '503':
+          description: Service Unavailable - The logged in user doesn't exist in the database.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-503:
+                  value:
+                    success: true
+                    error:
+                      code: not-found
+      description: 'If the event is for eating, creates a new table, and sets the current user as the responsible. If not for eating, simply confirms assistance for the given user.'
       security:
         - API-Key: [ ]
       requestBody:
@@ -322,12 +370,21 @@ paths:
             schema:
               type: object
               properties:
-                event_id:
+                table_id:
                   type: integer
-                  description: The id of the event to join.
-              required:
-                - event_id
-        description: What parameters to use for joining the event.
+                  description: 'The id of the table to join. If not given, a new table will be created.'
+                assists:
+                  type: boolean
+                  default: true
+                  description: 'If given, and event is not an eat event, indicates if the user will assist the event or not.'
+        description: 'A table id can be given if the user is intending to join a table, rather than creating a new one.'
+    parameters:
+      - schema:
+          type: string
+        name: event_id
+        in: path
+        required: true
+        description: The id of the event.
   '/v1/events/{event_id}/set_menu':
     parameters:
       - schema:
