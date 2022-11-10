@@ -317,3 +317,24 @@ export const joinTable = async (eventId, tableId, userId) => {
     await dbQuery(`INSERT INTO mTablesPeople (UserId, TableId)
                    VALUES (${userId}, ${tableId});`);
 };
+
+/**
+ * Confirms assistance by the given user to the given event.
+ * @author Arnau Mora
+ * @since 20221110
+ * @param {number} eventId The id of the event.
+ * @param {number} userId The id of the user that is confirming.
+ * @param {boolean} assists If the user will assist the event.
+ * @return {Promise<void>}
+ */
+export const confirmAssistance = async (eventId, userId, assists = true) => {
+    // Check that the given event exists
+    if (!(await exists(eventId))) throw new EventNotFoundException('The given event doesn\'t exist. Id: ' + eventId);
+
+    // Check that the given user exists
+    if (!(await userExists(userId))) throw new UserNotFoundException('The given user doesn\'t exist. Id: ' + userId);
+
+    // Confirm assistance
+    await dbQuery(`INSERT INTO mAssistance (UserId, Assists, EventId)
+                   VALUES (${userId}, ${assists ? 1 : 0}, ${eventId})`);
+};
