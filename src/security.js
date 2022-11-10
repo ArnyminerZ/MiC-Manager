@@ -38,10 +38,10 @@ export const generateToken = (payload, expiresIn = '7d') => new Promise((resolve
 export const checkToken = (token) => new Promise((resolve) => {
     jwt.verify(token, privateKey, {}, (err, payload) => {
         if (!err)
-            if (!payload.hasOwnProperty('nif') || !payload.hasOwnProperty('userId'))
-                resolve(false);
-            else
+            if (payload['nif'] != null && payload['userId'] != null)
                 resolve(true);
+            else
+                resolve(false);
         else
             resolve(false);
     });
