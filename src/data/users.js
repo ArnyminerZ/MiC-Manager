@@ -170,3 +170,14 @@ const getUserRegistration = async (userId) => {
     const lastRegistration = lastRegistrationQuery[0].Timestamp;
     return new Date(lastRegistration);
 }
+
+/**
+ * Checks that a user exists.
+ * @author Arnau Mora
+ * @since 20221110
+ * @param {number} userId The id the user.
+ * @return {Promise<boolean>}
+ */
+export const exists = async (userId) => (await dbQuery(`SELECT Id
+                                                        FROM mUsers
+                                                        WHERE Id = ${userId}`)).length > 0;

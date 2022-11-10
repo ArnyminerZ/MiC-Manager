@@ -39,6 +39,7 @@ import {
     TableNotFoundException,
     UserNotFoundException
 } from "../exceptions.js";
+import {exists as userExists} from "./users.js";
 
 /**
  * Gets a list of all the available events.
@@ -142,6 +143,17 @@ export const getEvents = async () => {
         return ev;
     });
 };
+
+/**
+ * Checks that an event exists.
+ * @author Arnau Mora
+ * @since 20221110
+ * @param {number} eventId The id the event.
+ * @return {Promise<boolean>}
+ */
+export const exists = async (eventId) => (await dbQuery(`SELECT Id
+                                                         FROM mEvents
+                                                         WHERE Id = ${eventId}`)).length > 0;
 
 /**
  * Creates a new event.
