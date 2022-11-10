@@ -26,6 +26,7 @@
  * @property {number} WhitesWheelNumber
  * @property {number} BlacksWheelNumber
  * @property {number} AssociatedTo
+ * @property {Date|null} Registration
  * @property {PersonData} vCard
  */
 
@@ -42,10 +43,21 @@
  * @property {string} NIF
  */
 
+import {SqlError} from "mariadb";
 import {query as dbQuery} from '../request/database.js';
 import {UserNotFoundException} from "../exceptions.js";
 import {getCard} from "../request/caldav.js";
+import dateFormat from "dateformat";
 
+/**
+ * Fetches the `UserData` of the user with the given constraints.
+ * @author Arnau Mora
+ * @since 20221110
+ * @param {string} where The where constraint of the SQL query.
+ * @throws {SqlError}
+ * @throws {UserNotFoundException} If the given constraints do not match any user.
+ * @return {Promise<UserData>}
+ */
 const findUserWithQuery = async (where) => {
     const rows = await dbQuery(`
         SELECT mUsers.*,
@@ -67,10 +79,12 @@ const findUserWithQuery = async (where) => {
     if (rows.length <= 0) throw new UserNotFoundException('Could not find user that matches "' + where + '"');
     // console.log('rows:', rows);
     const data = rows[0];
-    const card = getCard(data['Uid'])
+    const userId = data['Id'];
+    const card = getCard(data['Uid']);
     const permissions = rows.map(r => r['PermDisplayName']).filter(v => v != null);
+    const registration = await getUserRegistration(userId);
     return {
-        Id: data['Id'],
+        Id: userId,
         Hash: data['Hash'],
         Uid: data['Uid'],
         NIF: data['NIF'],
@@ -90,6 +104,7 @@ const findUserWithQuery = async (where) => {
         WhitesWheelNumber: data['WhitesWheel'],
         BlacksWheelNumber: data['BlacksWheel'],
         AssociatedTo: data['Associated'],
+        Registration: dateFormat(registration, 'yyyy-MM-dd'),
         vCard: card,
     };
 };
@@ -135,3 +150,23 @@ export const newUser = async (data) => await dbQuery(
              ${data.WhitesWheel}, ${data.BlacksWheel},
              ${data.Associated}, '${data.NIF}');`
 );
+
+/**
+ * Fetches at which moment the user got signed up.
+ * @author Arnau Mora
+ * @since 20221110
+ * @param {number} userId
+ * @return {Promise<Date|null>}
+ */
+const getUserRegistration = async (userId) => {
+    const lastRegistrationQuery = await dbQuery(`SELECT Timestamp
+                                                 FROM mUserRegistrations
+                                                 WHERE UserId = ${userId}
+                                                   and \`Left\` = 0
+                                                 ORDER BY Timestamp
+                                                 LIMIT 1;`);
+    if (lastRegistrationQuery.length <= 0)
+        return null;
+    const lastRegistration = lastRegistrationQuery[0].Timestamp;
+    return new Date(lastRegistration);
+}
