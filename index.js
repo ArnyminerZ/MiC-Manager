@@ -252,6 +252,7 @@ app.post('/v1/events/:event_id/join', async (req, res) => {
     } catch (e) {
         return res.status(406).json(errorResponse('invalid-key'));
     }
+    const {userId, nif} = tokenData;
 
     // Check if event exists
     const events = await getEvents();
@@ -264,16 +265,17 @@ app.post('/v1/events/:event_id/join', async (req, res) => {
         if (eatEvent) {
             if (isNaN(tableId)) {
                 // Create table
-                await createTable(eventId, tokenData.userId);
+                await createTable(eventId, userId);
             } else {
                 // Join table
-                await joinTable(eventId, tableId, tokenData.userId);
+                await joinTable(eventId, tableId, userId);
             }
         } else {
             // Confirm assistance
-            await confirmAssistance(eventId, tokenData.userId, assists);
+            await confirmAssistance(eventId, userId, assists);
         }
     } catch (e) {
+        error(`Could not join`, nif, `(${userId}) to event`, eventId, '. Error:', e);
         if (e instanceof UserNotFoundException)
             res.status(503).json(errorResponse('not-found'));
         else if (e instanceof TableAlreadyExistsException || e instanceof AlreadyInTableException)
