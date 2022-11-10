@@ -230,10 +230,92 @@ paths:
                 user_id:
                   type: string
                   description: The id of the user to check for. Can be null if the currently logged in user is the desired one.
+  /v1/events/create:
+    post:
+      summary: Create Event
+      operationId: post-v1-events-create
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Bad Request - Missing required parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-400:
+                  value:
+                    success: true
+                    error:
+                      code: missing-parameters
+        '401':
+          description: Unauthorized - The logged in user doesn't have permission to create events.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-401:
+                  value:
+                    success: true
+                    error:
+                      code: unauthorised
+        '406':
+          description: Not Acceptable - Key not valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-406:
+                  value:
+                    success: true
+                    error:
+                      code: invalid-key
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+      description: Creates a new event with the given parameters.
+      security:
+        - API-Key: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                  description: The name that represents the event.
+                description:
+                  type: string
+                  description: 'A description for the event. Supports Markdown, and can be null.'
+                date:
+                  type: string
+                  description: The date in which the event will take place.
+                contact:
+                  type: string
+                  description: Contact information for the responsible of the event.
+                category:
+                  type: string
+                  description: The cateogry of the event.
+                  enum:
+                    - generic
+                    - assaig
+                    - entradeta
+              required:
+                - displayName
+                - date
+                - category
+        description: The parameters to use for creating the event.
   /v1/events/list:
     get:
       summary: List Events
-      tags: []
+      tags: [ ]
       responses:
         '200':
           description: OK
