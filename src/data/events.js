@@ -36,6 +36,7 @@ import {
     AlreadyInTableException,
     EventNotFoundException,
     TableAlreadyExistsException,
+    TableNotFoundException,
     UserNotFoundException
 } from "../exceptions.js";
 
@@ -283,4 +284,33 @@ export const createTable = async (eventId, responsibleId) => {
 
     await dbQuery(`INSERT INTO mTables (Responsible, EventId)
                    VALUES (${responsibleId}, ${eventId})`);
+};
+
+/**
+ * Joins the given user to the given table.
+ * @author Arnau Mora
+ * @since 20221110
+ * @param {number} eventId The id of the event of the table.
+ * @param {number} tableId The id of the table to join.
+ * @param {number} userId The id of the user that is joining.
+ * @return {Promise<void>}
+ * @throws {TableNotFoundException} The given table id doesn't exist or doesn't match the given event.
+ */
+export const joinTable = async (eventId, tableId, userId) => {
+    // Check that the table exists, and matches the given event
+    const tEvent = await dbQuery(`SELECT Id
+                                  FROM mTables
+                                  WHERE Id = ${tableId}
+                                    AND EventId = ${eventId};`);
+    if (tEvent.length <= 0) throw new TableNotFoundException(`The given table id doesn't exist, or doesn't match the event.`);
+
+    // Check that the given user exists
+    const userRows = await dbQuery(`SELECT Id
+                                    FROM mUsers
+                                    WHERE Id = ${userId}`);
+    if (userRows.length <= 0) throw new UserNotFoundException('The given user doesn\'t exist. Id: ' + userId);
+
+    // Join the table
+    await dbQuery(`INSERT INTO mTablesPeople (UserId, TableId)
+                   VALUES (${userId}, ${tableId});`);
 };
