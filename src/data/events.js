@@ -136,9 +136,10 @@ export const getEvents = async () => {
             const tableResponsible = row['TableResponsible'];
             const tableMember = row['TableMember'];
             if (!!tableResponsible || !!tableMember)
-                tables.set(eventId, new Map([
-                    [tableId, {responsible: tableResponsible, members: tableMember != null ? [tableMember] : []}]
-                ]));
+                tables.set(eventId, new Map([[
+                    tableId,
+                    {id: tableId, responsible: tableResponsible, members: tableMember != null ? [tableMember] : []}
+                ]]));
         }
     }
     return builder.map((ev) => {
