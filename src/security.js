@@ -58,7 +58,7 @@ export const decodeToken = (token) => new Promise((resolve, reject) => {
     jwt.verify(token, privateKey, {}, (err, payload) => {
         if (!err)
             if (payload.hasOwnProperty('nif') && payload.hasOwnProperty('userId'))
-                resolve({nif: payload.n, userId: parseInt(payload.userId)});
+                resolve({nif: payload.nif, userId: parseInt(payload.userId)});
             else
                 reject('Payload missing data.');
         else
