@@ -115,7 +115,7 @@ app.get('/v1/user/data', async (req, res) => {
     let userId, constrain = false;
     if (userIdParam != null) {
         userId = parseInt(userIdParam);
-        constrain = !(await hasPermission(userId, 'view-user-data'));
+        constrain = !(await hasPermission(userId, 'people_see'));
     } else {
         userId = tokenData['userId'];
     }
