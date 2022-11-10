@@ -286,7 +286,7 @@ export const createTable = async (eventId, responsibleId) => {
                                               LEFT JOIN mTables mT on mT.Id = mTablesPeople.TableId
                                      WHERE mT.EventId = ${eventId}
                                        AND mTablesPeople.UserId = ${responsibleId}`);
-    if (tUserRows.length <= 0) throw new AlreadyInTableException(`The user has joined another table.`);
+    if (tUserRows.length > 0) throw new AlreadyInTableException(`The user has joined another table.`);
 
     await dbQuery(`INSERT INTO mTables (Responsible, EventId)
                    VALUES (${responsibleId}, ${eventId})`);
