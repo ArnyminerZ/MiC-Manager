@@ -65,16 +65,19 @@ export const getEvents = async () => {
     /** @type {Map<number, Map<number, TableData>>} */
     let tables = new Map();
     for (let row of rows) {
-        const eventId = row['id'];
+        const eventId = row['Id'];
         const tableId = parseInt(row['TableId']);
 
+        // If the event has already been registered, it means that there's new data to be added
         if (builder.hasOwnProperty(eventId)) {
+            // If a new attendant has been found, add it
             if (row['AttPerson'] != null) {
                 const a = attendants[eventId] ?? [];
                 a.push(row['AttPerson']);
                 attendants[eventId] = a;
             }
 
+            // If a new table member has been found, add to the table
             if (row['TableMember'] != null) {
                 /** @type {Map<number, TableData>} */
                 const t = tables.get(eventId) ?? new Map();
@@ -133,7 +136,9 @@ export const getEvents = async () => {
             const tableResponsible = row['TableResponsible'];
             const tableMember = row['TableMember'];
             if (!!tableResponsible || !!tableMember)
-                tables.set(eventId, new Map([[tableId, {responsible: tableResponsible, members: [tableMember]}]]));
+                tables.set(eventId, new Map([
+                    [tableId, {responsible: tableResponsible, members: tableMember != null ? [tableMember] : []}]
+                ]));
         }
     }
     return builder.map((ev) => {
