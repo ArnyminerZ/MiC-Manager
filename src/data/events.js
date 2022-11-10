@@ -278,7 +278,7 @@ export const createTable = async (eventId, responsibleId) => {
                                      FROM mTables
                                      WHERE Responsible = ${responsibleId}
                                        and EventId = ${eventId}`);
-    if (tableRows.length <= 0) throw new TableAlreadyExistsException(`There's already a table with the given user as responsible.`);
+    if (tableRows.length > 0) throw new TableAlreadyExistsException(`There's already a table with the given user as responsible.`);
 
     // Check that the user is not already in another table
     const tUserRows = await dbQuery(`SELECT mTablesPeople.Id
