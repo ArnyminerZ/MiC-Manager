@@ -8,15 +8,26 @@ import {errorResponse, successResponse} from './src/response.js';
 import {check as dbCheck, info as dbInfo} from './src/request/database.js';
 import {changePassword, login} from "./src/auth.js";
 import {
+    AlreadyInTableException,
     InvalidTokenException,
     PasswordlessUserException,
     SecurityException,
+    TableAlreadyExistsException,
+    TableNotFoundException,
     UserNotFoundException,
     WrongPasswordException
 } from './src/exceptions.js';
 import {checkToken, decodeToken} from "./src/security.js";
 import {getUserData} from "./src/data/users.js";
-import {create as createEvent, getEvents, isEatEvent, setMenu} from "./src/data/events.js";
+import {
+    confirmAssistance,
+    create as createEvent,
+    createTable,
+    getEvents,
+    isEatEvent,
+    joinTable,
+    setMenu
+} from "./src/data/events.js";
 import {hasPermission} from "./src/permissions.js";
 import {checkVariables, getProps} from './src/variables.js';
 import {createClient as calCreateClient, getAddressBookUrl, getCard, getCards} from "./src/request/caldav.js";
@@ -170,21 +181,6 @@ app.get('/v1/events/list', async (req, res) => {
     const events = await getEvents();
     res.json(successResponse(events));
 });
-app.post('/v1/events/join', async (req, res) => {
-    const body = req.body;
-    /** @type {string|null} */
-    const eventId = body['event_id'];
-    /** @type {string|null} */
-    const apiKey = req.get('API-Key');
-
-    if (eventId == null)
-        return res.status(400).send(errorResponse('missing-parameters'));
-
-    if (apiKey == null || !(await checkToken(apiKey)))
-        return res.status(406).send(errorResponse('invalid-key'));
-
-    // TODO: Join event
-});
 app.post('/v1/events/create', async (req, res) => {
     const body = req.body;
     /** @type {string|null} */
@@ -228,6 +224,64 @@ app.post('/v1/events/create', async (req, res) => {
         res.json(successResponse());
     } catch (e) {
         res.status(500).json(errorResponse(e));
+    }
+});
+app.post('/v1/events/:event_id/join', async (req, res) => {
+    const params = req.params;
+    const body = req.body;
+    /** @type {number} */
+    const eventId = parseInt(params['event_id']);
+    /** @type {string|null} */
+    const apiKey = req.get('API-Key');
+    /** @type {number|NaN} */
+    const tableId = parseInt(body['table_id']);
+    /** @type {boolean} */
+    const assists = body['assists'] ?? true;
+
+    if (eventId == null) return res.status(400).send(errorResponse('missing-parameters'));
+
+    // Check if the key is correct
+    if (apiKey == null || !(await checkToken(apiKey)))
+        return res.status(406).send(errorResponse('invalid-key'));
+
+    // Get token data
+    /** @type {{nif: string, userId: number}} */
+    let tokenData;
+    try {
+        tokenData = await decodeToken(apiKey);
+    } catch (e) {
+        return res.status(406).json(errorResponse('invalid-key'));
+    }
+
+    // Check if event exists
+    const events = await getEvents();
+    /** @type {EventData|null} */
+    const event = events.find(v => v.id === eventId);
+    if (event == null) return res.status(404).json(errorResponse('not-found'))
+
+    const eatEvent = isEatEvent(eventId);
+    try {
+        if (eatEvent) {
+            if (isNaN(tableId)) {
+                // Create table
+                await createTable(eventId, tokenData.userId);
+            } else {
+                // Join table
+                await joinTable(eventId, tableId, tokenData.userId);
+            }
+        } else {
+            // Confirm assistance
+            await confirmAssistance(eventId, tokenData.userId, assists);
+        }
+    } catch (e) {
+        if (e instanceof UserNotFoundException)
+            res.status(503).json(errorResponse('not-found'));
+        else if (e instanceof TableAlreadyExistsException || e instanceof AlreadyInTableException)
+            res.status(409).json(errorResponse('conflict'));
+        else if (e instanceof TableNotFoundException)
+            res.status(404).json(errorResponse('not-found'));
+        else
+            res.status(500).json(errorResponse(e));
     }
 });
 app.post('/v1/events/:event_id/set_menu', async (req, res) => {
