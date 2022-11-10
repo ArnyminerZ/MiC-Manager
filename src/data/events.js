@@ -268,16 +268,10 @@ export const setMenu = async (eventId, menu) => {
  */
 export const createTable = async (eventId, responsibleId) => {
     // Check that the given user exists
-    const userRows = await dbQuery(`SELECT Id
-                                    FROM mUsers
-                                    WHERE Id = ${responsibleId}`);
-    if (userRows.length <= 0) throw new UserNotFoundException('The given user doesn\'t exist. Id: ' + responsibleId);
+    if (!(await userExists(responsibleId))) throw new UserNotFoundException('The given user doesn\'t exist. Id: ' + responsibleId);
 
     // Check that the given event exists
-    const eventRows = await dbQuery(`SELECT Id
-                                     FROM mEvents
-                                     WHERE Id = ${eventId}`);
-    if (eventRows.length <= 0) throw new EventNotFoundException('The given event doesn\'t exist. Id: ' + eventId);
+    if (!(await exists(eventId))) throw new EventNotFoundException('The given event doesn\'t exist. Id: ' + eventId);
 
     // Check that there's not a table for the given user and event
     const tableRows = await dbQuery(`SELECT Id
@@ -317,10 +311,7 @@ export const joinTable = async (eventId, tableId, userId) => {
     if (tEvent.length <= 0) throw new TableNotFoundException(`The given table id doesn't exist, or doesn't match the event.`);
 
     // Check that the given user exists
-    const userRows = await dbQuery(`SELECT Id
-                                    FROM mUsers
-                                    WHERE Id = ${userId}`);
-    if (userRows.length <= 0) throw new UserNotFoundException('The given user doesn\'t exist. Id: ' + userId);
+    if (!(await userExists(userId))) throw new UserNotFoundException('The given user doesn\'t exist. Id: ' + userId);
 
     // Join the table
     await dbQuery(`INSERT INTO mTablesPeople (UserId, TableId)
