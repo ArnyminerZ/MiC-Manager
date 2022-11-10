@@ -32,7 +32,12 @@
 import {query as dbQuery, removeIfExists} from "../request/database.js";
 import {SqlError} from "mariadb";
 import {log} from "../../cli/logger.js";
-import {EventNotFoundException, UserNotFoundException} from "../exceptions.js";
+import {
+    AlreadyInTableException,
+    EventNotFoundException,
+    TableAlreadyExistsException,
+    UserNotFoundException
+} from "../exceptions.js";
 
 /**
  * Gets a list of all the available events.
@@ -244,6 +249,8 @@ export const setMenu = async (eventId, menu) => {
  * @return {Promise<void>}
  * @throws {UserNotFoundException} If the given responsible user doesn't exist.
  * @throws {EventNotFoundException} If the given event doesn't exist.
+ * @throws {TableAlreadyExistsException} If there's already a table for the given event with the given user as responsible.
+ * @throws {AlreadyInTableException} The given responsible is already in another table.
  * @throws {SqlError} If there's an error while creating the table.
  */
 export const createTable = async (eventId, responsibleId) => {
@@ -258,6 +265,21 @@ export const createTable = async (eventId, responsibleId) => {
                                      FROM mEvents
                                      WHERE Id = ${eventId}`);
     if (eventRows.length <= 0) throw new EventNotFoundException('The given event doesn\'t exist. Id: ' + eventId);
+
+    // Check that there's not a table for the given user and event
+    const tableRows = await dbQuery(`SELECT Id
+                                     FROM mTables
+                                     WHERE Responsible = ${responsibleId}
+                                       and EventId = ${eventId}`);
+    if (tableRows.length <= 0) throw new TableAlreadyExistsException(`There's already a table with the given user as responsible.`);
+
+    // Check that the user is not already in another table
+    const tUserRows = await dbQuery(`SELECT mTablesPeople.Id
+                                     FROM mTablesPeople
+                                              LEFT JOIN mTables mT on mT.Id = mTablesPeople.TableId
+                                     WHERE mT.EventId = ${eventId}
+                                       AND mTablesPeople.UserId = ${responsibleId}`);
+    if (tUserRows.length <= 0) throw new AlreadyInTableException(`The user has joined another table.`);
 
     await dbQuery(`INSERT INTO mTables (Responsible, EventId)
                    VALUES (${responsibleId}, ${eventId})`);
