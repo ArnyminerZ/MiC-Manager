@@ -32,6 +32,7 @@
 import {query as dbQuery, removeIfExists} from "../request/database.js";
 import {SqlError} from "mariadb";
 import {log} from "../../cli/logger.js";
+import {EventNotFoundException, UserNotFoundException} from "../exceptions.js";
 
 /**
  * Gets a list of all the available events.
@@ -232,4 +233,32 @@ export const setMenu = async (eventId, menu) => {
         await dbQuery(`INSERT INTO mMenuPricing (MenuId, GradeId, Price)
                        VALUES (${menuId}, ${gradeId}, ${price})`);
     }
+};
+
+/**
+ * Creates a new table in the given event.
+ * @author Arnau Mora
+ * @since 20221110
+ * @param {number} eventId The id of the event to add the table to.
+ * @param {number} responsibleId The id of the user responsible for the table.
+ * @return {Promise<void>}
+ * @throws {UserNotFoundException} If the given responsible user doesn't exist.
+ * @throws {EventNotFoundException} If the given event doesn't exist.
+ * @throws {SqlError} If there's an error while creating the table.
+ */
+export const createTable = async (eventId, responsibleId) => {
+    // Check that the given user exists
+    const userRows = await dbQuery(`SELECT Id
+                                    FROM mUsers
+                                    WHERE Id = ${responsibleId}`);
+    if (userRows.length <= 0) throw new UserNotFoundException('The given user doesn\'t exist. Id: ' + responsibleId);
+
+    // Check that the given event exists
+    const eventRows = await dbQuery(`SELECT Id
+                                     FROM mEvents
+                                     WHERE Id = ${eventId}`);
+    if (eventRows.length <= 0) throw new EventNotFoundException('The given event doesn\'t exist. Id: ' + eventId);
+
+    await dbQuery(`INSERT INTO mTables (Responsible, EventId)
+                   VALUES (${responsibleId}, ${eventId})`);
 };
