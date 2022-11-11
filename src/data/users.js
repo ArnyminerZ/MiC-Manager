@@ -75,7 +75,7 @@ const findUserWithQuery = async (where) => {
                  LEFT JOIN mRolesPermissions mP ON mR.Id = mP.RoleId
                  LEFT JOIN mGrades mG on mUsers.Grade = mG.Id
                  LEFT JOIN mPermissions m on mP.PermissionId = m.Id
-        WHERE ${where};`);
+        WHERE ?;`, true, where);
     if (rows.length <= 0) throw new UserNotFoundException('Could not find user that matches "' + where + '"');
     // console.log('rows:', rows);
     const data = rows[0];
@@ -146,9 +146,15 @@ export const getUserData = async (userId) => {
  */
 export const newUser = async (data) => await dbQuery(
     `INSERT INTO mUsers (Hash, Uid, Role, Grade, WhitesWheel, BlacksWheel, Associated, NIF)
-     VALUES (NULL, '${data.Uid}', ${data.Role}, ${data.Grade},
-             ${data.WhitesWheel}, ${data.BlacksWheel},
-             ${data.Associated}, '${data.NIF}');`
+     VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);`,
+    true,
+    data.Uid,
+    data.Role,
+    data.Grade,
+    data.WhitesWheel,
+    data.BlacksWheel,
+    data.Associated,
+    data.NIF,
 );
 
 /**
@@ -161,10 +167,10 @@ export const newUser = async (data) => await dbQuery(
 const getUserRegistration = async (userId) => {
     const lastRegistrationQuery = await dbQuery(`SELECT Timestamp
                                                  FROM mUserRegistrations
-                                                 WHERE UserId = ${userId}
+                                                 WHERE UserId = ?
                                                    and \`Left\` = 0
                                                  ORDER BY Timestamp
-                                                 LIMIT 1;`);
+                                                 LIMIT 1;`, true, userId);
     if (lastRegistrationQuery.length <= 0)
         return null;
     const lastRegistration = lastRegistrationQuery[0].Timestamp;
@@ -180,4 +186,4 @@ const getUserRegistration = async (userId) => {
  */
 export const exists = async (userId) => (await dbQuery(`SELECT Id
                                                         FROM mUsers
-                                                        WHERE Id = ${userId}`)).length > 0;
+                                                        WHERE Id = ?`, true, userId)).length > 0;

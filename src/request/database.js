@@ -87,7 +87,9 @@ export const check = async (debug = false) => {
         const queryResult = await query(
             `SELECT SCHEMA_NAME
              FROM information_schema.SCHEMATA
-             WHERE SCHEMA_NAME = '${process.env.DB_DATABASE}'`
+             WHERE SCHEMA_NAME = ?`,
+            true,
+            process.env.DB_DATABASE,
         );
         if (queryResult.length <= 0)
             throw new DatabaseException(`❌ Could not find a database named`, process.env.DB_DATABASE);
@@ -125,15 +127,16 @@ export const check = async (debug = false) => {
  * @since 20221030
  * @param {string} query The SQL query to make.
  * @param {boolean} shouldDisconnect If false, the connection to the database won't get disconnected after fetching.
+ * @param {any} parameters Parameters to replace in the placeholder.
  * @return {Promise<Object[]>} The rows fetched
  */
-export const query = async (query, shouldDisconnect = true) => {
+export const query = async (query, shouldDisconnect = true, ...parameters) => {
     let result;
     try {
         if (conn == null || !conn.isValid())
             await connect();
         await conn.query(`USE ${process.env.DB_DATABASE};`);
-        result = await conn.query(query);
+        result = await conn.query(query, [...parameters]);
     } finally {
         if (shouldDisconnect)
             await disconnect();
@@ -171,7 +174,13 @@ export const removeIfExists = async (table, where) => {
     where.forEach((w, k) => whereQuery.push(`${k}=${isNumber(w) || w == null ? w : `'${w}'`}`));
 
     return await query(`DELETE
-                        FROM ${table}
-                        WHERE ${whereQuery.join(' AND ')}
-                          AND EXISTS(SELECT 1 FROM ${table} WHERE ${whereQuery.join(' AND ')})`)
+                        FROM ?
+                        WHERE ?
+                          AND EXISTS(SELECT 1 FROM ? WHERE ?)`,
+        true,
+        table,
+        whereQuery.join(' AND '),
+        table,
+        whereQuery.join(' AND '),
+    )
 };

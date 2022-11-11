@@ -105,7 +105,9 @@ export const getEvents = async () => {
                  FROM mMenus
                           LEFT JOIN mMenuPricing mP ON MenuId = mMenus.Id
                           LEFT JOIN mGrades mG ON mG.Id = mP.GradeId
-                 WHERE EventId = '1';`
+                 WHERE EventId = ?;`,
+                true,
+                eventId,
             );
             if (menuSearch.length > 0) {
                 const menu = menuSearch[0];
@@ -159,7 +161,7 @@ export const getEvents = async () => {
  */
 export const exists = async (eventId) => (await dbQuery(`SELECT Id
                                                          FROM mEvents
-                                                         WHERE Id = ${eventId}`)).length > 0;
+                                                         WHERE Id = ?`, true, eventId)).length > 0;
 
 /**
  * Creates a new event.
@@ -175,14 +177,18 @@ export const exists = async (eventId) => (await dbQuery(`SELECT Id
 export const create = async (displayName, description, date, contact, category) => {
     const categoryQuery = await dbQuery(`SELECT Id
                                          FROM mCategories
-                                         WHERE DisplayName = '${category}'
-                                         LIMIT 1;`);
+                                         WHERE DisplayName = '?'
+                                         LIMIT 1;`, true, category);
     const categoryId = categoryQuery[0].Id;
     await dbQuery(`INSERT INTO mEvents(DisplayName, Description, Date, Contact, Category)
-                   VALUES ('${displayName}', ${description != null ? `'${description}'` : 'NULL'},
-                           '${date.toISOString().slice(0, 19).replace('T', ' ')}',
-                           ${contact != null ? `'${contact}'` : 'NULL'},
-                           ${categoryId})`);
+                   VALUES (?, ?, ?, ?, ?)`,
+        true,
+        displayName,
+        description != null ? description : null,
+        date.toISOString().slice(0, 19).replace('T', ' '),
+        contact != null ? contact : null,
+        categoryId,
+    );
 };
 
 /**
@@ -198,7 +204,9 @@ export const isEatEvent = async (eventId) => {
         `SELECT mC.Eat as EatEvent
          FROM mEvents
                   LEFT JOIN mCategories mC on mEvents.Category = mC.Id
-         WHERE mEvents.Id = ${eventId};`
+         WHERE mEvents.Id = ?;`,
+        true,
+        eventId,
     );
     if (rows.length <= 0)
         return false;
@@ -223,8 +231,8 @@ export const setMenu = async (eventId, menu) => {
     /** @type {{Id:number}[]} */
     const menus = await dbQuery(`SELECT Id
                                  FROM mMenus
-                                 WHERE EventId = '${eventId}'
-                                 LIMIT 1;`);
+                                 WHERE EventId = ?
+                                 LIMIT 1;`, true, eventId);
 
     // If there's already a menu, remove it
     for (let menu of menus) {
@@ -237,9 +245,17 @@ export const setMenu = async (eventId, menu) => {
     const q = await dbQuery(`INSERT INTO mMenus (EventId, Firsts, Seconds, Thirds, Desserts, DrinkIncluded,
                                                  CoffeeIncluded,
                                                  TeaIncluded)
-                             VALUES (${eventId}, ${firstsTxt}, ${secondsTxt}, ${thirdsTxt}, ${dessertsTxt},
-                                     ${menu.drinkIncluded ? '1' : 0}, ${menu.coffeeIncluded ? '1' : '0'},
-                                     ${menu.teaIncluded ? '1' : '0'})`);
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        true,
+        eventId,
+        firstsTxt,
+        secondsTxt,
+        thirdsTxt,
+        dessertsTxt,
+        menu.drinkIncluded ? 1 : 0,
+        menu.coffeeIncluded ? 1 : 0,
+        menu.teaIncluded ? 1 : 0,
+    );
     const menuId = parseInt(q.insertId);
 
     // Add the pricing
@@ -250,12 +266,20 @@ export const setMenu = async (eventId, menu) => {
         else {
             const rows = await dbQuery(`SELECT Id
                                         FROM mGrades
-                                        WHERE DisplayName = '${grade}'
-                                        LIMIT 1;`);
+                                        WHERE DisplayName = ?
+                                        LIMIT 1;`,
+                true,
+                grade,
+            );
             gradeId = rows[0]?.Id ?? 'null';
         }
         await dbQuery(`INSERT INTO mMenuPricing (MenuId, GradeId, Price)
-                       VALUES (${menuId}, ${gradeId}, ${price})`);
+                       VALUES (?, ?, ?)`,
+            true,
+            menuId,
+            gradeId,
+            price,
+        );
     }
 };
 
@@ -282,20 +306,25 @@ export const createTable = async (eventId, responsibleId) => {
     // Check that there's not a table for the given user and event
     const tableRows = await dbQuery(`SELECT Id
                                      FROM mTables
-                                     WHERE Responsible = ${responsibleId}
-                                       and EventId = ${eventId}`);
+                                     WHERE Responsible = ?
+                                       and EventId = ?`, true, responsibleId, eventId);
     if (tableRows.length > 0) throw new TableAlreadyExistsException(`There's already a table with the given user as responsible.`);
 
     // Check that the user is not already in another table
     const tUserRows = await dbQuery(`SELECT mTablesPeople.Id
                                      FROM mTablesPeople
                                               LEFT JOIN mTables mT on mT.Id = mTablesPeople.TableId
-                                     WHERE mT.EventId = ${eventId}
-                                       AND mTablesPeople.UserId = ${responsibleId}`);
+                                     WHERE mT.EventId = ?
+                                       AND mTablesPeople.UserId = ?`, true, eventId, responsibleId);
     if (tUserRows.length > 0) throw new AlreadyInTableException(`The user has joined another table.`);
 
-    await dbQuery(`INSERT INTO mTables (Responsible, EventId)
-                   VALUES (${responsibleId}, ${eventId})`);
+    await dbQuery(
+        `INSERT INTO mTables (Responsible, EventId)
+         VALUES (?, ?)`,
+        true,
+        responsibleId,
+        eventId,
+    );
 };
 
 /**
@@ -312,8 +341,12 @@ export const joinTable = async (eventId, tableId, userId) => {
     // Check that the table exists, and matches the given event
     const tEvent = await dbQuery(`SELECT Id
                                   FROM mTables
-                                  WHERE Id = ${tableId}
-                                    AND EventId = ${eventId};`);
+                                  WHERE Id = ?
+                                    AND EventId = ?;`,
+        true,
+        tableId,
+        eventId,
+    );
     if (tEvent.length <= 0) throw new TableNotFoundException(`The given table id doesn't exist, or doesn't match the event.`);
 
     // Check that the given user exists
@@ -321,7 +354,7 @@ export const joinTable = async (eventId, tableId, userId) => {
 
     // Join the table
     await dbQuery(`INSERT INTO mTablesPeople (UserId, TableId)
-                   VALUES (${userId}, ${tableId});`);
+                   VALUES (?, ?);`, true, userId, tableId);
 };
 
 /**
@@ -342,5 +375,5 @@ export const confirmAssistance = async (eventId, userId, assists = true) => {
 
     // Confirm assistance
     await dbQuery(`INSERT INTO mAssistance (UserId, Assists, EventId)
-                   VALUES (${userId}, ${assists ? 1 : 0}, ${eventId})`);
+                   VALUES (?, ?, ?)`, userId, assists ? 1 : 0, eventId);
 };

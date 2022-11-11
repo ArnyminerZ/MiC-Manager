@@ -27,8 +27,8 @@ const loginAttemptsCount = async (ip) => {
                  FROM mLoginAttempts
                  WHERE Timestamp >= now() - interval 1 day
                    AND Successful = 0
-                   AND IP = 0x${longIp.toString(16)};`;
-    const q = await query(sql);
+                   AND IP = ?;`;
+    const q = await query(sql, true, '0x' + longIp.toString(16));
     return q.length ?? 0;
 };
 
@@ -66,8 +66,8 @@ export const login = async (nif, password, reqIp) => {
 
     // Register the attempt
     const queryStr = `INSERT INTO mLoginAttempts (UserId, IP, Successful)
-                      SELECT '${user.Id}', 0x${ipToLong(ip).toString(16)}, ${successful ? 1 : 0};`;
-    await query(queryStr);
+                      SELECT ?, ?, ?;`;
+    await query(queryStr, true, user.Id, '0x' + ipToLong(ip).toString(16), successful ? 1 : 0);
 
     if (!successful)
         throw new WrongPasswordException('Wrong password introduced.');
@@ -93,9 +93,9 @@ export const changePassword = async (nif, newPassword, apiKey) => {
         // Trying to set a password
         const passwordHash = await bcrypt.hash(newPassword, securityPolicy.crypto["salt-rounds"]);
         const sql = `UPDATE mUsers
-                     SET Hash='${passwordHash}'
-                     WHERE Id = ${user.Id};`;
-        await query(sql);
+                     SET Hash=?
+                     WHERE Id = ?;`;
+        await query(sql, true, passwordHash, user.Id);
         return;
     }
 
