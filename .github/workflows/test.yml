@@ -49,7 +49,7 @@ jobs:
         run: |
           echo 'DB_USERNAME=github' >> .test.env
           echo 'DB_DATABASE=Github' >> .test.env
-          echo 'CALDAV_USERNAME=' >> .test.env
+          echo 'CALDAV_USERNAME=radicale' >> .test.env
           echo 'CALDAV_PASSWORD=' >> .test.env
           echo 'CALDAV_AB_UUID=' >> .test.env
           echo 'PROPS=testing' >> .test.env
