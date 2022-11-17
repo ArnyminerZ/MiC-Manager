@@ -44,7 +44,10 @@ const app = express();
 
 // Limits the maximum amount of concurrent requests that can be made. If migration is enabled, the max rate is greatly
 // increased for allowing quick data write.
-const rateLimitOptions = {windowMs: 60 * 1000, max: props.includes('migration') ? 500 : 10};
+const rateLimitOptions = {
+    windowMs: 60 * 1000,
+    max: props.includes('migration') || props.includes('testing') ? 500 : 10
+};
 const limiter = rateLimit(rateLimitOptions);
 info('Per minute rate limit:', rateLimitOptions.max);
 
