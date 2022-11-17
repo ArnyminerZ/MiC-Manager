@@ -44,10 +44,11 @@
  */
 
 import {SqlError} from "mariadb";
-import {query as dbQuery} from '../request/database.js';
+import {escape, query as dbQuery} from '../request/database.js';
 import {UserNotFoundException} from "../exceptions.js";
 import {getCard} from "../request/caldav.js";
 import dateFormat from "dateformat";
+import {error} from "../../cli/logger.js";
 
 /**
  * Fetches the `UserData` of the user with the given constraints.
@@ -59,7 +60,7 @@ import dateFormat from "dateformat";
  * @return {Promise<UserData>}
  */
 const findUserWithQuery = async (where) => {
-    const rows = await dbQuery(`
+    const sql = `
         SELECT mUsers.*,
                mR.DisplayName as RoleDisplayName,
                m.DisplayName  as PermDisplayName,
@@ -75,7 +76,8 @@ const findUserWithQuery = async (where) => {
                  LEFT JOIN mRolesPermissions mP ON mR.Id = mP.RoleId
                  LEFT JOIN mGrades mG on mUsers.Grade = mG.Id
                  LEFT JOIN mPermissions m on mP.PermissionId = m.Id
-        WHERE ?;`, true, where);
+        WHERE ${where};`;
+    const rows = await dbQuery(sql, true);
     if (rows.length <= 0) throw new UserNotFoundException('Could not find user that matches "' + where + '"');
     // console.log('rows:', rows);
     const data = rows[0];
@@ -118,8 +120,9 @@ const findUserWithQuery = async (where) => {
  */
 export const findUserWithNif = async nif => {
     try {
-        return await findUserWithQuery(`NIF = '${nif}'`);
+        return await findUserWithQuery(`mUsers.NIF = ${escape(nif)}`);
     } catch (e) {
+        error('Could not find user with nif =', nif, 'Error:', e);
         return null
     }
 };
@@ -133,7 +136,7 @@ export const findUserWithNif = async nif => {
  */
 export const getUserData = async (userId) => {
     try {
-        return await findUserWithQuery(`mUsers.Id = '${userId}'`)
+        return await findUserWithQuery(`mUsers.Id = ${escape(userId)}`)
     } catch (e) {
         return null
     }
