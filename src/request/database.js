@@ -24,7 +24,7 @@ import {
     UsersTable,
     UserTrebuchetTable
 } from "../../model/Tables.js";
-import {DatabaseException} from "../exceptions.js";
+import {DatabaseException, SqlPermissionException} from "../exceptions.js";
 import {
     InsertCategories,
     InsertDefaultRoles,
@@ -42,6 +42,14 @@ dotenv.config();
 /** @type {mariadb.PoolConnection} */
 let conn;
 
+/**
+ * Connects to the configured database.
+ * @author Arnau Mora
+ * @since 20221117
+ * @param {boolean} debug If true, a message will be displayed on error.
+ * @return {Promise<void>}
+ * @throws {SqlPermissionException} If the configured user is not authorised to use the database.
+ */
 const connect = async (debug = false) => {
     let dbPassword = process.env.DB_PASSWORD;
     const dbPasswordFile = process.env.DB_PASSWORD_FILE;
@@ -54,11 +62,13 @@ const connect = async (debug = false) => {
         else
             error(`It's required to give either DB_PASSWORD or DB_PASSWORD_FILE`);
 
+    /** @type {mariadb.PoolConfig} */
     const serverConfig = {
         host: process.env.DB_HOSTNAME,
         user: process.env.DB_USERNAME,
         password: dbPassword,
         connectionLimit: 5,
+        port: process.env.DB_PORT || 3306,
     };
 
     try {
@@ -66,6 +76,9 @@ const connect = async (debug = false) => {
         conn = await pool.getConnection();
     } catch (e) {
         if (debug) error(e, 'Database Host:', serverConfig.host, 'User:', serverConfig.user);
+        if (e instanceof mariadb.SqlError)
+            if (e.code === 'ER_TABLEACCESS_DENIED_ERROR')
+                throw new SqlPermissionException(e.text);
         throw e;
     }
 };
@@ -78,6 +91,7 @@ const disconnect = async () => await conn?.end();
  * @since 20221018
  * @param {boolean} debug If `true` and an error has been thrown, it will get logged.
  * @returns {Promise<boolean>} `true` if the database is available, `false` otherwise.
+ * @throws {SqlPermissionException} If the configured user is not authorised to use the database.
  */
 export const check = async (debug = false) => {
     try {

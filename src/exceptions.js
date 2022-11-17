@@ -81,3 +81,10 @@ export class AlreadyInTableException extends Error {
         this.name = 'AlreadyInTableException';
     }
 }
+
+export class SqlPermissionException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'SqlPermissionException';
+    }
+}
