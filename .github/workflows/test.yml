@@ -26,6 +26,8 @@ jobs:
         run: npm install -g mocha
       - name: Install dependencies
         run: npm install
+      - name: Generate new private key
+        run: openssl rand -base64 756 > ./secrets/private.key
       - name: Run Test
         run: npm test
       - name: Test Report
