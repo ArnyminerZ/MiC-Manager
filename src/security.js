@@ -16,7 +16,7 @@ if (!fs.existsSync(privateKeyFilePath)) {
 }
 
 if (!fs.existsSync(rsaCerFile) || !fs.existsSync(rsaKeyFile)) {
-    warn(`There's no certificate files. Required:`, rsaCerFile, 'and', rsaKeyFile);
+    warn(`There are no certificate files. Required:`, rsaCerFile, 'and', rsaKeyFile);
     info(`Creating server certificates...`);
 
     const {publicKey, privateKey} = crypto.generateKeyPairSync('rsa', {
