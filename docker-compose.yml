@@ -2,10 +2,9 @@ version: '3.7'
 
 services:
   mic_interface:
-    build: .
-    # image: arnyminerz/mic_manager:development
+    image: arnyminerz/mic_manager:development
     container_name: mic_interface
-    # restart: unless-stopped
+    restart: unless-stopped
     networks:
       - backend
     depends_on:
@@ -31,6 +30,8 @@ services:
     secrets:
       - db_password
       - private_key
+    volumes:
+      - server-keys:/usr/src/app/keys
 
   mariadb:
     image: linuxserver/mariadb
@@ -89,6 +90,8 @@ networks:
 
 volumes:
   mariadb-data:
+    driver: local
+  server-keys:
     driver: local
 
 secrets:
