@@ -10,6 +10,7 @@ node_modules
 # Docker data directories
 .docker
 secrets
+keys
 
 # Test output
 .nyc_output
