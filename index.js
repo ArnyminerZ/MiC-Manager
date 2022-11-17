@@ -10,6 +10,7 @@ import {checkVariables, getProps} from './src/variables.js';
 import {createClient as calCreateClient, getAddressBookUrl, getCards} from "./src/request/caldav.js";
 import {error, info, infoSuccess} from './cli/logger.js';
 import {addEndpoints as addMigrationEndpoints} from "./src/endpoints/migration.js";
+import {addEndpoints as addTestingEndpoints} from "./src/endpoints/testing.js";
 import {auth, changePassword, data} from "./src/endpoints/user.js";
 import {create, join, list, setMenu} from "./src/endpoints/events.js";
 
@@ -68,6 +69,7 @@ app.post('/v1/events/:event_id/set_menu', setMenu);
 
 // Extra endpoints
 if (props.includes('migration')) addMigrationEndpoints(app);
+if (props.includes('testing')) addTestingEndpoints(app);
 
 // Fallback
 app.get('*', (req, res) => res.status(404).json(errorResponse('invalid-request')));
