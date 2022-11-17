@@ -25,6 +25,7 @@ services:
       - CALDAV_AB_UUID
       # Enable props when necessary
       # - PROPS=migration
+      - PROPS
     ports:
       - '3000:3000'
     secrets:
