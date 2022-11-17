@@ -45,7 +45,11 @@ jobs:
           # Create Radicale user
           sudo addgroup --gid 2999 radicale
           sudo adduser --gid 2999 --uid 2999 --shell /bin/false --disabled-password --no-create-home radicale
-      - name: Run Test
+      - name: Tests
+        run: DEBUG=testcontainers:containers npm test
+        env:
+          PROPS: testing
+      - name: Run Report
         run: npm run ci
         env:
           PROPS: testing
