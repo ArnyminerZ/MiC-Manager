@@ -7,10 +7,10 @@
 const insertIfNotExists = (table, pairs) => {
     const keys = Object.keys(pairs);
     const values = Object.values(pairs).map(v => typeof v === 'string' || v instanceof String ? `'${v}'` : v);
-    return `INSERT INTO FilaMagenta.${table} (${keys.join(', ')})
+    return `INSERT INTO ${table} (${keys.join(', ')})
             SELECT ${values.join(', ')}
             FROM DUAL
-            WHERE NOT EXISTS(SELECT * FROM FilaMagenta.${table} WHERE ${
+            WHERE NOT EXISTS(SELECT * FROM ${table} WHERE ${
                     keys.map((k, i) => k + '=' + values[i]).join(' and ')
             });`
 };
