@@ -47,7 +47,7 @@ jobs:
           sudo adduser --gid 2999 --uid 2999 --shell /bin/false --disabled-password --no-create-home radicale
       - name: Run Test
         run: npm run ci
-        with:
+        env:
           PROPS: testing
       - name: Test Report
         uses: dorny/test-reporter@v1
