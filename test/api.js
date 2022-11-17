@@ -4,7 +4,6 @@ import {faker} from '@faker-js/faker';
 
 import chai from 'chai';
 import chaiHttp from 'chai-http';
-import fs from "fs";
 
 const __dirname = process.env['NODE_PATH'];
 
@@ -16,8 +15,6 @@ describe('API', function () {
 
     /** @type {testcontainers.StartedDockerComposeEnvironment} */
     let docker;
-    /** @type {string} */
-    let dbUsername, dbDatabase;
     /** @type {string} */
     let host, port, protocol, server;
 
@@ -59,30 +56,19 @@ describe('API', function () {
                 });
         };
     };
-
-    before('Generate parameters', () => {
-        dbUsername = faker.internet.userName();
-        dbDatabase = faker.internet.userName();
-    });
+    const postForStatus = (endpoint, body, expectedStatus, invert = false) => post(endpoint, body, (err, res) => {
+        if (invert)
+            expect(res).to.not.have.status(expectedStatus);
+        else
+            expect(res).to.have.status(expectedStatus);
+    })
 
     before('Run Docker', async () => {
         const environment = new DockerComposeEnvironment(__dirname, ['docker-compose.yml', 'docker-compose.override.yml'])
             .withBuild();
-        if (fs.existsSync('.test.env'))
-            docker = await environment
-                .withEnvironmentFile('.test.env')
-                .up();
-        else
-            docker = await environment
-                .withEnvironment({
-                    DB_USERNAME: dbUsername,
-                    DB_DATABASE: dbDatabase,
-                    CALDAV_USERNAME: 'radicale',
-                    CALDAV_PASSWORD: '',
-                    CALDAV_AB_UUID: '',
-                    PROPS: 'testing',
-                })
-                .up();
+        docker = await environment
+            .withEnvironmentFile('.test.env')
+            .up();
 
         const container = docker.getContainer('mic_interface');
         host = container.getHost();
