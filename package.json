@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node --no-warnings index.js",
     "serve": "./scripts/start-container.sh",
-    "test": "mocha",
+    "test": "nyc mocha",
     "migrate-gestro": "node migrate/gestro.js"
   },
   "repository": "https://github.com/ArnyminerZ/MiC-Manager.git",
@@ -23,13 +23,14 @@
     "mariadb": "^3.0.1",
     "request-ip": "^3.3.0",
     "tsdav": "^2.0.3",
-    "uuid": "^9.0.0",
-    "mocha": "^10.1.0"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "mssql": "^9.0.1",
+    "@faker-js/faker": "^7.6.0",
     "axios": "^1.1.3",
     "cli-progress": "^3.11.2",
-    "@faker-js/faker": "^7.6.0"
+    "mocha": "^10.1.0",
+    "mssql": "^9.0.1",
+    "nyc": "^15.1.0"
   }
 }
