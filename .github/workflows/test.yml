@@ -31,6 +31,16 @@ jobs:
         run: |
           mkdir -p ./secrets
           openssl rand -base64 756 > ./secrets/private.key
+      - name: Requirements
+        run: |
+          # Create the required directories
+          mkdir -p secrets
+          
+          echo "unsafe-password" > secrets/password.txt
+          echo "unsafer-password" > secrets/root-password.txt
+          
+          # Generate the server's private key.
+          openssl rand -base64 756 > ./secrets/private.key
       - name: Run Test
         run: npm run ci
       - name: Test Report
