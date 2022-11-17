@@ -53,7 +53,7 @@ app.use(express.json({strict: false}));
 app.use(express.urlencoded({extended: true}));
 app.use(limiter);
 
-app.get('/ping', (req, res) => res.send('pong'));
+app.get('/ping', (req, res) => res.status(200).type('text/plain').send('pong'));
 app.get('/v1/info', async (req, res) => {
     const database = await dbInfo();
     res.json(successResponse({database}));
