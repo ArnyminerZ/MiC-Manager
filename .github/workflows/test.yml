@@ -47,12 +47,12 @@ jobs:
           sudo adduser --gid 2999 --uid 2999 --shell /bin/false --disabled-password --no-create-home radicale
       - name: Prepare environment
         run: |
-          echo 'DB_USERNAME=github' > .test.env
-          echo 'DB_DATABASE=Github' > .test.env
-          echo 'CALDAV_USERNAME=' > .test.env
-          echo 'CALDAV_PASSWORD=' > .test.env
-          echo 'CALDAV_AB_UUID=' > .test.env
-          echo 'PROPS=testing' > .test.env
+          echo 'DB_USERNAME=github' >> .test.env
+          echo 'DB_DATABASE=Github' >> .test.env
+          echo 'CALDAV_USERNAME=' >> .test.env
+          echo 'CALDAV_PASSWORD=' >> .test.env
+          echo 'CALDAV_AB_UUID=' >> .test.env
+          echo 'PROPS=testing' >> .test.env
       - name: Tests
         run: DEBUG=testcontainers:containers npm test
         env:
