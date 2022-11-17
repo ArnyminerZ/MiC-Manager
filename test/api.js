@@ -1,4 +1,5 @@
-import {DockerComposeEnvironment} from 'testcontainers';
+// noinspection ES6UnusedImports
+import testcontainers, {DockerComposeEnvironment} from 'testcontainers';
 import http from 'http';
 import assert from 'assert';
 import {faker} from '@faker-js/faker';
