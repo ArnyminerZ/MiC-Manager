@@ -22,20 +22,24 @@ describe('API', function () {
     /** @type {testcontainers.StartedDockerComposeEnvironment} */
     let docker;
     /** @type {string} */
-    let dbUsername, dbPassword, dbDatabase, dbRootPassword;
+    let dbUsername, dbDatabase;
     /** @type {string} */
     let host, port, protocol;
 
     before('Generate parameters', () => {
         dbUsername = faker.internet.userName();
-        dbPassword = faker.internet.password(16);
         dbDatabase = faker.internet.userName();
-        dbRootPassword = faker.internet.password(16);
     });
 
     before('Run Docker', async () => {
         docker = await new DockerComposeEnvironment(__dirname, ['docker-compose.yml', 'docker-compose.override.yml'])
-            .withEnvironmentFile('.env')
+            .withEnvironment({
+                DB_USERNAME: dbUsername,
+                DB_DATABASE: dbDatabase,
+                CALDAV_USERNAME: 'radicale',
+                CALDAV_PASSWORD: '',
+                CALDAV_AB_UUID: '',
+            })
             .up();
 
         const container = docker.getContainer('mic_interface');
