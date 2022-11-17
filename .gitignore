@@ -2,7 +2,7 @@
 node_modules
 
 # Environment file
-.env
+**.env
 
 # Lock files
 *.lock
