@@ -32,7 +32,7 @@ jobs:
           mkdir -p ./secrets
           openssl rand -base64 756 > ./secrets/private.key
       - name: Run Test
-        run: npm test
+        run: npm run ci
       - name: Test Report
         uses: dorny/test-reporter@v1
         if: success() || failure()    # run this step even if previous step failed
