@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
+import crypto from 'crypto';
 
 const privateKeyFilePath = process.env.PRIVATE_KEY_FILE ?? './secrets/private.key';
 
@@ -65,3 +66,43 @@ export const decodeToken = (token) => new Promise((resolve, reject) => {
             reject(err);
     });
 });
+
+/**
+ * Encrypts the given data using RSA2048, with the stored public key.
+ * @author Arnau Mora
+ * @since 20221117
+ * @param {string} data The data to encrypt.
+ * @param {string|Buffer} publicKey The key to use for encrypting.
+ * @return {Buffer} A buffer with the data encrypted.
+ * @see decrypt
+ */
+export const encrypt = (data, publicKey) => crypto.publicEncrypt(
+    {
+        key: publicKey,
+        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+        oaepHash: "sha256",
+    },
+    // We convert the data string to a buffer using `Buffer.from`
+    Buffer.from(data),
+);
+
+/**
+ * Decrypts some encrypted data using RSA2048, with the stored private key.
+ * @author Arnau Mora
+ * @since 20221117
+ * @param {Buffer} encryptedData The previously encrypted data.
+ * @param {string|Buffer} privateKey The key to use for decrypting.
+ * @return {Buffer} A buffer with the data decrypted. `toString` is the easiest way to make the text readable.
+ * @see encrypt
+ */
+export const decrypt = (encryptedData, privateKey) => crypto.privateDecrypt(
+    {
+        key: privateKey,
+        // In order to decrypt the data, we need to specify the
+        // same hashing function and padding scheme that we used to
+        // encrypt the data in the previous step
+        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+        oaepHash: "sha256",
+    },
+    encryptedData,
+);
