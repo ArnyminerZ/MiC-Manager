@@ -11,5 +11,6 @@ node_modules
 .docker
 secrets
 
-# Test Coverage output
+# Test output
 .nyc_output
+test-results.json

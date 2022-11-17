@@ -22,9 +22,16 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - name: "Install mocha"
+      - name: Install mocha
         run: npm install -g mocha
-      - name: "Install dependencies"
+      - name: Install dependencies
         run: npm install
-      - name: "Run Test"
-        run: npm run test
+      - name: Run Test
+        run: npm test
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: Mocha Tests           # Name of the check run which will be created
+          path: test-results.json     # Path to test results
+          reporter: mocha-json        # Format of test results

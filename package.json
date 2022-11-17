@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node --no-warnings index.js",
     "serve": "./scripts/start-container.sh",
-    "test": "nyc mocha",
+    "test": "nyc mocha --reporter json > test-results.json",
     "migrate-gestro": "node migrate/gestro.js"
   },
   "repository": "https://github.com/ArnyminerZ/MiC-Manager.git",
