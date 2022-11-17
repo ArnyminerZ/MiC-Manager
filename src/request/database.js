@@ -41,6 +41,10 @@ dotenv.config();
 
 /** @type {mariadb.PoolConnection} */
 let conn;
+/** @type {mariadb.Pool} */
+let pool;
+
+export const escape = str => pool.escape(str);
 
 /**
  * Connects to the configured database.
@@ -72,7 +76,7 @@ const connect = async (debug = false) => {
     };
 
     try {
-        const pool = mariadb.createPool(serverConfig);
+        if (pool == null) pool = mariadb.createPool(serverConfig);
         conn = await pool.getConnection();
     } catch (e) {
         if (debug) error(e, 'Database Host:', serverConfig.host, 'User:', serverConfig.user);
