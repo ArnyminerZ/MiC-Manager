@@ -1,0 +1,17 @@
+services:
+  mic_interface:
+    build: .
+  radicale:
+    environment:
+      - TAKE_FILE_OWNERSHIP=false
+    volumes:
+      - radicale-testing:/data
+  mariadb:
+    volumes:
+      - mariadb-config-testing:/config
+
+volumes:
+  mariadb-config-testing:
+    driver: local
+  radicale-testing:
+    driver: local

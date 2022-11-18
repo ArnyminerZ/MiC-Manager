@@ -64,7 +64,7 @@ describe('API', function () {
     })
 
     before('Run Docker', async () => {
-        const environment = new DockerComposeEnvironment(__dirname, ['docker-compose.yml', 'docker-compose.override.yml'])
+        const environment = new DockerComposeEnvironment(__dirname, ['docker-compose.yml', 'docker-compose.testing.yml'])
             .withBuild();
         docker = await environment
             .withEnvironmentFile('.test.env')
