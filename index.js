@@ -1,6 +1,7 @@
 'use strict';
 
 import express from 'express';
+import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import reqIp from 'request-ip';
 import rateLimit from 'express-rate-limit';
@@ -53,8 +54,8 @@ info('Per minute rate limit:', rateLimitOptions.max);
 
 // Middleware
 app.use(reqIp.mw());
-app.use(express.json({strict: false}));
-app.use(express.urlencoded({extended: true}));
+app.use(bodyParser.json({strict: false}));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(limiter);
 
 app.get('/ping', (req, res) => res.status(200).type('text/plain').send('pong'));
