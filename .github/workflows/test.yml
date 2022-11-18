@@ -59,6 +59,11 @@ jobs:
           DEBUG: testcontainers:containers  # Enable container logging
           PROPS: testing                    # Enable testing props
 
+      # Delay jobs
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
+
       - name: Run Report
         run: npm run ci
         env:
