@@ -125,6 +125,11 @@ describe('API', function () {
             }));
             it('User found', postForStatus('/v1/user/auth', body, 404, true));
         });
+        describe('Password-less user', () => {
+            it('User without password', postForStatus('/v1/user/auth', body, 417));
+            // it('Assign password', postForStatus('/v1/user/change_password', body, 200));
+            // it('User with password', postForStatus('/v1/user/auth', body, 417, true));
+        });
 
         /*it('Create new user', (done) => {
             chai.request(server)
