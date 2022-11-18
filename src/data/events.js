@@ -97,7 +97,7 @@ export const getEvents = async () => {
                 date: row['Date'],
                 contact: row['Contact'],
                 description: row['Description'],
-                category: row['Category'],
+                category: row['EventCategory'],
                 attending: [],
                 tables: [],
             }
