@@ -70,7 +70,8 @@ export const create = async (req, res) => {
         await createEvent(displayName, description, new Date(date), contact, category);
         res.json(successResponse());
     } catch (e) {
-        res.status(500).json(errorResponse(e));
+        error('Could not create event. Error:', e);
+        res.status(500).json(errorResponse(e instanceof Error ? e.toString() : e));
     }
 };
 
