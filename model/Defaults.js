@@ -40,6 +40,8 @@ export const InsertPermissions = [
     insertIfNotExists('mPermissions', {Id: 3, DisplayName: 'people_see'}),
     // Edit events
     insertIfNotExists('mPermissions', {Id: 4, DisplayName: 'event_edit'}),
+    // View the current version
+    insertIfNotExists('mPermissions', {Id: 5, DisplayName: 'admin/version_view'}),
 ];
 
 export const InsertGrades = [

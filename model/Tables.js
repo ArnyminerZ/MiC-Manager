@@ -67,7 +67,7 @@ export const PermissionsTable = `
     CREATE TABLE IF NOT EXISTS mPermissions
     (
         Id          int(10) UNSIGNED auto_increment NOT NULL COMMENT 'The id of the permission.',
-        DisplayName varchar(16)                     NOT NULL COMMENT 'A name for identifying the permission.',
+        DisplayName varchar(32)                     NOT NULL COMMENT 'A name for identifying the permission.',
         CONSTRAINT PK_mPermissions PRIMARY KEY (Id)
     )
         ENGINE = InnoDB
