@@ -16,7 +16,7 @@ servers:
     description: Development Server
 paths:
   /v1/user/auth:
-    parameters: [ ]
+    parameters: []
     post:
       summary: Authenticate
       operationId: post-v1-user-auth
@@ -42,7 +42,7 @@ paths:
               examples:
                 example-400:
                   value:
-                    success: true
+                    success: false
                     error:
                       code: missing-parameters
         '403':
@@ -69,6 +69,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
+        '550':
+          description: Login Attempt Register Failed - There was an internal exception while trying to register the login attempt.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Response'
+              examples:
+                example-550:
+                  value:
+                    success: false
+                    error:
+                      code: internal
       description: |-
         Requests an access token to the server.
         If returned `200`, `data` contains:
@@ -220,7 +232,7 @@ paths:
       operationId: get-v1-user-data
       description: Fetches the currently logged in user's data.
       security:
-        - API-Key: [ ]
+        - API-Key: []
       requestBody:
         content:
           application/json:
@@ -281,7 +293,7 @@ paths:
                 $ref: '#/components/schemas/Response'
       description: Creates a new event with the given parameters.
       security:
-        - API-Key: [ ]
+        - API-Key: []
       requestBody:
         content:
           application/json:
@@ -315,7 +327,7 @@ paths:
   /v1/events/list:
     get:
       summary: List Events
-      tags: [ ]
+      tags: []
       responses:
         '200':
           description: OK
@@ -327,7 +339,7 @@ paths:
                 example:
                   value:
                     success: true
-                    data: { }
+                    data: {}
         '400':
           description: Bad Request - The given token doesn't contain valid data.
           content:
@@ -355,7 +367,7 @@ paths:
       operationId: get-v1-events-list
       description: Get a list of all the available events.
       security:
-        - API-Key: [ ]
+        - API-Key: []
   '/v1/events/{event_id}/join':
     post:
       summary: Join Event
@@ -445,7 +457,7 @@ paths:
                       code: not-found
       description: 'If the event is for eating, creates a new table, and sets the current user as the responsible. If not for eating, simply confirms assistance for the given user.'
       security:
-        - API-Key: [ ]
+        - API-Key: []
       requestBody:
         content:
           application/json:
@@ -538,7 +550,7 @@ paths:
                     error:
                       code: invalid-request
       security:
-        - API-Key: [ ]
+        - API-Key: []
       requestBody:
         content:
           application/json:

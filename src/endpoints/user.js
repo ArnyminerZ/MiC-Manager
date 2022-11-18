@@ -2,6 +2,7 @@ import {errorResponse, successResponse} from "../response.js";
 import {changePassword as changeUserPassword, login} from "../auth.js";
 import {
     InvalidTokenException,
+    LoginAttemptInsertException,
     PasswordlessUserException,
     SecurityException,
     UserNotFoundException,
@@ -34,6 +35,8 @@ export const auth = async (req, res) => {
             res.status(412).json(errorResponse('max-attempts-reached'));
         else if (e instanceof UserNotFoundException)
             res.status(404).json(errorResponse('not-found'));
+        else if (e instanceof LoginAttemptInsertException)
+            res.status(550).json(errorResponse('internal'));
         else {
             error('Could not authenticate. Error:', e);
             res.status(500).json({success: false, error: 'unknown', errorData: e});
