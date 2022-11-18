@@ -75,7 +75,7 @@ export const login = async (nif, password, reqIp) => {
         await query(queryStr, true, user.Id, '0x' + longIp.toString(16), successful ? 1 : 0);
     } catch (e) {
         if (e instanceof SqlError && e.code === 'ER_DATA_TOO_LONG') {
-            throw LoginAttemptInsertException(`Could not insert login attempt. Raw IP: ${ip}. Long: 0x${longIp.toString(16)}`);
+            throw new LoginAttemptInsertException(`Could not insert login attempt. Raw IP: ${ip}. Long: 0x${longIp.toString(16)}`);
         } else throw e;
     }
 
