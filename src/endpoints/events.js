@@ -12,6 +12,7 @@ import {hasPermission} from "../permissions.js";
 import {error} from "../../cli/logger.js";
 import {
     AlreadyInTableException,
+    CategoryNotFoundException,
     TableAlreadyExistsException,
     TableNotFoundException,
     UserNotFoundException
@@ -71,6 +72,8 @@ export const create = async (req, res) => {
         res.json(successResponse());
     } catch (e) {
         error('Could not create event. Error:', e);
+        if (e instanceof CategoryNotFoundException)
+            return res.status(405).json(errorResponse('invalid-request'));
         res.status(500).json(errorResponse(e instanceof Error ? e.toString() : e));
     }
 };

@@ -273,6 +273,8 @@ paths:
                     success: true
                     error:
                       code: unauthorised
+        '405':
+          description: Method Not Allowed - The category given is not valid
         '406':
           description: Not Acceptable - Key not valid
           content:
