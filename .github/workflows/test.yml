@@ -9,26 +9,53 @@ on:
       - master
 
 jobs:
-  prepare:
-    name: 'Prepare environment'
-    uses: ./.github/workflows/prepare.yml
   test:
-    name: 'Run Tests'
     runs-on: ubuntu-latest
-    needs: prepare
     steps:
       - uses: actions/checkout@v3
+      - name: Install Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Install mocha
+        run: npm install -g mocha
+      - name: Install dependencies
+        run: npm install
+      - name: Generate new private key
+        run: |
+          mkdir -p ./secrets
+          openssl rand -base64 756 > ./secrets/private.key
+      - name: Requirements
+        run: |
+          # Create the required directories
+          mkdir -p secrets
+          
+          echo "unsafe-password" > secrets/password.txt
+          echo "unsafer-password" > secrets/root-password.txt
+          
+          # Generate the server's private key.
+          openssl rand -base64 756 > ./secrets/private.key
+          
+          # Create Radicale user
+          sudo addgroup --gid 2999 radicale
+          sudo adduser --gid 2999 --uid 2999 --shell /bin/false --disabled-password --no-create-home radicale
+      - name: Prepare environment
+        run: |
+          echo 'DB_USERNAME=github' >> .test.env
+          echo 'DB_DATABASE=Github' >> .test.env
+          echo 'CALDAV_USERNAME=radicale' >> .test.env
+          echo 'CALDAV_PASSWORD=' >> .test.env
+          echo 'CALDAV_AB_UUID=9f13c1ce-2501-3f7d-17a4-562294ab6530' >> .test.env
+          echo 'PROPS=testing' >> .test.env
+
       - name: Tests
+        if: success() || failure()    # run this step even if previous step failed
         run: npm test
         env:
           DEBUG: testcontainers:containers  # Enable container logging
           PROPS: testing                    # Enable testing props
-  report:
-    name: 'Create Tests Report'
-    runs-on: ubuntu-latest
-    needs: prepare
-    steps:
-      - uses: actions/checkout@v3
+
       - name: Run Report
         run: npm run ci
         env:
