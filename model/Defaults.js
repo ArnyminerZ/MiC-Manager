@@ -29,6 +29,8 @@ export const InsertRolesPermissions = [
     insertIfNotExists('mRolesPermissions', {Id: 1, RoleId: 2, PermissionId: 1}),
     insertIfNotExists('mRolesPermissions', {Id: 2, RoleId: 2, PermissionId: 2}),
     insertIfNotExists('mRolesPermissions', {Id: 3, RoleId: 2, PermissionId: 3}),
+    insertIfNotExists('mRolesPermissions', {Id: 4, RoleId: 2, PermissionId: 4}),
+    insertIfNotExists('mRolesPermissions', {Id: 5, RoleId: 2, PermissionId: 5}),
 ];
 
 export const InsertPermissions = [
