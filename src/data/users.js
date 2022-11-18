@@ -37,9 +37,9 @@
  * @property {string} Uid
  * @property {number} Role
  * @property {number} Grade
- * @property {number} WhitesWheel
- * @property {number} BlacksWheel
- * @property {number,null} Associated
+ * @property {number} WhitesWheelNumber
+ * @property {number} BlacksWheelNumber
+ * @property {number,null} AssociatedTo
  * @property {string} NIF
  */
 

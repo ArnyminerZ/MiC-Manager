@@ -154,6 +154,15 @@ describe('API', function () {
                     expect(data.Id).to.be.eql(newUserBody.Id);
                     typeNullCheck(data.Hash, 'string');
                     typeNullCheck(data.Uid, 'string');
+                    expect(data.Uid).to.be.eql(newUserBody.Uid);
+                    typeNullCheck(data.NIF, 'string');
+                    expect(data.NIF).to.be.eql(newUserBody.NIF);
+                    expect(data.Role).to.have.keys(['DisplayName', 'Permissions']);
+                    expect(data.Grade).to.have.keys(['DisplayName', 'ActsRight', 'LockWhitesWheel', 'LockBlacksWheel', 'Votes', 'MinAge', 'MaxAge']);
+                    typeNullCheck(data.WhitesWheelNumber, 'number');
+                    typeNullCheck(data.BlacksWheelNumber, 'number');
+                    expect(data.AssociatedTo).to.be.null;
+                    typeNullCheck(data.Registration, 'string');
                 })(done);
             });
         });
