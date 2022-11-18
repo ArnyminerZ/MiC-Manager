@@ -10,20 +10,25 @@ on:
 
 jobs:
   prepare:
+    name: 'Prepare environment'
     uses: ./.github/workflows/prepare.yml
   test:
+    name: 'Run Tests'
     runs-on: ubuntu-latest
     needs: prepare
     steps:
+      - uses: actions/checkout@v3
       - name: Tests
         run: npm test
         env:
           DEBUG: testcontainers:containers  # Enable container logging
           PROPS: testing                    # Enable testing props
   report:
+    name: 'Create Tests Report'
     runs-on: ubuntu-latest
     needs: prepare
     steps:
+      - uses: actions/checkout@v3
       - name: Run Report
         run: npm run ci
         env:
