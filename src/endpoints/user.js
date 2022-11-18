@@ -103,7 +103,7 @@ export const changePassword = async (req, res) => {
         else if (e instanceof UserNotFoundException)
             res.status(406).json(errorResponse('not-found'));
         else
-            res.status(500).json({error: e})
-        error(e);
+            res.status(500).json({error: e instanceof Error ? e.toString() : e})
+        error('Could not change password. Request:', req, 'Error:', e);
     }
 };
