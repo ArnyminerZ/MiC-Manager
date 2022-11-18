@@ -1,6 +1,7 @@
 // noinspection ES6UnusedImports
 import testcontainers, {DockerComposeEnvironment, Wait} from 'testcontainers';
 import {faker} from '@faker-js/faker';
+import {validate} from 'compare-versions';
 
 import chai from 'chai';
 import chaiHttp from 'chai-http';
@@ -10,11 +11,14 @@ import {
     authGet,
     authGetForStatus,
     authPostForStatus,
+    get,
     getForStatus,
     init,
     post,
     postForStatus
 } from "./utils/requests.js";
+import fs from "fs";
+import path from "path";
 
 const __dirname = process.env['NODE_PATH'];
 
@@ -66,6 +70,13 @@ describe('API', function () {
 
     const typeNullCheck = (object, type) => expect(object).to.be.an(type).and.to.not.be.null;
 
+    const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json')).toString());
+
+    before('Version valid', () => {
+        const version = packageJson.version;
+        expect(validate(version)).to.be.eql(true);
+    });
+
     before('Run Docker', async () => {
         const environment = new DockerComposeEnvironment(__dirname, ['docker-compose.yml', 'docker-compose.testing.yml'])
             .withBuild();
@@ -82,20 +93,16 @@ describe('API', function () {
     });
 
     it('Ping (/ping)', ping('/ping'));
-    it('Information (/v1/info)', (done) => {
-        chai.request(server)
-            .get('/v1/info')
-            .end((err, res) => {
-                expect(err).to.be.null;
-                expect(res).to.have.status(200).and.to.be.json;
-                const body = res.body;
-                expect(body).to.have.property('success', true);
-                expect(body).to.have.property('data');
-                const data = body.data;
-                expect(data).to.have.property('database');
-                done();
-            });
-    });
+    it('Information (/v1/info)', get('/v1/info', (err, res) => {
+        expect(err).to.be.null;
+        expect(res).to.have.status(200).and.to.be.json;
+        const body = res.body;
+        expect(body).to.have.property('success', true);
+        expect(body).to.have.property('data');
+        const data = body.data;
+        expect(data).to.have.property('database');
+        expect(data).to.not.have.property('version');
+    }));
     it('Testing prop enabled', ping('/v1/testing/ping'));
     describe('User Actions', () => {
         const nif = faker.random.numeric(8) + faker.random.alpha({casing: 'upper'});
@@ -182,6 +189,19 @@ describe('API', function () {
                     expect(data.AssociatedTo).to.be.null;
                     typeNullCheck(data.Registration, 'string');
                 })(done);
+            });
+
+            it('Admin Information', done => {
+                authGet('/v1/info', adminToken, (err, res) => {
+                    expect(res).to.have.status(200).and.to.be.json;
+                    const data = res.body.data;
+                    expect(data).to.have.property('database');
+                    expect(data).to.have.property('version');
+                    const version = data.version;
+                    expect(version).to.have.property('name', packageJson.version);
+                    expect(version).to.have.property('update');
+                    expect(version.update).to.not.be.true;
+                })(done)
             });
         });
 
