@@ -1,6 +1,7 @@
 # MiC Manager
 
 [![Building][build-badge]][build-url]
+[![Test][test-badge]][test-url]
 [![CodeQL Analysis][codeql-badge-url]][codeql-url]
 [![Documentation][docs-badge-url]][docs-url]
 
@@ -142,6 +143,10 @@ yarn run migrate-gestro HOSTNAME={hostname} PORT=1433 DATABASE=GesTro SCHEMA=dbo
 [build-badge]: https://img.shields.io/github/workflow/status/ArnyminerZ/MiC-Manager/docker-ci?style=for-the-badge
 
 [build-url]: https://github.com/ArnyminerZ/MiC-Manager/actions/workflows/docker-ci.yml
+
+[test-badge]: https://img.shields.io/github/workflow/status/ArnyminerZ/MiC-Manager/Test?style=for-the-badge&label=Test
+
+[test-url]: https://github.com/ArnyminerZ/MiC-Manager/actions/workflows/test.yml
 
 [docs-url]: http://arnaumora.me/MiC-Manager/
 
