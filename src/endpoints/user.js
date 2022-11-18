@@ -35,11 +35,13 @@ export const auth = async (req, res) => {
             res.status(412).json(errorResponse('max-attempts-reached'));
         else if (e instanceof UserNotFoundException)
             res.status(404).json(errorResponse('not-found'));
-        else if (e instanceof LoginAttemptInsertException)
-            res.status(550).json(errorResponse('internal'));
         else {
+            // Internal exceptions
             error('Could not authenticate. Error:', e);
-            res.status(500).json({success: false, error: 'unknown', errorData: e});
+            if (e instanceof LoginAttemptInsertException)
+                res.status(550).json(errorResponse('internal'));
+            else
+                res.status(500).json({success: false, error: 'unknown', errorData: e});
         }
     }
 };
