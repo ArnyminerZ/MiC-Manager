@@ -109,23 +109,13 @@ describe('API', function () {
         };
 
         describe('Required parameters', () => {
-            it('Empty body', post('/v1/user/auth', {}, (err, res) => {
-                expect(res).to.have.status(400);
-            }));
-            it('No NIF', post('/v1/user/auth', {password}, (err, res) => {
-                expect(res).to.have.status(400);
-            }));
-            it('No Password', post('/v1/user/auth', {nif}, (err, res) => {
-                expect(res).to.have.status(400);
-            }));
-            it('Complete', post('/v1/user/auth', body, (err, res) => {
-                expect(res).to.not.have.status(400);
-            }));
+            it('Empty body', postForStatus('/v1/user/auth', {}, 400));
+            it('No NIF', postForStatus('/v1/user/auth', {password}, 400));
+            it('No Password', postForStatus('/v1/user/auth', {nif}, 400));
+            it('Complete', postForStatus('/v1/user/auth', {nif}, 400, true));
         });
         describe('User not registered', () => {
-            it('User not found', post('/v1/user/auth', body, (err, res) => {
-                expect(res).to.have.status(404);
-            }));
+            it('User not found', postForStatus('/v1/user/auth', body, 404));
             it('Create user', post('/v1/testing/new_user', newUserBody, (err, res) => {
                 expect(res).to.have.status(200);
                 const body = res.body;
@@ -133,9 +123,7 @@ describe('API', function () {
                 const result = body.result;
                 expect(result).to.have.property('affectedRows', 1);
             }));
-            it('User found', post('/v1/user/auth', body, (err, res) => {
-                expect(res).to.not.have.status(404);
-            }));
+            it('User found', postForStatus('/v1/user/auth', body, 404, true));
         });
 
         /*it('Create new user', (done) => {
