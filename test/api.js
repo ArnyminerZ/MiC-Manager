@@ -42,7 +42,7 @@ describe('API', function () {
      * @since 20221117
      * @param {string} endpoint
      * @param {Object} body
-     * @param {PostCallback} assert
+     * @param {PostCallback?} assert
      * @return {(function(*): void)|*}
      */
     const post = (endpoint, body, assert) => {
@@ -51,7 +51,7 @@ describe('API', function () {
                 .post(endpoint)
                 .send(body)
                 .end((err, res) => {
-                    assert(err, res);
+                    if (assert != null) assert(err, res);
                     done();
                 });
         };
@@ -96,7 +96,8 @@ describe('API', function () {
     describe('User Authentication (/v1/user/auth)', () => {
         const nif = faker.random.numeric(8) + faker.random.alpha({casing: 'upper'});
         const password = faker.internet.password();
-        const body = {password, nif};
+        const body = {nif, password};
+        const bodyWrongPassword = {nif, password: faker.internet.password()};
         const uid = faker.datatype.string(24);
         const newUserBody = {
             NIF: nif,
@@ -109,12 +110,14 @@ describe('API', function () {
         };
 
         describe('Required parameters', () => {
+            it('Drop attempts', postForStatus('/v1/testing/drop_attempts', {}, 200));
             it('Empty body', postForStatus('/v1/user/auth', {}, 400));
             it('No NIF', postForStatus('/v1/user/auth', {password}, 400));
             it('No Password', postForStatus('/v1/user/auth', {nif}, 400));
             it('Complete', postForStatus('/v1/user/auth', body, 400, true));
         });
         describe('User not registered', () => {
+            it('Drop attempts', postForStatus('/v1/testing/drop_attempts', {}, 200));
             it('User not found', postForStatus('/v1/user/auth', body, 404));
             it('Create user', post('/v1/testing/new_user', newUserBody, (err, res) => {
                 expect(res).to.have.status(200);
@@ -126,9 +129,21 @@ describe('API', function () {
             it('User found', postForStatus('/v1/user/auth', body, 404, true));
         });
         describe('Password-less user', () => {
+            it('Drop attempts', postForStatus('/v1/testing/drop_attempts', {}, 200));
             it('User without password', postForStatus('/v1/user/auth', body, 417));
             it('Assign password', postForStatus('/v1/user/change_password', body, 200));
             it('User with password', postForStatus('/v1/user/auth', body, 417, true));
+        });
+        describe('Authentication', () => {
+            it('Drop attempts', postForStatus('/v1/testing/drop_attempts', {}, 200));
+            it('Wrong password', postForStatus('/v1/user/auth', bodyWrongPassword, 403));
+            it('Correct password', post('/v1/user/auth', body, (err, res) => {
+                expect(res).to.have.status(200);
+            }));
+            it('Max attempts', () => {
+                for (let c = 0; c < 3; c++) postForStatus('/v1/user/auth', bodyWrongPassword, 403);
+                postForStatus('/v1/user/auth', bodyWrongPassword, 412);
+            });
         });
 
         /*it('Create new user', (done) => {
