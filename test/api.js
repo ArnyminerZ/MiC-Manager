@@ -4,13 +4,23 @@ import {faker} from '@faker-js/faker';
 
 import chai from 'chai';
 import chaiHttp from 'chai-http';
+import assertArrays from 'chai-arrays';
 
-import {authGet, init, post, postForStatus} from "./utils/requests.js";
+import {
+    authGet,
+    authGetForStatus,
+    authPostForStatus,
+    getForStatus,
+    init,
+    post,
+    postForStatus
+} from "./utils/requests.js";
 
 const __dirname = process.env['NODE_PATH'];
 
 const expect = chai.expect;
 chai.use(chaiHttp);
+chai.use(assertArrays);
 
 describe('API', function () {
     this.timeout(3 * 60000); // Timeout at 3 minutes
@@ -19,7 +29,7 @@ describe('API', function () {
     let docker;
     /** @type {string} */
     let host, port, protocol, server;
-    let token;
+    let token, adminToken;
 
     // Utility functions
     const ping = endpoint => {
@@ -41,6 +51,17 @@ describe('API', function () {
         expect(body).to.have.property('result');
         const result = body.result;
         expect(result).to.have.property('affectedRows', 1);
+    }));
+
+    const login = (body, callback) => it('Log in', post('/v1/user/auth', body, (err, res) => {
+        expect(res).to.have.status(200);
+        const body = res.body;
+        expect(body).to.have.property('data');
+        const data = body.data;
+        expect(data).to.have.property('token');
+        const token = data.token;
+        expect(token).to.be.an('string');
+        callback(token);
     }));
 
     const typeNullCheck = (object, type) => expect(object).to.be.an(type).and.to.not.be.null;
@@ -76,7 +97,7 @@ describe('API', function () {
             });
     });
     it('Testing prop enabled', ping('/v1/testing/ping'));
-    describe('User Authentication (/v1/user/auth)', () => {
+    describe('User Actions', () => {
         const nif = faker.random.numeric(8) + faker.random.alpha({casing: 'upper'});
         const password = faker.internet.password();
         const body = {nif, password};
@@ -92,18 +113,20 @@ describe('API', function () {
             BlacksWheel: 0,
             Associated: null,
         };
-        const otherNif = faker.random.numeric(8) + faker.random.alpha({casing: 'upper'});
-        const newUid = faker.datatype.string(24);
-        const otherUserBody = {
+        const adminNif = faker.random.numeric(8) + faker.random.alpha({casing: 'upper'});
+        const adminUid = faker.datatype.string(24);
+        const adminPassword = faker.internet.password();
+        const adminUserBody = {
             Id: 2,
-            NIF: otherNif,
-            Uid: newUid,
-            Role: 1,
+            NIF: adminNif,
+            Uid: adminUid,
+            Role: 2,
             Grade: 1,
             WhitesWheel: 0,
             BlacksWheel: 0,
             Associated: 1,
         };
+        const adminBody = {nif: adminNif, password: adminPassword};
 
         describe('Required parameters', () => {
             it('Drop attempts', postForStatus('/v1/testing/drop_attempts', {}, 200));
@@ -127,21 +150,16 @@ describe('API', function () {
         describe('User management', () => {
             it('Drop attempts', postForStatus('/v1/testing/drop_attempts', {}, 200));
             it('Wrong password', postForStatus('/v1/user/auth', bodyWrongPassword, 403));
-            it('Correct password', post('/v1/user/auth', body, (err, res) => {
-                expect(res).to.have.status(200);
-                const body = res.body;
-                expect(body).to.have.property('data');
-                const data = body.data;
-                expect(data).to.have.property('token');
-                token = data.token;
-                expect(token).to.be.an('string');
-            }));
+            login(body, t => token = t);
             it('Max attempts', () => {
                 for (let c = 0; c < 3; c++) postForStatus('/v1/user/auth', bodyWrongPassword, 403);
                 postForStatus('/v1/user/auth', bodyWrongPassword, 412);
             });
 
-            newUser(otherUserBody);
+            newUser(adminUserBody);
+            it('Set admin password', postForStatus('/v1/user/change_password', adminBody, 200));
+            login(adminBody, t => adminToken = t);
+
             it('Correct user data', (done) => {
                 authGet('/v1/user/data', token, (err, res) => {
                     expect(res).to.have.status(200);
@@ -163,6 +181,73 @@ describe('API', function () {
                     typeNullCheck(data.BlacksWheelNumber, 'number');
                     expect(data.AssociatedTo).to.be.null;
                     typeNullCheck(data.Registration, 'string');
+                })(done);
+            });
+        });
+
+        const parseDate = str => new Date(str).toISOString().slice(0, 19).replace('T', ' ');
+
+        describe('Events', () => {
+            /** @type {EventData|null} */
+            let eventBody;
+
+            before(() => {
+                eventBody = {
+                    id: 1,
+                    displayName: faker.word.noun() + ' ' + faker.word.adjective(),
+                    date: parseDate(faker.date.soon(10)),
+                    category: 'generic',
+                    contact: faker.name.fullName() + ' ' + faker.phone.number('### ## ## ##'),
+                    description: faker.lorem.lines(2),
+                    attending: [],
+                    tables: [],
+                    menu: null,
+                };
+            });
+
+            it('Unauthorised', getForStatus('/v1/events/list', 406));
+            it('Invalid Token', authGetForStatus('/v1/events/list', token + 'a', 406));
+            it('No events', (done) => {
+                authGet('/v1/events/list', token, (err, res) => {
+                    expect(res).to.have.status(200);
+                    const body = res.body;
+                    expect(body).to.have.property('data');
+                    const data = body.data;
+                    expect(data).to.be.array();
+                    expect(data).to.be.ofSize(0);
+                })(done);
+            });
+            it('Creation unauthorised', done => authPostForStatus('/v1/events/create', eventBody, token, 401)(done));
+            it('Event creation', done => authPostForStatus('/v1/events/create', eventBody, adminToken, 200)(done));
+            it('New event exists', (done) => {
+                authGet('/v1/events/list', token, (err, res) => {
+                    expect(res).to.have.status(200);
+                    const body = res.body;
+                    expect(body).to.have.property('data');
+                    const data = body.data;
+                    expect(data).to.be.array();
+                    expect(data).to.be.ofSize(1);
+
+                    /** @type {EventData} */
+                    const event = data[0];
+                    typeNullCheck(event.id, 'number');
+                    expect(event.id).to.be.eql(eventBody.id);
+                    typeNullCheck(event.displayName, 'string');
+                    expect(event.displayName).to.be.eql(eventBody.displayName);
+                    typeNullCheck(event.date, 'string');
+                    expect(parseDate(event.date)).to.be.eql(eventBody.date);
+                    typeNullCheck(event.category, 'string');
+                    expect(event.category).to.be.eql(eventBody.category);
+                    typeNullCheck(event.contact, 'string');
+                    expect(event.contact).to.be.eql(eventBody.contact);
+                    typeNullCheck(event.description, 'string');
+                    expect(event.description).to.be.eql(eventBody.description);
+
+                    expect(event.attending).to.be.array();
+                    expect(event.attending).to.be.ofSize(0);
+                    expect(event.tables).to.be.array();
+                    expect(event.tables).to.be.ofSize(0);
+                    expect(event.menu).to.be.undefined;
                 })(done);
             });
         });
