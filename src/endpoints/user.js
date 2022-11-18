@@ -1,5 +1,5 @@
 import {errorResponse, successResponse} from "../response.js";
-import {login} from "../auth.js";
+import {changePassword as changeUserPassword, login} from "../auth.js";
 import {
     InvalidTokenException,
     PasswordlessUserException,
@@ -7,7 +7,7 @@ import {
     UserNotFoundException,
     WrongPasswordException
 } from "../exceptions.js";
-import {error, log, warn} from "../../cli/logger.js";
+import {error, info, log, warn} from "../../cli/logger.js";
 import {checkToken, decodeToken} from "../security.js";
 import {hasPermission} from "../permissions.js";
 import {getUserData} from "../data/users.js";
@@ -84,6 +84,7 @@ export const data = async (req, res) => {
 };
 
 export const changePassword = async (req, res) => {
+    info(`Request body (${req._body}):`, req.body);
     const body = req.body;
     /** @type {string|null} */
     const nif = body['nif'];
@@ -95,7 +96,7 @@ export const changePassword = async (req, res) => {
     if (nif == null || password == null)
         return res.status(400).json(errorResponse('missing-parameters'));
     try {
-        await changePassword(nif, password, apiKey);
+        await changeUserPassword(nif, password, apiKey);
         res.status(200).json(successResponse());
     } catch (e) {
         if (e instanceof InvalidTokenException)
