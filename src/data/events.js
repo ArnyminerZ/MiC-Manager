@@ -34,6 +34,7 @@ import {SqlError} from "mariadb";
 import {log} from "../../cli/logger.js";
 import {
     AlreadyInTableException,
+    CategoryNotFoundException,
     EventNotFoundException,
     TableAlreadyExistsException,
     TableNotFoundException,
@@ -173,12 +174,14 @@ export const exists = async (eventId) => (await dbQuery(`SELECT Id
  * @param {string,null} contact
  * @param {string} category
  * @throws {SqlError}
+ * @throws {CategoryNotFoundException} If the given category doesn't exist.
  */
 export const create = async (displayName, description, date, contact, category) => {
     const categoryQuery = await dbQuery(`SELECT Id
                                          FROM mCategories
-                                         WHERE DisplayName = '?'
+                                         WHERE DisplayName = ?
                                          LIMIT 1;`, true, category);
+    if (categoryQuery.length <= 0) throw new CategoryNotFoundException(`The given category "${category}" doesn't exist.`);
     const categoryId = categoryQuery[0].Id;
     await dbQuery(`INSERT INTO mEvents(DisplayName, Description, Date, Contact, Category)
                    VALUES (?, ?, ?, ?, ?)`,

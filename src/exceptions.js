@@ -95,3 +95,10 @@ export class LoginAttemptInsertException extends Error {
         this.name = 'LoginAttemptInsertException';
     }
 }
+
+export class CategoryNotFoundException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'CategoryNotFoundException';
+    }
+}
