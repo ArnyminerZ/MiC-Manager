@@ -50,6 +50,7 @@ import {exists as userExists} from "./users.js";
  */
 export const getEvents = async () => {
     const sql = `SELECT mEvents.*,
+                        mC.DisplayName as EventCategory,
                         mA.UserId      as AttPerson,
                         mT.Responsible as TableResponsible,
                         mTP.UserId     as TableMember,
@@ -57,7 +58,8 @@ export const getEvents = async () => {
                  FROM mEvents
                           LEFT JOIN mAssistance mA ON mEvents.id = mA.EventId
                           LEFT JOIN mTables mT on mEvents.id = mT.EventId
-                          LEFT JOIN mTablesPeople mTP on mT.Id = mTP.TableId;`;
+                          LEFT JOIN mTablesPeople mTP on mT.Id = mTP.TableId
+                          LEFT JOIN mCategories mC on mEvents.Category = mC.Id;`;
     const rows = await dbQuery(sql);
     /** @type {EventData[]} */
     let builder = [];
