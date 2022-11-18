@@ -104,3 +104,32 @@ export const postForStatus = (endpoint, body, expectedStatus, invert = false) =>
     else
         expect(res).to.have.status(expectedStatus);
 });
+
+export const authPostForStatus = (endpoint, body, token, expectedStatus, invert = false) => {
+    expect(token).to.not.be.null;
+    expect(token).to.not.be.undefined;
+    return authPost(endpoint, body, token, (err, res) => {
+        if (invert)
+            expect(res).to.not.have.status(expectedStatus);
+        else
+            expect(res).to.have.status(expectedStatus);
+    });
+};
+
+export const getForStatus = (endpoint, expectedStatus, invert = false) => get(endpoint, (err, res) => {
+    if (invert)
+        expect(res).to.not.have.status(expectedStatus);
+    else
+        expect(res).to.have.status(expectedStatus);
+});
+
+export const authGetForStatus = (endpoint, token, expectedStatus, invert = false) => {
+    expect(token).to.not.be.null;
+    expect(token).to.not.be.undefined;
+    return authGet(endpoint, token, (err, res) => {
+        if (invert)
+            expect(res).to.not.have.status(expectedStatus);
+        else
+            expect(res).to.have.status(expectedStatus);
+    });
+};
