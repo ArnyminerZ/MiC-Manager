@@ -43,7 +43,7 @@ export const LoginAttemptsTable = `
     (
         Id         INT(10) UNSIGNED auto_increment     NOT NULL,
         Timestamp  TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-        IP         BINARY(4)                           NOT NULL,
+        IP         INT4                                NOT NULL,
         UserId     INT(10) UNSIGNED                    NOT NULL,
         Successful BIT                                 NOT NULL,
         CONSTRAINT mLoginAttempts_PK PRIMARY KEY (Id),
