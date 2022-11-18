@@ -43,6 +43,8 @@ describe('API', function () {
         expect(result).to.have.property('affectedRows', 1);
     }));
 
+    const typeNullCheck = (object, type) => expect(object).to.be.an(type).and.to.not.be.null;
+
     before('Run Docker', async () => {
         const environment = new DockerComposeEnvironment(__dirname, ['docker-compose.yml', 'docker-compose.testing.yml'])
             .withBuild();
@@ -143,6 +145,15 @@ describe('API', function () {
             it('Correct user data', (done) => {
                 authGet('/v1/user/data', token, (err, res) => {
                     expect(res).to.have.status(200);
+                    const body = res.body;
+                    expect(body).to.have.property('data');
+                    const data = body.data;
+                    expect(data).to.have.keys(['Id', 'Hash', 'Uid', 'NIF', 'Role', 'Grade', 'WhitesWheelNumber', 'BlacksWheelNumber', 'AssociatedTo', 'Registration', 'vCard']);
+
+                    typeNullCheck(data.Id, 'number');
+                    expect(data.Id).to.be.eql(newUserBody.Id);
+                    typeNullCheck(data.Hash, 'string');
+                    typeNullCheck(data.Uid, 'string');
                 })(done);
             });
         });
