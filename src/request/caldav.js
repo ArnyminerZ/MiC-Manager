@@ -1,10 +1,12 @@
 import tsdav from 'tsdav';
 import dotenv from 'dotenv';
-import {parseCards, personDataToVCard} from "../parser/vcard.js";
-import {error, log} from '../../cli/logger.js';
 import {v4 as uuidv4} from 'uuid';
+import http from 'http';
+import {parseCards, personDataToVCard} from "../parser/vcard.js";
+import {error, info, log} from '../../cli/logger.js';
+import {XMLParser} from 'fast-xml-parser';
 
-const {createDAVClient, DAVObject, DAVCollection} = tsdav;
+const {createDAVClient, DAVObject, DAVCollection, makeCollection} = tsdav;
 
 dotenv.config();
 
@@ -16,6 +18,67 @@ let client,
 
 const serverUrl = () => (process.env.CALDAV_SSL_ENABLE === 'true' ? 'https' : 'http') + '://' + process.env.CALDAV_HOSTNAME + ':' + process.env.CALDAV_PORT;
 
+const makeRequest = (method, path, body, isXml = true) => new Promise((resolve, reject) => {
+    log('Making request to', path, 'with', method);
+    const req = http.request({
+        method,
+        host: process.env.CALDAV_HOSTNAME,
+        port: process.env.CALDAV_PORT,
+        path,
+        protocol: process.env.CALDAV_SSL_ENABLE === 'true' ? 'https:' : 'http:',
+        auth: `${process.env.CALDAV_USERNAME}:${process.env.CALDAV_PASSWORD}`,
+    }, response => {
+        let str = '';
+        response.on('data', function (chunk) {
+            str += chunk;
+        });
+        response.on('end', function () {
+            const statusCode = response.statusCode;
+            if (statusCode >= 200 && statusCode < 300)
+                if (isXml) {
+                    const parser = new XMLParser();
+                    const xml = parser.parse(str);
+                    resolve(xml);
+                } else
+                    resolve(str);
+            else
+                reject(`${statusCode}: "${str}"`);
+        });
+        response.on('error', (e) => reject(e));
+    });
+    req.write(body);
+    req.end();
+});
+
+/**
+ * Runs a `PROPFIND` request to the server.
+ * @author Arnau Mora
+ * @since 20221118
+ * @param {string[]} props
+ * @param {string} path
+ * @return {Promise<{currentUserPrincipal:{href:string,privilege:Object}?}>}
+ */
+const propFind = async (props, path = '/') => {
+    const xml = await makeRequest(
+        'PROPFIND',
+        path,
+        `<?xml version="1.0" encoding="UTF-8" ?>` +
+        `<propfind xmlns="DAV:">` +
+        `<prop>` +
+        props.map(p => `<${p} />`).join() +
+        `</prop>` +
+        `</propfind>`
+    );
+    const prop = xml['multistatus']['response']['propstat']['prop'];
+    let result = {};
+    if (props.includes('current-user-principal'))
+        result['currentUserPrincipal'] = {
+            href: prop['current-user-principal']['href'],
+            privilege: prop['current-user-privilege-set']['privilege'],
+        };
+    return result;
+};
+
 /**
  * Fetches the cards data from the server, and stores it locally.
  * @author Arnau Mora
@@ -26,7 +89,32 @@ export const fetchCards = async () => {
     const abs = await client.fetchAddressBooks();
     addressBook = abs.find(v => v.url.endsWith(process.env.CALDAV_AB_UUID));
 
-    if (addressBook == null) throw Error('Could not find an address book with the uid: ' + process.env.CALDAV_AB_UUID);
+    if (addressBook == null) {
+        error('Could not find an address book with the uid: ' + process.env.CALDAV_AB_UUID);
+        info('Trying to create a new DAV collection...');
+        const props = await propFind(['current-user-principal', 'displayname']);
+        const response = await makeRequest(
+            'MKCOL',
+            `${props.currentUserPrincipal.href}${process.env.CALDAV_AB_UUID}/`,
+            `<?xml version="1.0" encoding="UTF-8" ?>` +
+            `<mkcol xmlns="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav" xmlns:CR="urn:ietf:params:xml:ns:carddav" xmlns:I="http://apple.com/ns/ical/" xmlns:INF="http://inf-it.com/ns/ab/">` +
+            `<set>` +
+            `<prop>` +
+            `<resourcetype>` +
+            `<CR:addressbook />` +
+            `<collection />` +
+            `</resourcetype>` +
+            `<displayname>Testing ab</displayname>` +
+            `<INF:addressbook-color>#ff0000ff</INF:addressbook-color>` +
+            `<CR:addressbook-description>Addressbook description</CR:addressbook-description>` +
+            `</prop>` +
+            `</set>` +
+            `</mkcol>`,
+            false,
+        );
+        info('Collection create result:', response);
+        throw Error('');
+    }
 
     vCards = await client.fetchVCards({addressBook: addressBook});
 }
