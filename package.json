@@ -26,7 +26,8 @@
     "mariadb": "^3.0.1",
     "request-ip": "^3.3.0",
     "tsdav": "^2.0.3",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "compare-versions": "^5.0.1"
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
