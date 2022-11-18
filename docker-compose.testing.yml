@@ -1,12 +1,15 @@
 services:
   mic_interface:
     build: .
+    restart: no
   radicale:
+    restart: no
     environment:
       - TAKE_FILE_OWNERSHIP=false
     volumes:
       - radicale-testing:/data
   mariadb:
+    restart: no
     volumes:
       - mariadb-config-testing:/config
 
