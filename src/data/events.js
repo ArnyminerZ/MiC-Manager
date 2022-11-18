@@ -148,7 +148,7 @@ export const getEvents = async () => {
         }
     }
     return builder.map((ev) => {
-        ev.attending = attendants[ev.id];
+        ev.attending = attendants.hasOwnProperty(ev.id) ? attendants[ev.id] : [];
         let eventTables = tables.get(ev.id) ?? new Map();
         ev.tables = Array.from(eventTables.values());
         return ev;
