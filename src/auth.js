@@ -4,6 +4,7 @@ import {query} from './request/database.js';
 import {checkToken, generateToken} from "./security.js";
 import {
     InvalidTokenException,
+    LoginAttemptInsertException,
     PasswordlessUserException,
     SecurityException,
     UserNotFoundException,
@@ -13,6 +14,7 @@ import {findUserWithNif} from './data/users.js';
 
 import securityPolicy from '../security-policy.json' assert {type: 'json'};
 import {ipToLong} from "./utils.js";
+import {SqlError} from "mariadb";
 
 /**
  * Queries the amount of login attempts made by the given IP in the last 24 hours.
@@ -43,6 +45,7 @@ const loginAttemptsCount = async (ip) => {
  * @throws {UserNotFoundException} If there isn't a matching user with the given DNI.
  * @throws {PasswordlessUserException} If the given user doesn't have a password. `changePassword` should be called.
  * @throws {WrongPasswordException} If the password introduced is not correct.
+ * @throws {LoginAttemptInsertException} If the login attempt could not be registered.
  * @returns {Promise<string>}
  * @see changePassword
  */
@@ -65,9 +68,16 @@ export const login = async (nif, password, reqIp) => {
     let successful = await bcrypt.compare(password, userHash);
 
     // Register the attempt
-    const queryStr = `INSERT INTO mLoginAttempts (UserId, IP, Successful)
-                      SELECT ?, ?, ?;`;
-    await query(queryStr, true, user.Id, '0x' + ipToLong(ip).toString(16), successful ? 1 : 0);
+    const longIp = ipToLong(ip);
+    try {
+        const queryStr = `INSERT INTO mLoginAttempts (UserId, IP, Successful)
+                          SELECT ?, ?, ?;`;
+        await query(queryStr, true, user.Id, '0x' + longIp.toString(16), successful ? 1 : 0);
+    } catch (e) {
+        if (e instanceof SqlError && e.code === 'ER_DATA_TOO_LONG') {
+            throw LoginAttemptInsertException(`Could not insert login attempt. Raw IP: ${ip}. Long: 0x${longIp.toString(16)}`);
+        } else throw e;
+    }
 
     if (!successful)
         throw new WrongPasswordException('Wrong password introduced.');

@@ -88,3 +88,10 @@ export class SqlPermissionException extends Error {
         this.name = 'SqlPermissionException';
     }
 }
+
+export class LoginAttemptInsertException extends SecurityException {
+    constructor(message) {
+        super(message);
+        this.name = 'LoginAttemptInsertException';
+    }
+}
