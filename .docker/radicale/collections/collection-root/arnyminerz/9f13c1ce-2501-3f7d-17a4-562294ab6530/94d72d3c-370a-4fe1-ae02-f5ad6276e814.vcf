@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:94d72d3c-370a-4fe1-ae02-f5ad6276e814
+ADR;TYPE=home:SANT JORDI 5;;;;;;
+BDAY:20180021
+EMAIL:
+FN:Ana Carmesina Perez Bardisa
+N:Ana Carmesina;Perez Bardisa;;;
+REV:2022-11-06T11:01:44.723Z
+TEL;TYPE=home:608384541
+END:VCARD

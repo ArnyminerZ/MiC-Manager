@@ -8,7 +8,7 @@ node_modules
 *.lock
 
 # Docker data directories
-.docker
+.docker/mariadb
 secrets
 keys
 

@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:0b6b0db4-486c-4ba5-81b2-a988556672b5
+ADR;TYPE=home:LLUIS VIVES 9 4º DCHA;;;;;;
+BDAY:20120030
+EMAIL:GMAIL.COM
+FN:Daniel Martinez Vilaplana
+N:Daniel;Martinez Vilaplana;;;
+REV:2022-11-06T11:01:44.699Z
+TEL;TYPE=home:1
+END:VCARD

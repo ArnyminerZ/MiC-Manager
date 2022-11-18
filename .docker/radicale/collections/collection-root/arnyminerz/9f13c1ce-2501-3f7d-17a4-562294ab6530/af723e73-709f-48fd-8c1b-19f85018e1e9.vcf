@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:af723e73-709f-48fd-8c1b-19f85018e1e9
+ADR;TYPE=home:DOÑA AMALIA 50 1º PTA 4;;;;;;
+BDAY:19660007
+EMAIL:arturogandia.gisbert@gmail.com
+FN:Arturo Gandia Gisbert
+N:Arturo;Gandia Gisbert;;;
+REV:2022-11-06T11:01:42.545Z
+TEL;TYPE=home:602079420
+END:VCARD

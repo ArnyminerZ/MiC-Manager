@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:c7d1569d-9882-4c04-bf1e-6b65af9517dd
+ADR;TYPE=home:LA SALLE 6 1º PTA A;;;;;;
+BDAY:20080020
+EMAIL:
+FN:Alvaro Javaloyes Araño
+N:Alvaro;Javaloyes Araño;;;
+REV:2022-11-06T11:01:42.712Z
+TEL;TYPE=home:1
+END:VCARD

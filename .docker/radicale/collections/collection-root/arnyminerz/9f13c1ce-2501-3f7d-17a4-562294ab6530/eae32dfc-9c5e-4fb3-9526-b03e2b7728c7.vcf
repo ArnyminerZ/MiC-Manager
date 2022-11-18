@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:eae32dfc-9c5e-4fb3-9526-b03e2b7728c7
+ADR;TYPE=home:L,ALAMEDA 13 4º 3ª;;;;;;
+BDAY:19430011
+EMAIL:GMAIL.COM
+FN:Francisco Manuel Miro Blanes
+N:Francisco Manuel;Miro Blanes;;;
+REV:2022-11-06T11:01:40.570Z
+TEL;TYPE=home:965332940
+END:VCARD

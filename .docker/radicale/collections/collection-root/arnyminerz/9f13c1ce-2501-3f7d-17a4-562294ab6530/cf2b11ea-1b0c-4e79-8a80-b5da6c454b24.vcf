@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:cf2b11ea-1b0c-4e79-8a80-b5da6c454b24
+ADR;TYPE=home:1;;;;;;
+BDAY:20200004
+EMAIL:
+FN:Luca Cecchin Erum
+N:Luca;Cecchin Erum;;;
+REV:2022-11-06T11:01:45.219Z
+TEL;TYPE=home:1
+END:VCARD

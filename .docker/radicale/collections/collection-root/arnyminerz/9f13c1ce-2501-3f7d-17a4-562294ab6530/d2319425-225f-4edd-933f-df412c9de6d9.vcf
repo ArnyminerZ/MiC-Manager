@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:d2319425-225f-4edd-933f-df412c9de6d9
+ADR;TYPE=home:CINE PRINCIPAL 16;;;;;;
+BDAY:20000010
+EMAIL:
+FN:Ignacio Galbis Palacios
+N:Ignacio;Galbis Palacios;;;
+REV:2022-11-06T11:01:42.146Z
+TEL;TYPE=home:1
+END:VCARD

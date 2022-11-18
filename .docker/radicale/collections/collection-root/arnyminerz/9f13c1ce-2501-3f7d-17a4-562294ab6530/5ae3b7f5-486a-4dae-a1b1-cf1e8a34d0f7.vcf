@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:5ae3b7f5-486a-4dae-a1b1-cf1e8a34d0f7
+ADR;TYPE=home:LA RAMBLA 1 7º PTA 2;;;;;;
+BDAY:20120002
+EMAIL:
+FN:Jorge Carceles Garcia
+N:Jorge;Carceles Garcia;;;
+REV:2022-11-06T11:01:44.350Z
+TEL;TYPE=home:965337842
+END:VCARD

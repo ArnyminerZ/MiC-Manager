@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:432cb88b-2dce-44da-af2a-b51e0f7bb1d7
+ADR;TYPE=home:CASA LA BASSA 10 7º PTA A;;;;;;
+BDAY:20050007
+EMAIL:
+FN:Francesc Oriola Ruiz
+N:Francesc;Oriola Ruiz;;;
+REV:2022-11-06T11:01:42.458Z
+TEL;TYPE=home:1
+END:VCARD

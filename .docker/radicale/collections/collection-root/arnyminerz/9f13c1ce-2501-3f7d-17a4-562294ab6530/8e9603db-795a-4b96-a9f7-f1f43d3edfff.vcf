@@ -1,0 +1,12 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:MiC_Manager//1.0.0-indev01
+UID:8e9603db-795a-4b96-a9f7-f1f43d3edfff
+ADR;TYPE=home:OLIVER 63 3º DCHA;;;;;;
+BDAY:20210023
+EMAIL:
+FN:Julia Perez Escudero
+N:Julia;Perez Escudero;;;
+REV:2022-11-06T11:01:45.196Z
+TEL;TYPE=home:686194252
+END:VCARD
