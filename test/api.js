@@ -5,6 +5,8 @@ import {faker} from '@faker-js/faker';
 import chai from 'chai';
 import chaiHttp from 'chai-http';
 
+import {authGet, init, post, postForStatus} from "./utils/requests.js";
+
 const __dirname = process.env['NODE_PATH'];
 
 const expect = chai.expect;
@@ -17,6 +19,7 @@ describe('API', function () {
     let docker;
     /** @type {string} */
     let host, port, protocol, server;
+    let token;
 
     // Utility functions
     const ping = endpoint => {
@@ -31,37 +34,14 @@ describe('API', function () {
                 });
         };
     };
-    /**
-     * @callback PostCallback
-     * @param {Object} err
-     * @param {Object} res
-     */
-    /**
-     * Creates a post request to the given endpoint.
-     * @author Arnau Mora
-     * @since 20221117
-     * @param {string} endpoint
-     * @param {Object} body
-     * @param {PostCallback?} assert
-     * @return {(function(*): void)|*}
-     */
-    const post = (endpoint, body, assert) => {
-        return (done) => {
-            chai.request(server)
-                .post(endpoint)
-                .send(body)
-                .end((err, res) => {
-                    if (assert != null) assert(err, res);
-                    done();
-                });
-        };
-    };
-    const postForStatus = (endpoint, body, expectedStatus, invert = false) => post(endpoint, body, (err, res) => {
-        if (invert)
-            expect(res).to.not.have.status(expectedStatus);
-        else
-            expect(res).to.have.status(expectedStatus);
-    })
+
+    const newUser = (newUserBody) => it('Create user', post('/v1/testing/new_user', newUserBody, (err, res) => {
+        expect(res).to.have.status(200);
+        const body = res.body;
+        expect(body).to.have.property('result');
+        const result = body.result;
+        expect(result).to.have.property('affectedRows', 1);
+    }));
 
     before('Run Docker', async () => {
         const environment = new DockerComposeEnvironment(__dirname, ['docker-compose.yml', 'docker-compose.testing.yml'])
@@ -75,11 +55,12 @@ describe('API', function () {
         port = container.getMappedPort(3000).toString();
         protocol = 'http:';
         server = `${protocol}//${host}:${port}`;
+        init(server);
     });
 
     it('Ping (/ping)', ping('/ping'));
     it('Information (/v1/info)', (done) => {
-        chai.request(`${server}`)
+        chai.request(server)
             .get('/v1/info')
             .end((err, res) => {
                 expect(err).to.be.null;
@@ -100,6 +81,7 @@ describe('API', function () {
         const bodyWrongPassword = {nif, password: faker.internet.password()};
         const uid = faker.datatype.string(24);
         const newUserBody = {
+            Id: 1,
             NIF: nif,
             Uid: uid,
             Role: 1,
@@ -107,6 +89,18 @@ describe('API', function () {
             WhitesWheel: 0,
             BlacksWheel: 0,
             Associated: null,
+        };
+        const otherNif = faker.random.numeric(8) + faker.random.alpha({casing: 'upper'});
+        const newUid = faker.datatype.string(24);
+        const otherUserBody = {
+            Id: 2,
+            NIF: otherNif,
+            Uid: newUid,
+            Role: 1,
+            Grade: 1,
+            WhitesWheel: 0,
+            BlacksWheel: 0,
+            Associated: 1,
         };
 
         describe('Required parameters', () => {
@@ -119,13 +113,7 @@ describe('API', function () {
         describe('User not registered', () => {
             it('Drop attempts', postForStatus('/v1/testing/drop_attempts', {}, 200));
             it('User not found', postForStatus('/v1/user/auth', body, 404));
-            it('Create user', post('/v1/testing/new_user', newUserBody, (err, res) => {
-                expect(res).to.have.status(200);
-                const body = res.body;
-                expect(body).to.have.property('result');
-                const result = body.result;
-                expect(result).to.have.property('affectedRows', 1);
-            }));
+            newUser(newUserBody);
             it('User found', postForStatus('/v1/user/auth', body, 404, true));
         });
         describe('Password-less user', () => {
@@ -134,32 +122,30 @@ describe('API', function () {
             it('Assign password', postForStatus('/v1/user/change_password', body, 200));
             it('User with password', postForStatus('/v1/user/auth', body, 417, true));
         });
-        describe('Authentication', () => {
+        describe('User management', () => {
             it('Drop attempts', postForStatus('/v1/testing/drop_attempts', {}, 200));
             it('Wrong password', postForStatus('/v1/user/auth', bodyWrongPassword, 403));
             it('Correct password', post('/v1/user/auth', body, (err, res) => {
                 expect(res).to.have.status(200);
+                const body = res.body;
+                expect(body).to.have.property('data');
+                const data = body.data;
+                expect(data).to.have.property('token');
+                token = data.token;
+                expect(token).to.be.an('string');
             }));
             it('Max attempts', () => {
                 for (let c = 0; c < 3; c++) postForStatus('/v1/user/auth', bodyWrongPassword, 403);
                 postForStatus('/v1/user/auth', bodyWrongPassword, 412);
             });
-        });
 
-        /*it('Create new user', (done) => {
-            chai.request(server)
-                .get('/v1/testing/new_user')
-                .end((err, res) => {
-                    expect(err).to.be.null;
-                    expect(res).to.have.status(200).and.to.be.json;
-                    const body = res.body;
-                    expect(body).to.have.property('success', true);
-                    expect(body).to.have.property('data');
-                    const data = body.data;
-                    expect(data).to.have.property('database');
-                    done();
-                });
-        });*/
+            newUser(otherUserBody);
+            it('Correct user data', (done) => {
+                authGet('/v1/user/data', token, (err, res) => {
+                    expect(res).to.have.status(200);
+                })(done);
+            });
+        });
     });
 
     after('Stop Docker', async () => {
