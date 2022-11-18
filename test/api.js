@@ -112,7 +112,7 @@ describe('API', function () {
             it('Empty body', postForStatus('/v1/user/auth', {}, 400));
             it('No NIF', postForStatus('/v1/user/auth', {password}, 400));
             it('No Password', postForStatus('/v1/user/auth', {nif}, 400));
-            it('Complete', postForStatus('/v1/user/auth', {nif}, 400, true));
+            it('Complete', postForStatus('/v1/user/auth', body, 400, true));
         });
         describe('User not registered', () => {
             it('User not found', postForStatus('/v1/user/auth', body, 404));
