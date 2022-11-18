@@ -6,7 +6,7 @@ import {parseCards, personDataToVCard} from "../parser/vcard.js";
 import {error, info, log} from '../../cli/logger.js';
 import {XMLParser} from 'fast-xml-parser';
 
-const {createDAVClient, DAVObject, DAVCollection, makeCollection} = tsdav;
+const {createDAVClient, DAVObject, DAVCollection} = tsdav;
 
 dotenv.config();
 
@@ -18,6 +18,14 @@ let client,
 
 const serverUrl = () => (process.env.CALDAV_SSL_ENABLE === 'true' ? 'https' : 'http') + '://' + process.env.CALDAV_HOSTNAME + ':' + process.env.CALDAV_PORT;
 
+/**
+ * Makes a request to the server with the given method, at the provided path, sending the body indicated.
+ * @param {string} method
+ * @param {string} path
+ * @param {string} body
+ * @param {boolean} isXml
+ * @return {Promise<string>}
+ */
 const makeRequest = (method, path, body, isXml = true) => new Promise((resolve, reject) => {
     log('Making request to', path, 'with', method);
     const req = http.request({
@@ -27,11 +35,15 @@ const makeRequest = (method, path, body, isXml = true) => new Promise((resolve, 
         path,
         protocol: process.env.CALDAV_SSL_ENABLE === 'true' ? 'https:' : 'http:',
         auth: `${process.env.CALDAV_USERNAME}:${process.env.CALDAV_PASSWORD}`,
+        headers: {
+            'Content-Type': 'text/plain;charset=UTF-8',
+            'Content-Length': Buffer.byteLength(body),
+        },
     }, response => {
+        response.setEncoding('utf8');
+
         let str = '';
-        response.on('data', function (chunk) {
-            str += chunk;
-        });
+        response.on('data', chunk => str += chunk);
         response.on('end', function () {
             const statusCode = response.statusCode;
             if (statusCode >= 200 && statusCode < 300)
@@ -44,7 +56,7 @@ const makeRequest = (method, path, body, isXml = true) => new Promise((resolve, 
             else
                 reject(`${statusCode}: "${str}"`);
         });
-        response.on('error', (e) => reject(e));
+        response.on('error', e => reject(e));
     });
     req.write(body);
     req.end();
@@ -69,51 +81,67 @@ const propFind = async (props, path = '/') => {
         `</prop>` +
         `</propfind>`
     );
-    const prop = xml['multistatus']['response']['propstat']['prop'];
+    const prop = xml['multistatus']['response']['propstat'][0]['prop'];
+    if (prop == null) throw new Error(`The response prop is empty. XML: ${JSON.stringify(xml)}`);
     let result = {};
     if (props.includes('current-user-principal'))
         result['currentUserPrincipal'] = {
             href: prop['current-user-principal']['href'],
-            privilege: prop['current-user-privilege-set']['privilege'],
         };
     return result;
+};
+
+/**
+ * Creates a new address book with the given UUID.
+ * @author Arnau Mora
+ * @since 20221118
+ * @param {string} uuid The uuid of the new collection.
+ * @return {Promise<string>}
+ */
+const createAddressBook = async (uuid) => {
+    const props = await propFind(['current-user-principal', 'displayname']);
+    return await makeRequest(
+        'MKCOL',
+        `${props.currentUserPrincipal.href}${uuid}/`,
+        `<?xml version="1.0" encoding="UTF-8" ?>` +
+        `<mkcol xmlns="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav" xmlns:CR="urn:ietf:params:xml:ns:carddav" xmlns:I="http://apple.com/ns/ical/" xmlns:INF="http://inf-it.com/ns/ab/">` +
+        `<set>` +
+        `<prop>` +
+        `<resourcetype>` +
+        `<CR:addressbook />` +
+        `<collection />` +
+        `</resourcetype>` +
+        `<displayname>Testing ab</displayname>` +
+        `<INF:addressbook-color>#ff0000ff</INF:addressbook-color>` +
+        `<CR:addressbook-description>Addressbook description</CR:addressbook-description>` +
+        `</prop>` +
+        `</set>` +
+        `</mkcol>`,
+        true,
+    );
 };
 
 /**
  * Fetches the cards data from the server, and stores it locally.
  * @author Arnau Mora
  * @since 20221104
+ * @param {boolean} isFirst If it's the first iteration of the method.
  * @return {Promise<void>}
  */
-export const fetchCards = async () => {
+export const fetchCards = async (isFirst = true) => {
     const abs = await client.fetchAddressBooks();
-    addressBook = abs.find(v => v.url.endsWith(process.env.CALDAV_AB_UUID));
+    addressBook = abs.find(v => v.url.includes(process.env.CALDAV_AB_UUID));
 
     if (addressBook == null) {
         error('Could not find an address book with the uid: ' + process.env.CALDAV_AB_UUID);
         info('Trying to create a new DAV collection...');
-        const props = await propFind(['current-user-principal', 'displayname']);
-        const response = await makeRequest(
-            'MKCOL',
-            `${props.currentUserPrincipal.href}${process.env.CALDAV_AB_UUID}/`,
-            `<?xml version="1.0" encoding="UTF-8" ?>` +
-            `<mkcol xmlns="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav" xmlns:CR="urn:ietf:params:xml:ns:carddav" xmlns:I="http://apple.com/ns/ical/" xmlns:INF="http://inf-it.com/ns/ab/">` +
-            `<set>` +
-            `<prop>` +
-            `<resourcetype>` +
-            `<CR:addressbook />` +
-            `<collection />` +
-            `</resourcetype>` +
-            `<displayname>Testing ab</displayname>` +
-            `<INF:addressbook-color>#ff0000ff</INF:addressbook-color>` +
-            `<CR:addressbook-description>Addressbook description</CR:addressbook-description>` +
-            `</prop>` +
-            `</set>` +
-            `</mkcol>`,
-            false,
-        );
-        info('Collection create result:', response);
-        throw Error('');
+        const create = await createAddressBook(process.env.CALDAV_AB_UUID);
+        info('Collection create result:', create);
+        if (isFirst) return await fetchCards(false);
+
+        error('Could not find an address book with the uid: ' + process.env.CALDAV_AB_UUID);
+        process.exit(1);
+        return null;
     }
 
     vCards = await client.fetchVCards({addressBook: addressBook});
