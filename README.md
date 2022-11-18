@@ -10,12 +10,6 @@
 ![Last pre-release][prerelease-badge]
 ![Last release][release-badge]
 
-## Generating private file
-
-```shell
-openssl rand -base64 756 > ./secrets/private.key
-```
-
 ## Environment variables
 
 There are some environment variables which are required for the server to work. Those are:
@@ -52,6 +46,10 @@ There are some environment variables which are required for the server to work. 
 
 **Required**. The url of the address book to use.
 
+### `CALDAV_DISPLAY_NAME`
+
+Default: `MiC-Manager`. The display name for the DAV collection if it doesn't exist.
+
 ### `DEBUG`
 
 Default: `false`. If `true`, debug mode will be enabled, and errors will give a deeper output.
@@ -74,15 +72,24 @@ this purpose.
 We need some secret keys and files for the system to work. You can define them with the following commands.
 
 ```shell
-# Create the secrets directory
+# Create the required directories
 mkdir -p secrets
+mkdir -p keys
 
 # Replace {password} with the password to use for the database user.
 echo "{password}" > secrets/password.txt
 
 # Replace {password} with the password to use for identifying as {username}. Choose wisely.
 echo "{root-password}" > secrets/root-password.txt
+
+# Generate the server's private key.
+openssl rand -base64 756 > ./secrets/private.key
+
+# Generate the encryption certificates
+openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout keys/key.pem -out keys/cert.pem
 ```
+
+**Warning!** Losing the server's private key will mean all the user's data will be voided and encrypted forever.
 
 Note that it's required to have swarm mode enabled. You can do so with:
 
