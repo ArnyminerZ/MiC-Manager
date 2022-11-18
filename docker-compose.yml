@@ -84,6 +84,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./.docker/radicale:/data
+      - ./radicale-config:/config:ro
 
 networks:
   backend:
