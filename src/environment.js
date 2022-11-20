@@ -2,11 +2,14 @@
  * Helps on checking that are the environment variables are set correctly.
  * @author Arnau Mora
  * @since 20221103
- * @file variables.js
+ * @file environment.js
  */
 
 import {EnvironmentVariableException} from "./exceptions.js";
 import {isNumber} from "./utils.js";
+import fs from "fs";
+import path from "path";
+import {error} from "../cli/logger.js";
 
 /**
  * Checks that all the required environment variables are set, and have valid values.

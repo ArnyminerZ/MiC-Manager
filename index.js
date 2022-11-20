@@ -10,7 +10,7 @@ import https from 'https';
 
 import {errorResponse, successResponse} from './src/response.js';
 import {check as dbCheck, info as dbInfo} from './src/request/database.js';
-import {checkVariables, getProps} from './src/variables.js';
+import {checkFiles, checkVariables, getProps} from './src/environment.js';
 import {createClient as calCreateClient, getAddressBookUrl, getCards} from "./src/request/caldav.js";
 import {error, info, infoSuccess, warn} from './cli/logger.js';
 import {addEndpoints as addMigrationEndpoints} from "./src/endpoints/migration.js";
