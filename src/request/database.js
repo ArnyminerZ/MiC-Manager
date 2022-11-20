@@ -94,7 +94,7 @@ const disconnect = async () => await conn?.end();
  * @author Arnau Mora
  * @since 20221018
  * @param {boolean} debug If `true` and an error has been thrown, it will get logged.
- * @returns {Promise<boolean>} `true` if the database is available, `false` otherwise.
+ * @returns {Promise<Error>} `true` if the database is available, `false` otherwise.
  * @throws {SqlPermissionException} If the configured user is not authorised to use the database.
  */
 export const check = async (debug = false) => {
@@ -132,10 +132,10 @@ export const check = async (debug = false) => {
 
         await disconnect();
 
-        return true;
+        return null;
     } catch (e) {
         error('Could not connect to the database. Error:', e);
-        return false;
+        return e;
     }
 };
 

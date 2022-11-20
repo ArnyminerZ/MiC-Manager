@@ -17,10 +17,12 @@ import {addEndpoints as addMigrationEndpoints} from "./src/endpoints/migration.j
 import {addEndpoints as addTestingEndpoints} from "./src/endpoints/testing.js";
 import {auth, changePassword, data} from "./src/endpoints/user.js";
 import {create, join, list, setMenu} from "./src/endpoints/events.js";
+import {check as checkFirefly} from './src/monetary/firefly.js';
 
 import packageJson from './package.json' assert {type: 'json'};
 import {decodeToken} from "./src/security.js";
 import {hasPermission} from "./src/permissions.js";
+import {SqlError} from "mariadb";
 
 dotenv.config();
 
@@ -35,8 +37,13 @@ const props = getProps();
 const HTTP_PORT = process.env.HTTP_PORT ?? 3000;
 
 info(`Checking database...`);
-if (!(await dbCheck(!!process.env.DEBUG))) {
-    error(`Could not connect to database. Host: ${process.env.DB_HOSTNAME}`)
+const dbCheckResult = await dbCheck(!!process.env.DEBUG);
+if (dbCheckResult != null) {
+    error(`Could not connect to database. Host: ${process.env.DB_HOSTNAME}`);
+    if (dbCheckResult instanceof SqlError)
+        error('Database error:', dbCheckResult.code, '-', dbCheckResult.text);
+    else
+        error('Error:', dbCheckResult);
     process.exit(1);
 } else
     infoSuccess(`Database connected.`);
