@@ -25,17 +25,16 @@ jobs:
         run: npm install -g mocha
       - name: Install dependencies
         run: npm install
-      - name: Generate new private key
-        run: |
-          mkdir -p ./secrets
-          openssl rand -base64 756 > ./secrets/private.key
       - name: Requirements
         run: |
           # Create the required directories
           mkdir -p secrets
           
-          echo "unsafe-password" > secrets/password.txt
-          echo "unsafer-password" > secrets/root-password.txt
+          echo "unsafe-password-unsafe-passwords" > secrets/password.txt
+          echo "unsafe-password-unsafe-passwords" > secrets/root-password.txt
+          echo "unsafe-password-unsafe-passwords" > secrets/firefly-password.txt
+          echo "unsafe-password-unsafe-passwords" > secrets/firefly-root-password.txt
+          echo "unsafe-password-unsafe-passwords" > secrets/firefly-app-key.txt
           
           # Generate the server's private key.
           openssl rand -base64 756 > ./secrets/private.key
