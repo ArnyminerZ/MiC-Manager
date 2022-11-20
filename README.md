@@ -91,10 +91,11 @@ echo "{firefly-root-password}" > secrets/firefly-root-password.txt
 
 # The app key to use for Firefly
 # Note: must have exactly 32 chars
-echo "{firefly-app-key}" > firefly-app-key.txt
+# Warning! Make sure there's no new line inserted in the file. Otherwise Firefly won't boot.
+echo "{firefly-app-key}" > secrets/firefly-app-key.txt
 
 # Generate the server's private key.
-openssl rand -base64 756 > ./secrets/private.key
+openssl rand -base64 756 > secrets/private.key
 
 # Generate the encryption certificates (optional, generates automatically)
 openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout keys/key.pem -out keys/cert.pem
@@ -135,6 +136,14 @@ To know which url to set. First access the web interface for Radicale. Eg: http:
 
 Then, log in, and choose one of the options provided, either creating an empty address book, or import an existing one.
 ![Creation options](./docs/RadicaleCreation.png)
+
+## Firefly
+
+You can edit the `firefly.env` file based on your needs. It's recommended to update `SITE_OWNER`, `DEFAULT_LANGUAGE`
+and `TZ`. See the Firefly docs for more information.
+
+You should also update the `REDIS_PASSWORD` environment variable in the `docker-compose.yml` file. Remember that if
+you want to change it, you must update both in `firefly` (`environment`) and `firefly_cache` (`command`).
 
 # First launch
 
