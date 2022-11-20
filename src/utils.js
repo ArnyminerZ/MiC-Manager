@@ -1,3 +1,6 @@
+import path from 'path';
+import {fileURLToPath} from 'url';
+
 /**
  * @param {string} ip The IP to parse.
  * @returns {number}
@@ -33,3 +36,6 @@ export const capitalize = text =>
             return newChar + t.substring(1);
         })
         .join(' ');
+
+export const __filename = fileURLToPath(import.meta.url);
+export const __dirname = path.dirname(__filename);
