@@ -105,6 +105,7 @@ services:
       - DB_DATABASE=firefly
       - DB_USERNAME=firefly
       - DB_PASSWORD_FILE=/run/secrets/firefly_db_password
+      - REDIS_PASSWORD=SRGjFe44zo4UaTqFm7UcZ6pcqeRG9PRw
     networks:
       - backend
       - firefly
