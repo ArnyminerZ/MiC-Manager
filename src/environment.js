@@ -64,4 +64,16 @@ export const checkVariables = () => {
 export const getProps = () => {
   const props = process.env.PROPS;
   return props != null ? props.split(';') : [];
-}
+};
+
+/**
+ * Checks that all the required files are available and well configured.
+ */
+export const checkFiles = () => {
+  const fireflyToken = path.join(__dirname, 'secrets', 'firefly-token.txt');
+  if (!fs.existsSync(fireflyToken)) {
+    error('Firefly is not properly configured. Please, follow the instructions in the README. Missing files:');
+    error('- firefly-token.txt:', fireflyToken);
+    process.exit(1);
+  }
+};

@@ -25,6 +25,7 @@ import {hasPermission} from "./src/permissions.js";
 dotenv.config();
 
 checkVariables();
+checkFiles();
 const props = getProps();
 
 /**
