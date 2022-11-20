@@ -10,6 +10,7 @@ services:
     depends_on:
       - mariadb
       - radicale
+      - firefly
     environment:
       - DEBUG=true
       - DB_USERNAME
@@ -62,6 +63,7 @@ services:
   radicale:
     image: tomsquest/docker-radicale
     container_name: mic_radicale
+    restart: unless-stopped
     ports:
       - "5232:5232"
     networks:
@@ -81,19 +83,77 @@ services:
       test: curl -f http://localhost:5232 || exit 1
       interval: 30s
       retries: 3
-    restart: unless-stopped
     volumes:
       - ./.docker/radicale:/data
       - ./radicale-config:/config:ro
 
+  firefly:
+    image: fireflyiii/core
+    container_name: mic_firefly
+    restart: unless-stopped
+    depends_on:
+      - firefly_db
+      - firefly_cache
+    ports:
+      - "8080:8080"
+    env_file: .firefly.env
+    environment:
+      - APP_KEY_FILE=/run/secrets/firefly_app_key
+      - DB_HOST=firefly_db
+      - DB_DATABASE=firefly
+      - DB_USERNAME=firefly
+      - DB_PASSWORD_FILE=/run/secrets/firefly_db_password
+    networks:
+      - backend
+      - firefly
+    volumes:
+      - firefly_iii_upload:/var/www/html/storage/upload
+    secrets:
+      - firefly_app_key
+      - firefly_db_password
+  firefly_db:
+    image: mariadb
+    container_name: mic_firefly_db
+    restart: unless-stopped
+    networks:
+      - firefly
+    environment:
+      - MARIADB_USER=firefly
+      - MARIADB_DATABASE=firefly
+
+      - MARIADB_PASSWORD_FILE=/run/secrets/firefly_db_password
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/firefly_db_root_password
+    volumes:
+      - firefly_iii_db:/var/lib/mysql
+    secrets:
+      - firefly_db_password
+      - firefly_db_root_password
+  firefly_cache:
+    image: redis:6.2-alpine
+    container_name: mic_firefly_cache
+    restart: unless-stopped
+    networks:
+      - firefly
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass SRGjFe44zo4UaTqFm7UcZ6pcqeRG9PRw
+    volumes:
+      - firefly_iii_cache:/data
+
 networks:
   backend:
+    driver: bridge
+  firefly:
     driver: bridge
 
 volumes:
   mariadb-data:
     driver: local
   server-keys:
+    driver: local
+  firefly_iii_upload:
+  firefly_iii_db:
+  firefly_iii_cache:
     driver: local
 
 secrets:
@@ -107,3 +167,9 @@ secrets:
     file: ./secrets/database.txt
   private_key:
     file: ./secrets/private.key
+  firefly_db_password:
+    file: ./secrets/firefly-password.txt
+  firefly_db_root_password:
+    file: ./secrets/firefly-root-password.txt
+  firefly_app_key:
+    file: ./secrets/firefly-app-key.txt

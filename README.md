@@ -83,6 +83,16 @@ echo "{password}" > secrets/password.txt
 # Replace {password} with the password to use for identifying as {username}. Choose wisely.
 echo "{root-password}" > secrets/root-password.txt
 
+# Replace {firefly-password} with the password to use for the Firefly database
+echo "{firefly-password}" > secrets/firefly-password.txt
+
+# Replace {firefly-root-password} with the password to use for the root user in the Firefly database
+echo "{firefly-root-password}" > secrets/firefly-root-password.txt
+
+# The app key to use for Firefly
+# Note: must have exactly 32 chars
+echo "{firefly-app-key}" > firefly-app-key.txt
+
 # Generate the server's private key.
 openssl rand -base64 756 > ./secrets/private.key
 
@@ -105,8 +115,25 @@ To know which url to set. First access the web interface for Radicale. Eg: http:
 Then, log in, and choose one of the options provided, either creating an empty address book, or import an existing one.
 ![Creation options](./docs/RadicaleCreation.png)
 
+# First launch
+
+## Firefly
+
+To configure the Firefly instance. Once the Docker containers are running, please access http://{ip}:8080 (e.g.
+[http://localhost:8080](http://localhost:8080)).\
+Then, create a new admin account with your credentials:
+![Firefly registration panel](./image/firefly_registration.png)
+
+Once registered, it's not necessary to create a new account. Simply go to *Options > Profile*
+([`/profile`](http://localhost:8080/profile)), then select *OAuth*, and create a new Personal Access Token.
+![Firefly registration panel](./image/firefly_token.png)
+
+Now copy this token to `secrets/firefly-token.txt`.
+
 # Migration
+
 ## GesTro
+
 MiC Manager provides the option to migrate all the data from GesTro. There's a script at `/migrations` called
 `gestro.js` that has all the tools necessary. To run, first install all the dependencies:
 
