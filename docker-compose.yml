@@ -98,6 +98,7 @@ services:
     depends_on:
       - firefly_db
       - firefly_cache
+    # TODO: Disable exposing ports
     ports:
       - "8080:8080"
     env_file: firefly.env
@@ -139,8 +140,6 @@ services:
     restart: unless-stopped
     networks:
       - firefly
-    ports:
-      - '6379:6379'
     command: redis-server --save 20 1 --loglevel warning --requirepass SRGjFe44zo4UaTqFm7UcZ6pcqeRG9PRw
     volumes:
       - firefly_iii_cache:/data
