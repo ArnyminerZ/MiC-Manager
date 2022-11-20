@@ -98,7 +98,7 @@ services:
       - firefly_cache
     ports:
       - "8080:8080"
-    env_file: .firefly.env
+    env_file: firefly.env
     environment:
       - APP_KEY_FILE=/run/secrets/firefly_app_key
       - DB_HOST=firefly_db
