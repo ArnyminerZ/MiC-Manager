@@ -17,4 +17,6 @@ COPY . .
 
 EXPOSE 3000
 
-CMD [ "node", "index.js" ]
+RUN chmod +x ./scripts/wait-for-firefly.sh
+
+CMD [ "./scripts/wait-for-firefly.sh", "node", "index.js" ]
