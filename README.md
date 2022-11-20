@@ -96,7 +96,7 @@ echo "{firefly-app-key}" > firefly-app-key.txt
 # Generate the server's private key.
 openssl rand -base64 756 > ./secrets/private.key
 
-# Generate the encryption certificates
+# Generate the encryption certificates (optional, generates automatically)
 openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout keys/key.pem -out keys/cert.pem
 ```
 
@@ -106,6 +106,27 @@ Note that it's required to have swarm mode enabled. You can do so with:
 
 ```shell
 docker swarm init
+```
+
+## Environment file
+
+You must create a `.env` file with some variables to use. This is:
+
+```dotenv
+# Choose some username and name for the database, you can make up whatever
+DB_USERNAME=micmanager
+DB_DATABASE=MiCManager
+
+# The username of the currently logged in user.
+# If on Linux, you can create a new user with:
+#   sudo addgroup --gid 2999 radicale
+#   sudo adduser --gid 2999 --uid 2999 --shell /bin/false --disabled-password --no-create-home radicale
+# If using those commands, leave password empty
+CALDAV_USERNAME=
+CALDAV_PASSWORD=
+
+# Choose an UUIDv4, can be whatever. Generate a random one at https://uuidv4.com/
+CALDAV_AB_UUID=9f13c1ce-2501-3f7d-17a4-562294ab6530
 ```
 
 ## Setting `CALDAV_AB_URL`
