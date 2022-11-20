@@ -56,6 +56,9 @@ if (!(await calCreateClient())) {
 await getCards();
 infoSuccess(`CalDAV server ready. AB Url:`, getAddressBookUrl());
 
+info(`Checking Firefly server...`);
+await checkFirefly();
+
 const app = express();
 
 // Limits the maximum amount of concurrent requests that can be made. If migration is enabled, the max rate is greatly
