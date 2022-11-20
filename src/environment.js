@@ -55,6 +55,13 @@ export const checkVariables = () => {
     throw new EnvironmentVariableException("CALDAV_AB_UUID was not set.");
   if (calPort == null) process.env.CALDAV_PORT = '5232';
   if (calSsl == null) process.env.CALDAV_SSL_ENABLE = 'false';
+
+  const fireflyHost = process.env.FIREFLY_HOST;
+  const fireflyPort = process.env.FIREFLY_PORT;
+  if (fireflyHost == null)
+    throw new EnvironmentVariableException("FIREFLY_HOST was not set.");
+  if (fireflyPort == null)
+    throw new EnvironmentVariableException("FIREFLY_PORT was not set.");
 };
 
 /**
