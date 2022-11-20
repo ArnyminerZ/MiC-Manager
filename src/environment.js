@@ -8,7 +8,6 @@
 import {EnvironmentVariableException} from "./exceptions.js";
 import {isNumber} from "./utils.js";
 import fs from "fs";
-import path from "path";
 import {error} from "../cli/logger.js";
 
 /**
@@ -58,10 +57,13 @@ export const checkVariables = () => {
 
   const fireflyHost = process.env.FIREFLY_HOST;
   const fireflyPort = process.env.FIREFLY_PORT;
+  const fireflyToken = process.env.FIREFLY_TOKEN_FILE;
   if (fireflyHost == null)
     throw new EnvironmentVariableException("FIREFLY_HOST was not set.");
   if (fireflyPort == null)
     throw new EnvironmentVariableException("FIREFLY_PORT was not set.");
+  if (fireflyToken == null)
+    throw new EnvironmentVariableException("FIREFLY_TOKEN_FILE was not set.");
 };
 
 /**
@@ -77,7 +79,7 @@ export const getProps = () => {
  * Checks that all the required files are available and well configured.
  */
 export const checkFiles = () => {
-  const fireflyToken = path.join(__dirname, 'secrets', 'firefly-token.txt');
+  const fireflyToken = process.env.FIREFLY_TOKEN_FILE;
   if (!fs.existsSync(fireflyToken)) {
     error('Firefly is not properly configured. Please, follow the instructions in the README. Missing files:');
     error('- firefly-token.txt:', fireflyToken);

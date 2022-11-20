@@ -26,6 +26,7 @@ services:
       - CALDAV_AB_UUID
       - FIREFLY_HOST=firefly
       - FIREFLY_PORT=8080
+      - FIREFLY_TOKEN_FILE=/run/secrets/firefly_token
       # Enable props when necessary
       # - PROPS=migration
       - PROPS
@@ -34,6 +35,7 @@ services:
     secrets:
       - db_password
       - private_key
+      - firefly_token
     volumes:
       - server-keys:/usr/src/app/keys
 
@@ -176,3 +178,5 @@ secrets:
     file: ./secrets/firefly-root-password.txt
   firefly_app_key:
     file: ./secrets/firefly-app-key.txt
+  firefly_token:
+    file: ./secrets/firefly-token.txt
