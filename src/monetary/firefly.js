@@ -1,7 +1,7 @@
 import http from 'http';
 import fs from "fs";
 
-import {error, infoSuccess, log} from "../../cli/logger.js";
+import {error, info, infoSuccess, log} from "../../cli/logger.js";
 
 import packageJson from '../../package.json' assert {type: 'json'};
 
@@ -29,6 +29,13 @@ const fireflyTokenFile = process.env.FIREFLY_TOKEN_FILE;
  */
 
 /**
+ * @typedef {Object} FireflyConfigurationOption
+ * @property {string} title
+ * @property {string|boolean} value
+ * @property {boolean} editable
+ */
+
+/**
  * Fetches the Firefly token currently stored. Requires a prior check for `FIREFLY_TOKEN_FILE` to be set.
  * @author Arnau Mora
  * @since 20211121
@@ -40,7 +47,7 @@ const getToken = () => fs.readFileSync(fireflyTokenFile).toString('utf8');
  * Makes a http request to the Firefly server.
  * @author Arnau Mora
  * @since 20221121
- * @param {'GET','POST',string} method
+ * @param {'GET','POST','PUT',string} method
  * @param {string} endpoint
  * @param {Object|null} body
  * @return {Promise<Object|Array|{data:Object}>}
@@ -56,7 +63,7 @@ const request = (method, endpoint, body) => new Promise((resolve, reject) => {
             'Accept': 'application/vnd.api+json',
             'Authorization': `Bearer ${getToken()}`,
             'Content-Type': 'application/json',
-            'Content-Length': body != null ? Buffer.byteLength(body) : 0,
+            'Content-Length': body != null ? Buffer.byteLength(JSON.stringify(body)) : 0,
             'User-Agent': `MiC-Manager ${packageJson.version}`,
         },
     }, response => {
@@ -79,7 +86,7 @@ const request = (method, endpoint, body) => new Promise((resolve, reject) => {
             }
         });
     });
-    if (body != null) req.write(body);
+    if (body != null) req.write(JSON.stringify(body));
 
     log(`Firefly ${req.method} > ${req.protocol}//${req.host}${req.path}`);
     req.end();
@@ -93,6 +100,26 @@ const request = (method, endpoint, body) => new Promise((resolve, reject) => {
  * @returns {Promise<Object|Array|{data:Object}>}
  */
 const get = endpoint => request('GET', endpoint, null);
+
+/**
+ * Runs a POST request to the Firefly API.
+ * @author Arnau Mora
+ * @since 20221121
+ * @param {string} endpoint The endpoint to target. Excluding `/api/v1`, but must start with `/`.
+ * @param {Object} body The request body to be sent.
+ * @returns {Promise<Object|Array|{data:Object}>}
+ */
+const post = (endpoint, body) => request('POST', endpoint, body);
+
+/**
+ * Runs a PUT request to the Firefly API.
+ * @author Arnau Mora
+ * @since 20221121
+ * @param {string} endpoint The endpoint to target. Excluding `/api/v1`, but must start with `/`.
+ * @param {Object} body The request body to be sent.
+ * @returns {Promise<Object|Array|{data:Object}>}
+ */
+const put = (endpoint, body) => request('PUT', endpoint, body);
 
 /**
  * Checks that the Firefly instance is correctly configured and running.
@@ -131,6 +158,20 @@ export const check = async () => {
         else {
             error('Firefly user is not valid. Role:', role, 'blocked:', blocked);
             process.exit(1);
+        }
+
+        // Check proper configuration
+        // noinspection JSValidateTypes
+        /** @type {FireflyConfigurationOption} */
+        const configuration = (await get('/configuration/configuration.single_user_mode')).data;
+        if (configuration.value === true) {
+            info('Single user mode is enabled for Firefly, disabling...');
+            try {
+                await put('/configuration/configuration.single_user_mode', {value: false});
+            } catch (e) {
+                error('Could not disable Single User Mode. Error:', e);
+                process.exit(1);
+            }
         }
     } catch (e) {
         error('Firefly is not configured properly. Error:', e);
