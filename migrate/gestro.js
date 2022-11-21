@@ -190,12 +190,12 @@ try {
         const data = {
             Uid: uuid,
             NIF: row['Dni'],
-            WhitesWheel: row['nrRodaBlancos'] ?? 0,
-            BlacksWheel: row['nrRodaNegros'] ?? 0,
+            WhitesWheelNumber: row['nrRodaBlancos'] ?? 0,
+            BlacksWheelNumber: row['nrRodaNegros'] ?? 0,
             Role: 1,
             Grade,
             // TODO: Associate row['AsociadoCon'] ??
-            Associated: 'NULL',
+            AssociatedTo: 'NULL',
         };
         try {
             await axios.post(v1Request('migration/add_user'), {data: JSON.stringify(data)});

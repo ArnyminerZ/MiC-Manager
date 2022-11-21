@@ -43,7 +43,7 @@ export const addEndpoints = app => {
             /** @type {UserRow} */
             const data = JSON.parse(dataRaw);
 
-            if (data.Uid == null || data.Role == null || data.Grade == null || data.WhitesWheel == null || data.BlacksWheel == null || data.NIF == null)
+            if (data.Uid == null || data.Role == null || data.Grade == null || data.WhitesWheelNumber == null || data.BlacksWheelNumber == null || data.NIF == null)
                 return res.status(401).json(errorResponse('invalid-request'));
 
             const r = await newUser(data);

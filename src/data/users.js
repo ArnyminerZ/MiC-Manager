@@ -147,18 +147,20 @@ export const getUserData = async (userId) => {
  * @param {UserRow} data
  * @return {Promise<[]>}
  */
-export const newUser = async (data) => await dbQuery(
-    `INSERT INTO mUsers (Hash, Uid, Role, Grade, WhitesWheel, BlacksWheel, Associated, NIF)
-     VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);`,
-    true,
-    data.Uid,
-    data.Role,
-    data.Grade,
-    data.WhitesWheel,
-    data.BlacksWheel,
-    data.Associated,
-    data.NIF,
-);
+export const newUser = async (data) => {
+    await dbQuery(
+        `INSERT INTO mUsers (Hash, Uid, Role, Grade, WhitesWheel, BlacksWheel, Associated, NIF)
+         VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);`,
+        true,
+        data.Uid,
+        data.Role,
+        data.Grade,
+        data.WhitesWheelNumber,
+        data.BlacksWheelNumber,
+        data.AssociatedTo,
+        data.NIF,
+    )
+};
 
 /**
  * Fetches at which moment the user got signed up.
