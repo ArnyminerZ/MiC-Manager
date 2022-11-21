@@ -31,6 +31,7 @@ export const InsertRolesPermissions = [
     insertIfNotExists('mRolesPermissions', {Id: 3, RoleId: 2, PermissionId: 3}),
     insertIfNotExists('mRolesPermissions', {Id: 4, RoleId: 2, PermissionId: 4}),
     insertIfNotExists('mRolesPermissions', {Id: 5, RoleId: 2, PermissionId: 5}),
+    insertIfNotExists('mRolesPermissions', {Id: 6, RoleId: 2, PermissionId: 6}),
 ];
 
 export const InsertPermissions = [
@@ -44,6 +45,8 @@ export const InsertPermissions = [
     insertIfNotExists('mPermissions', {Id: 4, DisplayName: 'event_edit'}),
     // View the current version
     insertIfNotExists('mPermissions', {Id: 5, DisplayName: 'admin/version_view'}),
+    // Create new users
+    insertIfNotExists('mPermissions', {Id: 6, DisplayName: 'admin/create_users'}),
 ];
 
 export const InsertGrades = [
