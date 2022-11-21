@@ -17,6 +17,8 @@ COPY . .
 
 EXPOSE 3000
 
+HEALTHCHECK --interval=30s --timeout=12s --start-period=30s CMD node healthcheck.js
+
 RUN chmod +x ./scripts/wait-for-firefly.sh
 
 CMD [ "./scripts/wait-for-firefly.sh", "node", "index.js" ]
