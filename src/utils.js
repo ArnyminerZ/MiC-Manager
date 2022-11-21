@@ -37,5 +37,5 @@ export const capitalize = text =>
         })
         .join(' ');
 
-export const __filename = fileURLToPath(import.meta.url);
-export const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+export const __dirname = path.dirname(path.join(__filename, '..'));
