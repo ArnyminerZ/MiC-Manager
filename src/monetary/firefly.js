@@ -1,9 +1,11 @@
 import http from 'http';
 import fs from "fs";
 
-import {error, info, infoSuccess, log} from "../../cli/logger.js";
+import {error, info, infoSuccess, log, warn} from "../../cli/logger.js";
 
 import packageJson from '../../package.json' assert {type: 'json'};
+import {getAllUsers as getAllRegisteredUsers} from "../data/users.js";
+import {UserNotFoundException} from "../exceptions.js";
 
 const fireflyTokenFile = process.env.FIREFLY_TOKEN_FILE;
 
@@ -23,8 +25,10 @@ const fireflyTokenFile = process.env.FIREFLY_TOKEN_FILE;
  */
 
 /**
- * @typedef {Object} FireflyAboutUser
- * @property {{type:string,id:string,attributes:FireflyUserAttributes}} data
+ * @typedef {Object} FireflyUserData
+ * @property {string} type
+ * @property {string} id
+ * @property {FireflyUserAttributes} attributes
  * @property {{'0':Object,self:string}[]} links
  */
 
@@ -89,18 +93,21 @@ const getToken = () => fs.readFileSync(fireflyTokenFile).toString('utf8');
  * Makes a http request to the Firefly server.
  * @author Arnau Mora
  * @since 20221121
- * @param {'GET','POST','PUT',string} method
+ * @param {'GET','POST','PUT','DELETE',string} method
  * @param {string} endpoint
  * @param {Object|null} body
- * @return {Promise<Object|Array|{data:Object|Object[]}>}
+ * @param {URLSearchParams|null} searchParams
+ * @param {boolean} isJson If the response is JSON
+ * @return {Promise<Object|Array|{data:Object|Object[]}|string>}
  */
-const request = (method, endpoint, body) => new Promise((resolve, reject) => {
+const request = (method, endpoint, body, searchParams = null, isJson = true) => new Promise((resolve, reject) => {
     const req = http.request({
         protocol: 'http:',
         host: process.env.FIREFLY_HOST,
         port: parseInt(process.env.FIREFLY_PORT),
         path: `/api/v1${endpoint}`,
         method,
+        searchParams,
         headers: {
             'Accept': 'application/vnd.api+json',
             'Authorization': `Bearer ${getToken()}`,
@@ -115,6 +122,8 @@ const request = (method, endpoint, body) => new Promise((resolve, reject) => {
         response.on('end', () => {
             const statusCode = response.statusCode;
             try {
+                if (!isJson) return resolve(data);
+
                 const json = JSON.parse(data);
                 if (statusCode >= 200 && statusCode < 300)
                     resolve(json);
@@ -139,9 +148,10 @@ const request = (method, endpoint, body) => new Promise((resolve, reject) => {
  * @author Arnau Mora
  * @since 20221120
  * @param {string} endpoint The endpoint to target. Excluding `/api/v1`, but must start with `/`.
+ * @param {URLSearchParams|null} searchParams Parameters to append as query.
  * @returns {Promise<Object|Array|{data:Object|Object[]}>}
  */
-const get = endpoint => request('GET', endpoint, null);
+const get = (endpoint, searchParams = null) => request('GET', endpoint, null, searchParams);
 
 /**
  * Runs a POST request to the Firefly API.
@@ -191,7 +201,7 @@ export const check = async () => {
 
         // Check that the user is the owner.
         // noinspection JSValidateTypes
-        /** @type {{data:FireflyAboutUser}} */
+        /** @type {{data:FireflyUserData}} */
         const userInfo = await get('/about/user');
         const role = userInfo.data?.attributes?.role;
         const blocked = userInfo.data?.attributes?.blocked;
@@ -224,8 +234,8 @@ export const check = async () => {
             const now = new Date();
             try {
                 // TODO: Localize name
-                await post(
-                    '/accounts',
+                // noinspection JSCheckFunctionSignatures
+                await newAccount(
                     {
                         name: 'Default account',
                         type: 'asset',
@@ -240,6 +250,76 @@ export const check = async () => {
                 process.exit(1);
             }
         }
+
+        // Check that all users have accounts
+        const accountsList = await getAccounts();
+        let checkedAccounts = [], checkedUsers = [];
+        try {
+            const dbUsers = await getAllRegisteredUsers();
+            info('There are', dbUsers.length, 'registered users. Checking that all of them are registered in Firefly...');
+            const fireflyUsers = await getAllUsers();
+            for (/** @type {UserData} */ let user of dbUsers) {
+                /** @type {FireflyUserData|null} */
+                const fireflyUser = fireflyUsers.find(entry => entry.attributes.email === user.Email);
+                if (fireflyUser == null) {
+                    log('Registering user', user.Id, 'in Firefly...');
+                    const userResult = await newUser(user.Email, user.NIF);
+                    checkedUsers.push(userResult);
+                } else
+                    checkedUsers.push(fireflyUser.id);
+                const userAccount = accountsList.find(entry => entry.attributes.name.endsWith(user.NIF));
+                if (userAccount == null) {
+                    log('Creating account for user', user.Id, 'in Firefly...');
+                    const accountResult = await newAccount({
+                        name: `User - ${user.NIF}`,
+                        type: 'liability',
+                        account_role: 'sharedAsset',
+                        liability_type: 'debt',
+                        liability_direction: 'debit',
+                        interest: '0',
+                        interest_period: 'quarterly',
+                        notes: `Contact email: ${user.Email}.`,
+                    });
+                    checkedAccounts.push(accountResult.data.id);
+                } else
+                    checkedAccounts.push(userAccount.id);
+            }
+            infoSuccess('All the users are available in Firefly.');
+        } catch (e) {
+            if (e instanceof UserNotFoundException)
+                info('There are no registered users. Skipping Firefly check.');
+            else {
+                error('Could not get users list. Error:', e);
+                process.exit(1);
+            }
+        }
+
+        info('Searching for dangling Firefly users...');
+        const fireflyUsers = await getAllUsers();
+        for (/** @type {FireflyUserData} */ let user of fireflyUsers) {
+            if (user.attributes.role === 'owner') continue;
+            if (checkedUsers.includes(user.id)) continue;
+            warn(`There's a loose user. ID=${user.id}. Deleting...`);
+            try {
+                await request('DELETE', `/users/${user.id}`, null, null, false);
+                infoSuccess('Deleted user', user.id, 'successfully.');
+            } catch (e) {
+                error(`Could not delete dangling user #${user.id}. Error:`, e);
+            }
+        }
+
+        info('Searching for loose Firefly accounts...');
+        for (/** @type {FireflyAccountData} */ let account of accountsList) {
+            if (!account.attributes.name.startsWith('User')) continue;
+            if (checkedAccounts.includes(account.id)) continue;
+            warn(`There's a loose account. ID=${account.id}. Deleting...`);
+            try {
+                await request('DELETE', `/accounts/${account.id}`, null, null, false);
+                infoSuccess('Deleted account', account.id, 'successfully.');
+            } catch (e) {
+                error(`Could not delete loose account #${account.id}. Error:`, e);
+            }
+        }
     } catch (e) {
         error('Firefly is not configured properly. Error:', e);
         process.exit(1);
@@ -247,16 +327,88 @@ export const check = async () => {
 };
 
 /**
+ * Gets all the registered accounts.
+ * @author Arnau Mora
+ * @since 20221121
+ * @return {Promise<FireflyAccountData[]>}
+ */
+const getAccounts = async () => {
+    /** @type {FireflyAccountData[]} */
+    let accounts = [];
+    let page = 0, result;
+    do {
+        page++;
+        /** @type {FireflyAccountData[]} */
+        result = await get('/accounts', new URLSearchParams([['page', page]]));
+        accounts.push(...result.data);
+    } while (result['meta']['pagination']['current_page'] < result['meta']['pagination']['total_pages']);
+    return accounts;
+};
+
+/**
+ * Creates a new account.
+ * @author Arnau Mora
+ * @since 20221121
+ * @param {FireflyAccountData} data
+ * @return {Promise<{data:FireflyAccountData}>}
+ */
+const newAccount = async data => await post('/accounts', data);
+
+/**
  * Creates a new user in the accounting software.
  * @author Arnau Mora
  * @since 20221121
  * @param {string} email The email to give to the user.
+ * @param {string} nif The nif of the user.
  * @return {Promise<number>} The created user's UID.
  */
-export const newUser = async email => {
+export const newUser = async (email, nif) => {
     log('Registering a new Firefly user...');
     // noinspection JSValidateTypes
-    /** @type {FireflyAboutUser} */
+    /** @type {{data:FireflyUserData}} */
     const result = await post('/users', {email, blocked: true, blocked_code: 'email_changed'});
+    log('Creating account for Firefly user', result.data.id);
+    await newAccount({
+        name: `User - ${nif}`,
+        type: 'liability',
+        account_role: 'sharedAsset',
+        liability_type: 'debt',
+        liability_direction: 'debit',
+        interest: '0',
+        interest_period: 'quarterly',
+        notes: `Contact email: ${email}.`,
+    });
     return parseInt(result.data.id);
+};
+
+/**
+ * Returns an array of all the Firefly registered users.
+ * @author Arnau Mora
+ * @since 20221121
+ * @return {Promise<FireflyUserData[]>}
+ */
+export const getAllUsers = async () => {
+    /** @type {FireflyUserData[]} */
+    let users = [];
+    let page = 0, result;
+    do {
+        page++;
+        result = await get('/users', new URLSearchParams([['page', page]]));
+        users.push(...result.data);
+    } while (result['meta']['pagination']['current_page'] < result['meta']['pagination']['total_pages']);
+    return users;
+};
+
+/**
+ * Searches for a user in Firefly.
+ * @author Arnau Mora
+ * @since 20221121
+ * @param {string} email The email of the user.
+ * @return {Promise<FireflyUserData|null>}
+ */
+export const findUser = async (email) => {
+    // Get all the users
+    const users = await getAllUsers();
+    // Search for the desired one
+    return users.find(entry => entry.attributes.email === email);
 };
