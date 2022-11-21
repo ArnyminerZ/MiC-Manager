@@ -32,6 +32,7 @@ export const UsersTable = `
         CONSTRAINT mUsers_PK PRIMARY KEY (Id),
         CONSTRAINT mUsers_UK UNIQUE KEY (NIF),
         CONSTRAINT mUsers_EM UNIQUE KEY (Email),
+        CONSTRAINT mUsers_FU UNIQUE KEY (FireflyUid),
         CONSTRAINT mUsers_FK FOREIGN KEY (Role) REFERENCES mRoles (Id),
         CONSTRAINT mUsers_GR FOREIGN KEY (Grade) REFERENCES mGrades (Id),
         CONSTRAINT mUsers_AS FOREIGN KEY (Associated) REFERENCES mUsers (Id)
