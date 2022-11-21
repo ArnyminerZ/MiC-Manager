@@ -184,12 +184,12 @@ export const check = async () => {
  * @author Arnau Mora
  * @since 20221121
  * @param {string} email The email to give to the user.
- * @return {Promise<string>} The created user's UID.
+ * @return {Promise<number>} The created user's UID.
  */
 export const newUser = async email => {
     log('Registering a new Firefly user...');
     // noinspection JSValidateTypes
     /** @type {FireflyAboutUser} */
     const result = await post('/users', {email, blocked: true, blocked_code: 'email_changed'});
-    return result.data.id;
+    return parseInt(result.data.id);
 };
