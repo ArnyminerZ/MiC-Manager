@@ -82,10 +82,19 @@ describe('API', function () {
             .withBuild();
         docker = await environment
             .withEnvironmentFile('.test.env')
+            .up(['firefly', 'mariadb', 'radicale']);
+
+        const firefly = docker.getContainer('mic_firefly');
+        const fireflyNetworks = firefly.getNetworkNames();
+        process.env['FIREFLY_HOST'] = firefly.getIpAddress(fireflyNetworks[0]);
+        process.env['FIREFLY_PORT'] = '8080';
+
+        await environment
+            .withEnvironmentFile('.test.env')
             .up();
 
         const container = docker.getContainer('mic_interface');
-        host = container.getHost();
+        host = container.getIpAddress('backend');
         port = container.getMappedPort(3000).toString();
         protocol = 'http:';
         server = `${protocol}//${host}:${port}`;
