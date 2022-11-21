@@ -189,6 +189,7 @@ try {
         }
         const data = {
             Uid: uuid,
+            Email: row['eMail'],
             NIF: row['Dni'],
             WhitesWheelNumber: row['nrRodaBlancos'] ?? 0,
             BlacksWheelNumber: row['nrRodaNegros'] ?? 0,

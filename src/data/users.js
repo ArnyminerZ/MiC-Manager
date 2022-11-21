@@ -33,6 +33,8 @@
 /**
  * @typedef {Object} UserRow
  * @property {number} Id
+ * @property {string} NIF
+ * @property {string} Email
  * @property {string,null} Hash
  * @property {string} Uid
  * @property {number} Role
@@ -40,7 +42,6 @@
  * @property {number} WhitesWheelNumber
  * @property {number} BlacksWheelNumber
  * @property {number,null} AssociatedTo
- * @property {string} NIF
  */
 
 import {SqlError} from "mariadb";
@@ -144,6 +145,8 @@ export const getUserData = async (userId) => {
 
 /**
  * Creates a new user in the database.
+ * @author Arnau Mora
+ * @since 20221110
  * @param {UserRow} data
  * @return {Promise<[]>}
  */
@@ -152,14 +155,15 @@ export const newUser = async (data) => {
         `INSERT INTO mUsers (Hash, Uid, Role, Grade, WhitesWheel, BlacksWheel, Associated, NIF)
          VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);`,
         true,
+        data.NIF,
+        data.Email,
         data.Uid,
         data.Role,
         data.Grade,
         data.WhitesWheelNumber,
         data.BlacksWheelNumber,
         data.AssociatedTo,
-        data.NIF,
-    )
+    );
 };
 
 /**
