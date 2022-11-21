@@ -55,6 +55,14 @@ Default: `MiC-Manager`. The display name for the DAV collection if it doesn't ex
 
 Default: `warn`. Options (from least to most important): `debug`, `info`, `warn`, `error`.
 
+### `BILLING_CYCLE_DAY`
+
+Default: `26`. The starting day of the billing cycle. *Note: starts from 1*
+
+### `BILLING_CYCLE_MONTH`
+
+Default: `4`. The starting month of the billing cycle. *Note: starts from 1 (January=`1`)*
+
 # User information
 
 By default, MiC Manager doesn't support storing any users' information. For this, a WebDAV server must be used.
@@ -172,6 +180,13 @@ yarn run migrate-gestro HOSTNAME={hostname} PORT=1433 DATABASE=GesTro SCHEMA=dbo
 ```
 
 *Note: The given MiC instance must contain the protocol (e.g. https://...) and be without a trailing `/`*
+
+# General Information
+
+## Billing cycle
+
+All the payments are cycled every year, starting on the 26th of April. This is the recommended method, but can be
+changed using the `BILLING_CYCLE_MONTH` and `BILLING_CYCLE_DAY` environment variables.
 
 ---
 

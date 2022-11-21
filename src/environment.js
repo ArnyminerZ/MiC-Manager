@@ -64,6 +64,11 @@ export const checkVariables = () => {
     throw new EnvironmentVariableException("FIREFLY_PORT was not set.");
   if (fireflyToken == null)
     throw new EnvironmentVariableException("FIREFLY_TOKEN_FILE was not set.");
+
+  const billingDay = parseInt(process.env.BILLING_CYCLE_DAY);
+  const billingMonth = parseInt(process.env.BILLING_CYCLE_MONTH);
+  if (billingDay == null || isNaN(billingDay) || billingDay <= 0 || billingDay > 31) process.env.BILLING_CYCLE_DAY = '26';
+  if (billingMonth == null || isNaN(billingMonth) || billingMonth <= 0 || billingMonth > 12) process.env.BILLING_CYCLE_MONTH = '4';
 };
 
 /**
