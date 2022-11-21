@@ -154,7 +154,7 @@ export const query = async (query, shouldDisconnect = true, ...parameters) => {
         if (conn == null || !conn.isValid())
             await connect();
         await conn.query(`USE ${process.env.DB_DATABASE};`);
-        result = await conn.query(query, [...parameters]);
+        result = await conn.query(query, [...parameters.map(p => p.toString().toUpperCase() === 'NULL' ? null : p)]);
     } finally {
         if (shouldDisconnect)
             await disconnect();
