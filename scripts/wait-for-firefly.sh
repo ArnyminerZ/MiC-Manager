@@ -5,13 +5,10 @@ set -e
 
 host="$FIREFLY_HOST:$FIREFLY_PORT"
 
-token_file="$FIREFLY_TOKEN_FILE"
-token=$(cat "$token_file")
-
 echo "Checking for Firefly installation at $host..."
 
-until curl --output /dev/null -H "Authorization: Bearer $token" --silent --head --fail "http://$host/api/v1/about"; do
-    echo "Firefly not available - sleep"
+until curl --output /dev/null --silent --head --fail "http://$host"; do
+    echo "Firefly ($host) not available - sleep"
     sleep 5
 done
 
