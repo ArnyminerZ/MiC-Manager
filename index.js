@@ -15,7 +15,7 @@ import {createClient as calCreateClient, getAddressBookUrl, getCards} from "./sr
 import {error, info, infoSuccess, warn} from './cli/logger.js';
 import {addEndpoints as addMigrationEndpoints} from "./src/endpoints/migration.js";
 import {addEndpoints as addTestingEndpoints} from "./src/endpoints/testing.js";
-import {auth, changePassword, data} from "./src/endpoints/user.js";
+import {auth, changePassword, data, newUser} from "./src/endpoints/user.js";
 import {create, join, list, setMenu} from "./src/endpoints/events.js";
 import {check as checkFirefly} from './src/monetary/firefly.js';
 
@@ -141,6 +141,7 @@ app.get('/v1/info', async (req, res) => {
 app.post('/v1/user/auth', auth);
 app.get('/v1/user/data', data);
 app.post('/v1/user/change_password', changePassword);
+app.put('/v1/user/new', newUser);
 app.get('/v1/events/list', list);
 app.post('/v1/events/create', create);
 app.post('/v1/events/:event_id/join', join);
