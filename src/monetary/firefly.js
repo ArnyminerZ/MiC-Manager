@@ -28,8 +28,23 @@ const fireflyTokenFile = process.env.FIREFLY_TOKEN_FILE;
  * @property {{'0':Object,self:string}[]} links
  */
 
+/**
+ * Fetches the Firefly token currently stored. Requires a prior check for `FIREFLY_TOKEN_FILE` to be set.
+ * @author Arnau Mora
+ * @since 20211121
+ * @return {string}
+ */
 const getToken = () => fs.readFileSync(fireflyTokenFile).toString('utf8');
 
+/**
+ * Makes a http request to the Firefly server.
+ * @author Arnau Mora
+ * @since 20221121
+ * @param {'GET','POST',string} method
+ * @param {string} endpoint
+ * @param {Object|null} body
+ * @return {Promise<Object|Array|{data:Object}>}
+ */
 const request = (method, endpoint, body) => new Promise((resolve, reject) => {
     const req = http.request({
         protocol: 'http:',
