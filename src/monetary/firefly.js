@@ -36,6 +36,48 @@ const fireflyTokenFile = process.env.FIREFLY_TOKEN_FILE;
  */
 
 /**
+ * @typedef {Object} FireflyAccountAttributes
+ * @property {string} created_at
+ * @property {string} updated_at
+ * @property {boolean|true} active
+ * @property {number?} order
+ * @property {string} name
+ * @property {'asset','expense','import','revenue','cash','liability','liabilities','initial-balance','reconciliation'} type
+ * @property {'defaultAsset','sharedAsset','savingAsset','ccAsset','cashWalletAsset',null} account_role
+ * @property {number} currency_id
+ * @property {number} currency_code
+ * @property {string} currency_symbol
+ * @property {number} currency_decimal_places
+ * @property {string} current_balance
+ * @property {string} current_balance_date
+ * @property {string,null} iban
+ * @property {string,null} bic
+ * @property {string,null} account_number
+ * @property {string,null} opening_balance
+ * @property {string} current_debt
+ * @property {string} opening_balance_date
+ * @property {string} virtual_balance
+ * @property {boolean,true} include_net_worth
+ * @property {'monthlyFull',null} credit_card_type
+ * @property {string} monthly_payment_date
+ * @property {'loan','debt','mortgage',null} liability_type
+ * @property {'credit','debit',null} liability_direction
+ * @property {string,null} interest
+ * @property {'credit','debit',null} interest_period
+ * @property {string,null} notes
+ * @property {number} latitude
+ * @property {number} longitude
+ * @property {number} zoom_level
+ */
+
+/**
+ * @typedef {Object} FireflyAccountData
+ * @property {'accounts'} type
+ * @property {string} id
+ * @property {FireflyAccountAttributes} attributes
+ */
+
+/**
  * Fetches the Firefly token currently stored. Requires a prior check for `FIREFLY_TOKEN_FILE` to be set.
  * @author Arnau Mora
  * @since 20211121
@@ -50,7 +92,7 @@ const getToken = () => fs.readFileSync(fireflyTokenFile).toString('utf8');
  * @param {'GET','POST','PUT',string} method
  * @param {string} endpoint
  * @param {Object|null} body
- * @return {Promise<Object|Array|{data:Object}>}
+ * @return {Promise<Object|Array|{data:Object|Object[]}>}
  */
 const request = (method, endpoint, body) => new Promise((resolve, reject) => {
     const req = http.request({
@@ -97,7 +139,7 @@ const request = (method, endpoint, body) => new Promise((resolve, reject) => {
  * @author Arnau Mora
  * @since 20221120
  * @param {string} endpoint The endpoint to target. Excluding `/api/v1`, but must start with `/`.
- * @returns {Promise<Object|Array|{data:Object}>}
+ * @returns {Promise<Object|Array|{data:Object|Object[]}>}
  */
 const get = endpoint => request('GET', endpoint, null);
 
@@ -107,7 +149,7 @@ const get = endpoint => request('GET', endpoint, null);
  * @since 20221121
  * @param {string} endpoint The endpoint to target. Excluding `/api/v1`, but must start with `/`.
  * @param {Object} body The request body to be sent.
- * @returns {Promise<Object|Array|{data:Object}>}
+ * @returns {Promise<Object|Array|{data:Object|Object[]}>}
  */
 const post = (endpoint, body) => request('POST', endpoint, body);
 
@@ -117,7 +159,7 @@ const post = (endpoint, body) => request('POST', endpoint, body);
  * @since 20221121
  * @param {string} endpoint The endpoint to target. Excluding `/api/v1`, but must start with `/`.
  * @param {Object} body The request body to be sent.
- * @returns {Promise<Object|Array|{data:Object}>}
+ * @returns {Promise<Object|Array|{data:Object|Object[]}>}
  */
 const put = (endpoint, body) => request('PUT', endpoint, body);
 
@@ -170,6 +212,31 @@ export const check = async () => {
                 await put('/configuration/configuration.single_user_mode', {value: false});
             } catch (e) {
                 error('Could not disable Single User Mode. Error:', e);
+                process.exit(1);
+            }
+        }
+
+        // Check that there's at least one registered account for the owner
+        /** @type {FireflyAccountData[]} */
+        const accounts = (await get('/accounts')).data;
+        if (accounts.length <= 0) {
+            info('There are no accounts created. Creating a default one...');
+            const now = new Date();
+            try {
+                // TODO: Localize name
+                await post(
+                    '/accounts',
+                    {
+                        name: 'Default account',
+                        type: 'asset',
+                        account_role: 'defaultAsset',
+                        opening_balance: '0.0',
+                        opening_balance_date: `${now.getUTCFullYear()}/${now.getUTCMonth()}/${now.getUTCDate()}`,
+                    },
+                );
+                infoSuccess('Created default account successfully.');
+            } catch (e) {
+                error('Could not create the default account. Error:', e);
                 process.exit(1);
             }
         }
