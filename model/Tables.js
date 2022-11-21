@@ -23,6 +23,7 @@ export const UsersTable = `
         Email       varchar(320)                    NOT NULL,
         Hash        varchar(256)     DEFAULT NULL   NULL,
         Uid         varchar(36)                     NOT NULL COMMENT 'The UID of the user in the WebDAV address book.',
+        FireflyUid  INT(10) UNSIGNED                NOT NULL COMMENT 'The UID of the user in Firefly.',
         Role        INT(10) UNSIGNED DEFAULT 1      NOT NULL,
         Grade       INT(10) UNSIGNED                NOT NULL,
         WhitesWheel INT(10) UNSIGNED DEFAULT 0      NOT NULL,

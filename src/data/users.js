@@ -153,14 +153,15 @@ export const getUserData = async (userId) => {
  */
 export const newUser = async (data) => {
     log(`Creating a new user (${data.Email})...`);
-    await newFireflyUser(data.Email);
+    const fireflyUid = await newFireflyUser(data.Email);
     return await dbQuery(
-        `INSERT INTO mUsers (Hash, NIF, Email, Uid, Role, Grade, WhitesWheel, BlacksWheel, Associated)
+        `INSERT INTO mUsers (Hash, NIF, Email, Uid, FireflyUid, Role, Grade, WhitesWheel, BlacksWheel, Associated)
          VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?);`,
         true,
         data.NIF,
         data.Email,
         data.Uid,
+        fireflyUid,
         data.Role,
         data.Grade,
         data.WhitesWheelNumber,
