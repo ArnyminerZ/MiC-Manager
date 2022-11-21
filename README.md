@@ -103,12 +103,6 @@ openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout keys/key.pem -
 
 **Warning!** Losing the server's private key will mean all the user's data will be voided and encrypted forever.
 
-Note that it's required to have swarm mode enabled. You can do so with:
-
-```shell
-docker swarm init
-```
-
 ## Environment file
 
 You must create a `.env` file with some variables to use. This is:

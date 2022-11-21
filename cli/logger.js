@@ -1,33 +1,46 @@
 import {BgBlack, BgBlue, BgGreen, BgRed, BgYellow, FgWhite, Reset} from './colors.js';
 
-const logLevels = ['error', 'warn', 'info', 'debug'];
+/**
+ * All the available log levels.
+ * @readonly
+ * @enum {string}
+ */
+const LogLevels = {ERROR: 'error', WARN: 'warn', INFO: 'info', DEBUG: 'debug'};
 
+/**
+ * Checks the currently set log level, in comparison with a desired one.
+ * @param {LogLevels} level
+ * @return {boolean|boolean}
+ */
 const checkLogLevel = (level) => {
-    const index = logLevels.indexOf(level);
-    return index >= 0 ? process.env.LOG_LEVEL > index : true;
+    if (process.env.LOG_LEVEL == null) return true;
+
+    const levelIndex = LogLevels.indexOf(level);
+    const choseIndex = LogLevels.indexOf(process.env.LOG_LEVEL);
+    return levelIndex >= 0 && choseIndex >= 0 ? choseIndex < levelIndex : true;
 }
 
 export const error = (...objects) => {
-    if (!checkLogLevel('error')) return;
+    if (!checkLogLevel(LogLevels.ERROR)) return;
     console.error(BgRed + FgWhite + " FAIL " + Reset, ...objects)
 };
 
 export const warn = (...objects) => {
-    if (!checkLogLevel('warn')) return;
+    if (!checkLogLevel(LogLevels.WARN)) return;
     console.error(BgYellow + FgWhite + " WARN " + Reset, ...objects)
 };
 
 export const info = (...objects) => {
-    if (!checkLogLevel('info')) return;
+    if (!checkLogLevel(LogLevels.INFO)) return;
     console.error(BgBlue + FgWhite + " INFO " + Reset, ...objects)
 };
 
 export const infoSuccess = (...objects) => {
-    if (!checkLogLevel('info')) return;
+    if (!checkLogLevel(LogLevels.INFO)) return;
     console.error(BgGreen + FgWhite + "  OK  " + Reset, ...objects)
 };
 
 export const log = (...objects) => {
-    if (!checkLogLevel('debug')) return;
+    if (!checkLogLevel(LogLevels.DEBUG)) return;
     console.error(BgBlack + FgWhite + " LOG  " + Reset, ...objects)
 };
