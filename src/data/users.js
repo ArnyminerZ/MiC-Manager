@@ -21,6 +21,7 @@
  * @property {string} Hash
  * @property {string} Uid
  * @property {string} NIF
+ * @property {string} Email
  * @property {RoleData} Role
  * @property {GradeData} Grade
  * @property {number} WhitesWheelNumber
@@ -53,15 +54,15 @@ import {error, log} from "../../cli/logger.js";
 import {newUser as newFireflyUser} from "../monetary/firefly.js";
 
 /**
- * Fetches the `UserData` of the user with the given constraints.
+ * Fetches all the users that match the given conditions.
  * @author Arnau Mora
- * @since 20221110
+ * @since 20221121
  * @param {string} where The where constraint of the SQL query.
  * @throws {SqlError}
  * @throws {UserNotFoundException} If the given constraints do not match any user.
- * @return {Promise<UserData>}
+ * @return {Promise<UserData[]>}
  */
-const findUserWithQuery = async (where) => {
+const findUsersWhere = async where => {
     const sql = `
         SELECT mUsers.*,
                mR.DisplayName as RoleDisplayName,
@@ -82,36 +83,60 @@ const findUserWithQuery = async (where) => {
     const rows = await dbQuery(sql, true);
     if (rows.length <= 0) throw new UserNotFoundException('Could not find user that matches "' + where + '"');
     // console.log('rows:', rows);
-    const data = rows[0];
-    const userId = data['Id'];
-    const card = getCard(data['Uid']);
-    const permissions = rows.map(r => r['PermDisplayName']).filter(v => v != null);
-    const registration = await getUserRegistration(userId);
-    return {
-        Id: userId,
-        Hash: data['Hash'],
-        Uid: data['Uid'],
-        NIF: data['NIF'],
-        Role: {
-            DisplayName: data['RoleDisplayName'],
-            Permissions: permissions,
-        },
-        Grade: {
-            DisplayName: data['GradeDisplayName'],
-            ActsRight: data['ActsRight'],
-            LockBlacksWheel: data['LockBlacksWheel'],
-            LockWhitesWheel: data['LockWhitesWheel'],
-            MinAge: data['MinAge'],
-            MaxAge: data['MaxAge'],
-            Votes: data['Votes'],
-        },
-        WhitesWheelNumber: data['WhitesWheel'],
-        BlacksWheelNumber: data['BlacksWheel'],
-        AssociatedTo: data['Associated'],
-        Registration: dateFormat(registration, 'yyyy-MM-dd'),
-        vCard: card,
-    };
+    let users = [];
+    for (let data of rows) {
+        const userId = data['Id'];
+        const card = getCard(data['Uid']);
+        const permissions = rows.map(r => r['PermDisplayName']).filter(v => v != null);
+        const registration = await getUserRegistration(userId);
+        users.push({
+            Id: userId,
+            Hash: data['Hash'],
+            Uid: data['Uid'],
+            NIF: data['NIF'],
+            Role: {
+                DisplayName: data['RoleDisplayName'],
+                Permissions: permissions,
+            },
+            Grade: {
+                DisplayName: data['GradeDisplayName'],
+                ActsRight: data['ActsRight'],
+                LockBlacksWheel: data['LockBlacksWheel'],
+                LockWhitesWheel: data['LockWhitesWheel'],
+                MinAge: data['MinAge'],
+                MaxAge: data['MaxAge'],
+                Votes: data['Votes'],
+            },
+            WhitesWheelNumber: data['WhitesWheel'],
+            BlacksWheelNumber: data['BlacksWheel'],
+            AssociatedTo: data['Associated'],
+            Registration: dateFormat(registration, 'yyyy-MM-dd'),
+            vCard: card,
+        });
+    }
+    return users;
 };
+
+/**
+ * Fetches the `UserData` of the user with the given constraints.
+ * @author Arnau Mora
+ * @since 20221110
+ * @param {string} where The where constraint of the SQL query.
+ * @throws {SqlError}
+ * @throws {UserNotFoundException} If the given constraints do not match any user.
+ * @return {Promise<UserData>}
+ */
+const findUserWithQuery = async where => (await findUsersWhere(where))[0];
+
+/**
+ * Gets a list of all the users.
+ * @author Arnau Mora
+ * @since 20221121
+ * @throws {SqlError}
+ * @throws {UserNotFoundException} If the given constraints do not match any user.
+ * @return {Promise<UserData[]>}
+ */
+export const getAllUsers = async () => findUsersWhere('1');
 
 /**
  * Searches for the data of a user with the given DNI.
@@ -153,7 +178,7 @@ export const getUserData = async (userId) => {
  */
 export const newUser = async (data) => {
     log(`Creating a new user (${data.Email})...`);
-    const fireflyUid = await newFireflyUser(data.Email);
+    const fireflyUid = await newFireflyUser(data.Email, data.NIF);
     return await dbQuery(
         `INSERT INTO mUsers (Hash, NIF, Email, Uid, FireflyUid, Role, Grade, WhitesWheel, BlacksWheel, Associated)
          VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
