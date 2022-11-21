@@ -24,8 +24,8 @@ services:
       - CALDAV_USERNAME
       - CALDAV_PASSWORD
       - CALDAV_AB_UUID
-      - FIREFLY_HOST=firefly
-      - FIREFLY_PORT=8080
+      - FIREFLY_HOST=${FIREFLY_HOST:-firefly}
+      - FIREFLY_PORT=${FIREFLY_PORT:-8080}
       - FIREFLY_TOKEN_FILE=/run/secrets/firefly_token
       # Enable props when necessary
       # - PROPS=migration
@@ -99,8 +99,11 @@ services:
       - firefly_db
       - firefly_cache
     # TODO: Disable exposing ports
-    ports:
-      - "8080:8080"
+    # ports:
+    #   - "8080:8080"
+    networks:
+      - backend
+      - firefly
     env_file: firefly.env
     environment:
       - APP_KEY_FILE=/run/secrets/firefly_app_key
@@ -109,9 +112,6 @@ services:
       - DB_USERNAME=firefly
       - DB_PASSWORD_FILE=/run/secrets/firefly_db_password
       - REDIS_PASSWORD=SRGjFe44zo4UaTqFm7UcZ6pcqeRG9PRw
-    networks:
-      - backend
-      - firefly
     volumes:
       - firefly_iii_upload:/var/www/html/storage/upload
     secrets:
