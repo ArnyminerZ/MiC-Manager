@@ -156,7 +156,7 @@ export const newUser = async (data) => {
     const fireflyUid = await newFireflyUser(data.Email);
     return await dbQuery(
         `INSERT INTO mUsers (Hash, NIF, Email, Uid, FireflyUid, Role, Grade, WhitesWheel, BlacksWheel, Associated)
-         VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?);`,
+         VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         true,
         data.NIF,
         data.Email,
