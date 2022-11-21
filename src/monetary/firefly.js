@@ -1,11 +1,32 @@
 import http from 'http';
 import fs from "fs";
 
-import {error, info, infoSuccess, log} from "../../cli/logger.js";
+import {error, infoSuccess, log} from "../../cli/logger.js";
 
 import packageJson from '../../package.json' assert {type: 'json'};
 
 const fireflyTokenFile = process.env.FIREFLY_TOKEN_FILE;
+
+/**
+ * @typedef {Object} FireflyAbout
+ * @property {{version:string,api_version:string,php_version:string,os:string,driver:string}} data
+ */
+
+/**
+ * @typedef {Object} FireflyUserAttributes
+ * @property {string} createdAt
+ * @property {string} updatedAt
+ * @property {string} email
+ * @property {boolean} blocked
+ * @property {string|null} blocked_code
+ * @property {'owner'|string} role
+ */
+
+/**
+ * @typedef {Object} FireflyAboutUser
+ * @property {{type:string,id:string,attributes:FireflyUserAttributes}} data
+ * @property {{'0':Object,self:string}[]} links
+ */
 
 const getToken = () => fs.readFileSync(fireflyTokenFile).toString('utf8');
 
@@ -54,7 +75,7 @@ const request = (method, endpoint, body) => new Promise((resolve, reject) => {
  * @author Arnau Mora
  * @since 20221120
  * @param {string} endpoint The endpoint to target. Excluding `/api/v1`, but must start with `/`.
- * @returns {Promise<Object,Array>}
+ * @returns {Promise<Object|Array|{data:Object}>}
  */
 const get = endpoint => request('GET', endpoint, null);
 
@@ -79,15 +100,23 @@ export const check = async () => {
         infoSuccess('Firefly token is valid.');
 
         // Check that the instance is running
+        // noinspection JSValidateTypes
+        /** @type {FireflyAbout} */
         const fireflyInfo = await get('/about');
-        info('Firefly Info:', fireflyInfo);
+        infoSuccess('Firefly is available. Version:', fireflyInfo.data.version);
 
         // Check that the user is the owner.
+        // noinspection JSValidateTypes
+        /** @type {{data:FireflyAboutUser}} */
         const userInfo = await get('/about/user');
-        if (!userInfo.hasOwnProperty('data') || userInfo.data.hasOwnProperty('attributes')) {
-            info('User info:', userInfo);
-        } else
-            error('User info:', userInfo);
+        const role = userInfo.data?.attributes?.role;
+        const blocked = userInfo.data?.attributes?.blocked;
+        if (role != null && role === 'owner' && !blocked)
+            infoSuccess('Firefly User is properly configured.');
+        else {
+            error('Firefly user is not valid. Role:', role, 'blocked:', blocked);
+            process.exit(1);
+        }
     } catch (e) {
         error('Firefly is not configured properly. Error:', e);
         process.exit(1);
