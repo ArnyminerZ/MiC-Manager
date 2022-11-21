@@ -51,9 +51,9 @@ There are some environment variables which are required for the server to work. 
 
 Default: `MiC-Manager`. The display name for the DAV collection if it doesn't exist.
 
-### `DEBUG`
+### `LOG_LEVEL`
 
-Default: `false`. If `true`, debug mode will be enabled, and errors will give a deeper output.
+Default: `warn`. Options (from least to most important): `debug`, `info`, `warn`, `error`.
 
 # User information
 
