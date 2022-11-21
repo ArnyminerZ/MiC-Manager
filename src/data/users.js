@@ -225,3 +225,33 @@ const getUserRegistration = async (userId) => {
 export const exists = async (userId) => (await dbQuery(`SELECT Id
                                                         FROM mUsers
                                                         WHERE Id = ?`, true, userId)).length > 0;
+
+/**
+ * Gets the given grade's ID from its display name.
+ * @author Arnau Mora
+ * @since 20221121
+ * @param {string} grade The display name of the grade.
+ * @return {Promise<number|null>}
+ */
+export const getGradeId = async grade => {
+    const grades = await dbQuery(`SELECT Id
+                                  FROM mGrades
+                                  WHERE DisplayName = ?`, grade);
+    if (grades.length <= 0) return null;
+    return grades[0].Id;
+};
+
+/**
+ * Gets the given role's ID from its display name.
+ * @author Arnau Mora
+ * @since 20221121
+ * @param {string} role The display name of the role.
+ * @return {Promise<number|null>}
+ */
+export const getRoleId = async role => {
+    const roles = await dbQuery(`SELECT Id
+                                 FROM mRoles
+                                 WHERE DisplayName = ?`, role);
+    if (roles.length <= 0) return null;
+    return roles[0].Id;
+};
