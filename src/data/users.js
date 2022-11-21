@@ -49,7 +49,8 @@ import {escape, query as dbQuery} from '../request/database.js';
 import {UserNotFoundException} from "../exceptions.js";
 import {getCard} from "../request/caldav.js";
 import dateFormat from "dateformat";
-import {error} from "../../cli/logger.js";
+import {error, log} from "../../cli/logger.js";
+import {newUser as newFireflyUser} from "../monetary/firefly.js";
 
 /**
  * Fetches the `UserData` of the user with the given constraints.
@@ -151,9 +152,11 @@ export const getUserData = async (userId) => {
  * @return {Promise<[]>}
  */
 export const newUser = async (data) => {
-    await dbQuery(
-        `INSERT INTO mUsers (Hash, Uid, Role, Grade, WhitesWheel, BlacksWheel, Associated, NIF)
-         VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);`,
+    log(`Creating a new user (${data.Email})...`);
+    await newFireflyUser(data.Email);
+    return await dbQuery(
+        `INSERT INTO mUsers (Hash, NIF, Email, Uid, Role, Grade, WhitesWheel, BlacksWheel, Associated)
+         VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?);`,
         true,
         data.NIF,
         data.Email,
