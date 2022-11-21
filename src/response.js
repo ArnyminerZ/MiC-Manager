@@ -1,10 +1,13 @@
 /**
  * Generates an error response from the given code.
  * @param {"missing-parameters","wrong-credentials","invalid-key","passwordless","invalid-request","max-attempts-reached","not-found","unauthorised","not-allowed","conflict","internal",Error} code The error code to send.
+ * @param {string|null} message An additional message to give to the error.
  * @returns {{success: boolean, error: {code: string}}}
  */
-export const errorResponse = (code) => {
-    return {success: false, error: {code}};
+export const errorResponse = (code, message = null) => {
+    const r = {success: false, error: {code}};
+    if (message != null) r.message = message;
+    return r;
 };
 
 /**
