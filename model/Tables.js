@@ -196,6 +196,25 @@ export const GradesTable = `
         COMMENT ='Stores the different grades that each person can get. These define which rights they have in the organization.';
 `;
 
+export const GradesPricingTable = `
+    CREATE TABLE IF NOT EXISTS mGradesPricing
+    (
+        Id          int(10) UNSIGNED auto_increment NOT NULL COMMENT 'The id of the role.',
+        Grade       int(10) UNSIGNED                NOT NULL COMMENT 'The grade that this price makes reference to.',
+        Price       float(10) UNSIGNED              NOT NULL COMMENT 'The price of this step.',
+        StepIndex   TINYINT UNSIGNED DEFAULT 0      NOT NULL COMMENT 'The index of the currently specified step.',
+        Year        SMALLINT UNSIGNED               NOT NULL COMMENT 'The year that this pricing makes reference to.',
+        Liquidation date             DEFAULT NULL   NULL COMMENT 'If set, the date in which the payment must be made.',
+        CONSTRAINT mGradesPricing_PK PRIMARY KEY (Id),
+        CONSTRAINT mGradesPricing_GF FOREIGN KEY (Grade) REFERENCES mGrades (Id),
+        UNIQUE KEY mGradesPricing_UK (StepIndex, Year)
+    )
+        ENGINE = InnoDB
+        DEFAULT CHARSET = utf8mb3
+        COLLATE = utf8mb3_general_ci
+        COMMENT ='A list of all the prices for each grade for each year. Supports dividing into steps.';
+`;
+
 export const RegistrationsTable = `
     CREATE TABLE IF NOT EXISTS mUserRegistrations
     (

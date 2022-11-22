@@ -145,3 +145,11 @@ export const InsertCategories = [
     insertIfNotExists('mCategories', {Id: 2, DisplayName: 'assaig', Eat: 1}),
     insertIfNotExists('mCategories', {Id: 3, DisplayName: 'entradeta', Eat: 0}),
 ];
+
+// TODO: This might be removed for release
+export const InsertDefaultGradePricing = [
+    insertIfNotExists('mGradesPricing', {Id: 1, Grade: 1, Price: 150.0, StepIndex: 0, Year: 2023}),
+    insertIfNotExists('mGradesPricing', {Id: 2, Grade: 1, Price: 150.0, StepIndex: 1, Year: 2023}),
+    insertIfNotExists('mGradesPricing', {Id: 3, Grade: 1, Price: 150.0, StepIndex: 2, Year: 2023}),
+    insertIfNotExists('mGradesPricing', {Id: 4, Grade: 1, Price: 150.0, StepIndex: 3, Year: 2023}),
+];

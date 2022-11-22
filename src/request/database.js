@@ -8,6 +8,7 @@ import {
     CategoriesTable,
     EventMenusTable,
     EventsTable,
+    GradesPricingTable,
     GradesTable,
     InfoTable,
     LoginAttemptsTable,
@@ -27,12 +28,13 @@ import {
 import {DatabaseException, SqlPermissionException} from "../exceptions.js";
 import {
     InsertCategories,
+    InsertDefaultGradePricing,
     InsertDefaultRoles,
     InsertGrades,
     InsertInfo,
     InsertPermissions,
     InsertPositions,
-    InsertRolesPermissions
+    InsertRolesPermissions,
 } from "../../model/Defaults.js";
 import {error} from '../../cli/logger.js';
 import {isNumber} from "../utils.js";
@@ -118,7 +120,7 @@ export const check = async (debug = false) => {
             InfoTable, RolesTable, GradesTable, UsersTable, LoginAttemptsTable, PermissionsTable, CategoriesTable,
             EventsTable, AssistanceTable, TablesTable, PeopleTablesTable, RolesPermissionsTable, RegistrationsTable,
             AscentsTable, PositionsTable, UserPositionsTable, UserTrebuchetTable, UserShootsTable, EventMenusTable,
-            MenuPricingTable,
+            MenuPricingTable, GradesPricingTable
         ];
         for (let table of tables) await query(table);
 
@@ -126,7 +128,7 @@ export const check = async (debug = false) => {
         /** @type {string[][]} */
         const defaults = [
             InsertInfo, InsertDefaultRoles, InsertPermissions, InsertRolesPermissions, InsertGrades, InsertPositions,
-            InsertCategories,
+            InsertCategories, InsertDefaultGradePricing,
         ];
         for (let i of defaults) for (let q of i) await query(q);
 
