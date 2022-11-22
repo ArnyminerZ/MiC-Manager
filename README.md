@@ -63,6 +63,10 @@ Default: `26`. The starting day of the billing cycle. *Note: starts from 1*
 
 Default: `4`. The starting month of the billing cycle. *Note: starts from 1 (January=`1`)*
 
+### `STRIPE_SECRET`
+
+**Required**. A Stripe API key. See [the documentation](https://stripe.com/docs/keys) for more information.
+
 # User information
 
 By default, MiC Manager doesn't support storing any users' information. For this, a WebDAV server must be used.
