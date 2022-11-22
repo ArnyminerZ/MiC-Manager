@@ -86,13 +86,18 @@ const findUsersWhere = async where => {
     let users = [];
     for (let data of rows) {
         const userId = data['Id'];
+
+        if (users.find(u => u.Id === userId) != null) continue;
+
         const card = getCard(data['Uid']);
-        const permissions = rows.map(r => r['PermDisplayName']).filter(v => v != null);
+        const permissions = rows.filter(u => u['Id'] === userId).map(r => r['PermDisplayName']).filter(v => v != null);
         const registration = await getUserRegistration(userId);
+
         users.push({
             Id: userId,
             Hash: data['Hash'],
             Uid: data['Uid'],
+            Email: data['Email'],
             NIF: data['NIF'],
             Role: {
                 DisplayName: data['RoleDisplayName'],
@@ -178,7 +183,7 @@ export const getUserData = async (userId) => {
  */
 export const newUser = async (data) => {
     log(`Creating a new user (${data.Email})...`);
-    const fireflyUid = await newFireflyUser(data.Email, data.NIF);
+    const fireflyUser = await newFireflyUser(data.Email, data.NIF);
     return await dbQuery(
         `INSERT INTO mUsers (Hash, NIF, Email, Uid, FireflyUid, Role, Grade, WhitesWheel, BlacksWheel, Associated)
          VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
@@ -186,7 +191,7 @@ export const newUser = async (data) => {
         data.NIF,
         data.Email,
         data.Uid,
-        fireflyUid,
+        parseInt(fireflyUser.id),
         data.Role,
         data.Grade,
         data.WhitesWheelNumber,
