@@ -69,6 +69,10 @@ export const checkVariables = () => {
   const billingMonth = parseInt(process.env.BILLING_CYCLE_MONTH);
   if (billingDay == null || isNaN(billingDay) || billingDay <= 0 || billingDay > 31) process.env.BILLING_CYCLE_DAY = '26';
   if (billingMonth == null || isNaN(billingMonth) || billingMonth <= 0 || billingMonth > 12) process.env.BILLING_CYCLE_MONTH = '4';
+
+  const stripeSecret = parseInt(process.env.STRIPE_SECRET);
+  if (stripeSecret == null)
+    throw new EnvironmentVariableException("STRIPE_SECRET was not set.");
 };
 
 /**
