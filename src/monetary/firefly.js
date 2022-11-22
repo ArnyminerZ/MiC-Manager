@@ -206,9 +206,9 @@ export const check = async () => {
         const role = userInfo.data?.attributes?.role;
         const blocked = userInfo.data?.attributes?.blocked;
         if (role != null && role === 'owner' && !blocked)
-            infoSuccess('Firefly User is properly configured.');
+            infoSuccess('Firefly Owner User is properly configured.');
         else {
-            error('Firefly user is not valid. Role:', role, 'blocked:', blocked);
+            error('Firefly owner user is not valid. Role:', role, 'blocked:', blocked);
             process.exit(1);
         }
 
@@ -252,37 +252,56 @@ export const check = async () => {
         }
 
         // Check that all users have accounts
-        const accountsList = await getAccounts();
-        let checkedAccounts = [], checkedUsers = [];
+        let accountsList = await getAccounts();
+        const /** @type {number[]} */ checkedAccounts = [];
+        const /** @type {number[]} */ checkedUsers = [];
         try {
             const dbUsers = await getAllRegisteredUsers();
             info('There are', dbUsers.length, 'registered users. Checking that all of them are registered in Firefly...');
-            const fireflyUsers = await getAllUsers();
+
+            const fireflyUsers = await getAllUsers(true);
             for (/** @type {UserData} */ let user of dbUsers) {
                 /** @type {FireflyUserData|null} */
                 const fireflyUser = fireflyUsers.find(entry => entry.attributes.email === user.Email);
-                if (fireflyUser == null) {
-                    log('Registering user', user.Id, 'in Firefly...');
-                    const userResult = await newUser(user.Email, user.NIF);
-                    checkedUsers.push(userResult);
+                if (fireflyUser == null) try {
+                    log('Registering user', user.Id, `(${user.Email}) in Firefly...`);
+                    const createdUser = await newUser(user.Email, user.NIF);
+                    accountsList = await getAccounts(); // Update accounts list after adding user
+                    checkedUsers.push(
+                        parseInt(createdUser.id)
+                    );
+                } catch (e) {
+                    error('Could not create user', user.Id, 'Error:', e);
+                    continue
                 } else
-                    checkedUsers.push(fireflyUser.id);
+                    checkedUsers.push(
+                        parseInt(fireflyUser.id)
+                    );
+
                 const userAccount = accountsList.find(entry => entry.attributes.name.endsWith(user.NIF));
-                if (userAccount == null) {
-                    log('Creating account for user', user.Id, 'in Firefly...');
-                    const accountResult = await newAccount({
-                        name: `User - ${user.NIF}`,
-                        type: 'liability',
-                        account_role: 'sharedAsset',
-                        liability_type: 'debt',
-                        liability_direction: 'debit',
-                        interest: '0',
-                        interest_period: 'quarterly',
-                        notes: `Contact email: ${user.Email}.`,
-                    });
-                    checkedAccounts.push(accountResult.data.id);
-                } else
-                    checkedAccounts.push(userAccount.id);
+                if (userAccount == null)
+                    try {
+                        log('Creating account for user', user.Id, 'in Firefly...');
+                        const accountResult = await newAccount({
+                            name: `User - ${user.NIF}`,
+                            type: 'liability',
+                            account_role: 'sharedAsset',
+                            liability_type: 'debt',
+                            liability_direction: 'debit',
+                            interest: '0',
+                            interest_period: 'quarterly',
+                            notes: `Contact email: ${user.Email}.`,
+                        });
+                        checkedAccounts.push(
+                            parseInt(accountResult.data.id)
+                        );
+                    } catch (e) {
+                        error('Could not create account for user', user.Id, 'Error:', e);
+                    }
+                else
+                    checkedAccounts.push(
+                        parseInt(userAccount.id)
+                    );
             }
             infoSuccess('All the users are available in Firefly.');
         } catch (e) {
@@ -294,11 +313,13 @@ export const check = async () => {
             }
         }
 
+        log('Checked users:', checkedUsers);
         info('Searching for dangling Firefly users...');
-        const fireflyUsers = await getAllUsers();
+        const fireflyUsers = await getAllUsers(true);
         for (/** @type {FireflyUserData} */ let user of fireflyUsers) {
             if (user.attributes.role === 'owner') continue;
-            if (checkedUsers.includes(user.id)) continue;
+            const userId = parseInt(user.id);
+            if (checkedUsers.includes(userId)) continue;
             warn(`There's a loose user. ID=${user.id}. Deleting...`);
             try {
                 await request('DELETE', `/users/${user.id}`, null, null, false);
@@ -308,10 +329,11 @@ export const check = async () => {
             }
         }
 
+        log('Checked accounts:', checkedAccounts);
         info('Searching for loose Firefly accounts...');
         for (/** @type {FireflyAccountData} */ let account of accountsList) {
             if (!account.attributes.name.startsWith('User')) continue;
-            if (checkedAccounts.includes(account.id)) continue;
+            if (checkedAccounts.includes(parseInt(account.id))) continue;
             warn(`There's a loose account. ID=${account.id}. Deleting...`);
             try {
                 await request('DELETE', `/accounts/${account.id}`, null, null, false);
@@ -360,34 +382,44 @@ const newAccount = async data => await post('/accounts', data);
  * @since 20221121
  * @param {string} email The email to give to the user.
  * @param {string} nif The nif of the user.
- * @return {Promise<number>} The created user's UID.
+ * @return {Promise<FireflyUserData>} The created user's UID.
  */
 export const newUser = async (email, nif) => {
     log('Registering a new Firefly user...');
     // noinspection JSValidateTypes
     /** @type {{data:FireflyUserData}} */
     const result = await post('/users', {email, blocked: true, blocked_code: 'email_changed'});
-    log('Creating account for Firefly user', result.data.id);
-    await newAccount({
-        name: `User - ${nif}`,
-        type: 'liability',
-        account_role: 'sharedAsset',
-        liability_type: 'debt',
-        liability_direction: 'debit',
-        interest: '0',
-        interest_period: 'quarterly',
-        notes: `Contact email: ${email}.`,
-    });
-    return parseInt(result.data.id);
+
+    // Add account only if it doesn't exist
+    const accounts = await getAccounts();
+    const accountName = `User - ${nif}`;
+    const userAccount = accounts.find(entry => entry.attributes.name === accountName);
+    if (userAccount == null) {
+        log('Creating account for Firefly user', result.data.id);
+        await newAccount({
+            name: accountName,
+            type: 'liability',
+            account_role: 'sharedAsset',
+            liability_type: 'debt',
+            liability_direction: 'debit',
+            interest: '0',
+            interest_period: 'quarterly',
+            notes: `Contact email: ${email}.`,
+        });
+    }
+
+    infoSuccess('Created user', result.data.id, 'on Firefly. Email:', email);
+    return result.data;
 };
 
 /**
  * Returns an array of all the Firefly registered users.
  * @author Arnau Mora
  * @since 20221121
+ * @param {boolean} ignoreOwner If true, the owner user won't be included in the list.
  * @return {Promise<FireflyUserData[]>}
  */
-export const getAllUsers = async () => {
+export const getAllUsers = async (ignoreOwner = false) => {
     /** @type {FireflyUserData[]} */
     let users = [];
     let page = 0, result;
@@ -396,7 +428,8 @@ export const getAllUsers = async () => {
         result = await get('/users', new URLSearchParams([['page', page]]));
         users.push(...result.data);
     } while (result['meta']['pagination']['current_page'] < result['meta']['pagination']['total_pages']);
-    return users;
+
+    return ignoreOwner ? users.filter(user => user.attributes.role !== 'owner') : users;
 };
 
 /**
