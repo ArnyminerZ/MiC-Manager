@@ -23,6 +23,7 @@ import packageJson from './package.json' assert {type: 'json'};
 import {decodeToken} from "./src/security.js";
 import {hasPermission} from "./src/permissions.js";
 import {SqlError} from "mariadb";
+import {checkPayments} from "./src/monetary/transactions.js";
 
 dotenv.config();
 
@@ -58,6 +59,9 @@ infoSuccess(`CalDAV server ready. AB Url:`, getAddressBookUrl());
 
 info(`Checking Firefly server...`);
 await checkFirefly();
+
+info('Checking Stripe connection...');
+await checkPayments();
 
 const app = express();
 
