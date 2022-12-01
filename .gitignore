@@ -16,3 +16,6 @@ keys
 # Test output
 .nyc_output
 test-results.json
+
+# Generated configuration file
+.micmanager.conf
