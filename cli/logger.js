@@ -15,8 +15,8 @@ const LogLevels = {ERROR: 'error', WARN: 'warn', INFO: 'info', DEBUG: 'debug'};
 const checkLogLevel = (level) => {
     if (process.env.LOG_LEVEL == null) return true;
 
-    const levelIndex = LogLevels.indexOf(level);
-    const choseIndex = LogLevels.indexOf(process.env.LOG_LEVEL);
+    const levelIndex = Object.keys(LogLevels).find(key => LogLevels[key] === level);
+    const choseIndex = Object.keys(LogLevels).find(key => LogLevels[key] === process.env.LOG_LEVEL);
     return levelIndex >= 0 && choseIndex >= 0 ? choseIndex < levelIndex : true;
 }
 
