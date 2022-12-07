@@ -198,6 +198,7 @@ describe('Test Backend', function () {
         const newUserBody = {
             Id: 1,
             NIF: nif,
+            Email: email,
             Uid: uid,
             Role: 1,
             Grade: 1,
@@ -208,9 +209,11 @@ describe('Test Backend', function () {
         const adminNif = faker.random.numeric(8) + faker.random.alpha({casing: 'upper'});
         const adminUid = faker.random.alphaNumeric(24);
         const adminPassword = faker.internet.password();
+        const adminEmail = faker.internet.email();
         const adminUserBody = {
             Id: 2,
             NIF: adminNif,
+            Email: adminEmail,
             Uid: adminUid,
             Role: 2,
             Grade: 1,
