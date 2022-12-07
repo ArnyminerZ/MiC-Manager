@@ -102,3 +102,10 @@ export class CategoryNotFoundException extends Error {
         this.name = 'CategoryNotFoundException';
     }
 }
+
+export class FireflyApiException extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'FireflyApiException';
+    }
+}
