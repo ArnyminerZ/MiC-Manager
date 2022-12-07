@@ -96,9 +96,12 @@ const propFind = async (props, path = '/') => {
  * @author Arnau Mora
  * @since 20221118
  * @param {string} uuid The uuid of the new collection.
+ * @param {string} displayName The display name of the collection
+ * @param {string} description The description to give to the collection.
+ * @param {string} color A hex color with alpha to use for the collection.
  * @return {Promise<string>}
  */
-const createAddressBook = async (uuid) => {
+const createAddressBook = async (uuid, displayName, description, color = "#ffffffff") => {
     const props = await propFind(['current-user-principal', 'displayname']);
     return await makeRequest(
         'MKCOL',
@@ -111,9 +114,9 @@ const createAddressBook = async (uuid) => {
         `<CR:addressbook />` +
         `<collection />` +
         `</resourcetype>` +
-        `<displayname>Testing ab</displayname>` +
-        `<INF:addressbook-color>#ff0000ff</INF:addressbook-color>` +
-        `<CR:addressbook-description>Addressbook description</CR:addressbook-description>` +
+        `<displayname>${displayName}</displayname>` +
+        `<INF:addressbook-color>${color}</INF:addressbook-color>` +
+        `<CR:addressbook-description>${description}</CR:addressbook-description>` +
         `</prop>` +
         `</set>` +
         `</mkcol>`,
@@ -135,7 +138,7 @@ export const fetchCards = async (isFirst = true) => {
     if (addressBook == null) {
         error('Could not find an address book with the uid: ' + process.env.CALDAV_AB_UUID);
         info('Trying to create a new DAV collection...');
-        const create = await createAddressBook(process.env.CALDAV_AB_UUID);
+        const create = await createAddressBook(process.env.CALDAV_AB_UUID, process.env.CALDAV_DISPLAY_NAME, process.env.CALDAV_DESCRIPTION);
         info('Collection create result:', create);
         if (isFirst) return await fetchCards(false);
 
@@ -149,6 +152,7 @@ export const fetchCards = async (isFirst = true) => {
 
 export const createClient = async (debug = process.env.DEBUG) => {
     if (client == null) try {
+        log('Creating DAV client...');
         client = await createDAVClient({
             serverUrl: serverUrl(),
             credentials: {
@@ -169,6 +173,7 @@ export const createClient = async (debug = process.env.DEBUG) => {
         return false;
     }
 
+    log('Fetching DAV cards...');
     await fetchCards();
 
     if (debug === 'true')
