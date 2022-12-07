@@ -2,14 +2,16 @@
 
 import express from 'express';
 import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
 import reqIp from 'request-ip';
 import rateLimit from 'express-rate-limit';
 import {compare as compareVersion} from 'compare-versions';
 import https from 'https';
 
+import {load as loadConfig} from './src/storage/config.js';
+loadConfig();
+
 import {errorResponse, successResponse} from './src/response.js';
-import {check as dbCheck, info as dbInfo} from './src/request/database.js';
+import {check as dbCheck, dbInfo as dbInfo} from './src/request/database.js';
 import {checkFiles, checkVariables, getProps} from './src/environment.js';
 import {createClient as calCreateClient, getAddressBookUrl, getCards} from "./src/request/caldav.js";
 import {error, info, infoSuccess, warn} from './cli/logger.js';
@@ -25,8 +27,6 @@ import {hasPermission} from "./src/permissions.js";
 import {SqlError} from "mariadb";
 import {checkPayments} from "./src/monetary/transactions.js";
 
-dotenv.config();
-
 checkVariables();
 checkFiles();
 const props = getProps();
@@ -38,7 +38,7 @@ const props = getProps();
 const HTTP_PORT = process.env.HTTP_PORT ?? 3000;
 
 info(`Checking database...`);
-const dbCheckResult = await dbCheck(!!process.env.DEBUG);
+const dbCheckResult = await dbCheck(process.env.LOG_LEVEL === 'debug');
 if (dbCheckResult != null) {
     error(`Could not connect to database. Host: ${process.env.DB_HOSTNAME}`);
     if (dbCheckResult instanceof SqlError)
@@ -60,8 +60,9 @@ infoSuccess(`CalDAV server ready. AB Url:`, getAddressBookUrl());
 info(`Checking Firefly server...`);
 await checkFirefly();
 
-info('Checking Stripe connection...');
-await checkPayments();
+// TODO: Fix stripe
+// info('Checking Stripe connection...');
+// await checkPayments();
 
 const app = express();
 
