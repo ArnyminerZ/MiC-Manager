@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import crypto from 'crypto';
-import {info, warn} from "../cli/logger.js";
 
 const privateKeyFilePath = process.env.PRIVATE_KEY_FILE ?? './secrets/private.key';
 
@@ -9,46 +8,29 @@ const rsaKeysDir = process.env.KEYS_FILE ?? './keys';
 const rsaCerFile = `${rsaKeysDir}/cer.pem`;
 const rsaKeyFile = `${rsaKeysDir}/key.pem`;
 
-if (!fs.existsSync(rsaCerFile) || !fs.existsSync(rsaKeyFile)) {
-    warn(`There are no certificate files. Required:`, rsaCerFile, 'and', rsaKeyFile);
-    info(`Creating server certificates...`);
-
-    const {publicKey, privateKey} = crypto.generateKeyPairSync('rsa', {
-        modulusLength: 4096,
-        publicKeyEncoding: {
-            type: 'spki',
-            format: 'pem'
-        },
-        privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem',
-            cipher: 'aes-256-cbc',
-            passphrase: ''
-        },
-    });
-
-    if (!fs.existsSync(rsaKeysDir)) fs.mkdirSync(rsaKeysDir);
-
-    fs.writeFileSync(rsaCerFile, publicKey);
-    fs.writeFileSync(rsaKeyFile, privateKey);
-
-    info(`Server certificates ready!`);
-}
-
-const rsaPublicKey = crypto.createPublicKey({
-    key: fs.readFileSync(rsaCerFile),
-    format: 'pem',
-    passphrase: '',
-    encoding: 'utf-8',
-});
-const rsaPrivateKey = crypto.createPrivateKey({
-    key: fs.readFileSync(rsaKeyFile),
-    format: 'pem',
-    passphrase: '',
-    encoding: 'utf-8',
-});
+let rsaPublicKey, rsaPrivateKey;
 
 let privateKey;
+
+/**
+ * Loads their corresponding value for `rsaPublicKey` and `rsaPrivateKey`.
+ * @author Arnau Mora
+ * @since 20221208
+ */
+const loadKeys = () => {
+    rsaPublicKey = crypto.createPublicKey({
+        key: fs.readFileSync(rsaCerFile),
+        format: 'pem',
+        passphrase: '',
+        encoding: 'utf-8',
+    });
+    rsaPrivateKey = crypto.createPrivateKey({
+        key: fs.readFileSync(rsaKeyFile),
+        format: 'pem',
+        passphrase: '',
+        encoding: 'utf-8',
+    });
+}
 
 const getPrivateKey = () => {
     if (!fs.existsSync(privateKeyFilePath))
