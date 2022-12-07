@@ -202,7 +202,7 @@ export const load = () => {
         });
 
         info('Storing generated values...');
-        const existingAux = fs.readFileSync(auxConfigPath).toString();
+        const existingAux = fs.existsSync(auxConfigPath) ? fs.readFileSync(auxConfigPath).toString() : '';
         fs.writeFileSync(
             auxConfigPath,
             [existingAux, ...generatedKeys.map(key => key + '=' + config[key])]
