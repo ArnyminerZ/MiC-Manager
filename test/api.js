@@ -79,12 +79,14 @@ describe('Test Backend', function () {
 
     const typeNullCheck = (object, type) => expect(object).to.be.an(type).and.to.not.be.null;
 
+    /** @type {Object} */
+    let packageJson;
 
     before('Prepare environment', async () => {
         loadConfig();
 
         const packageJsonRaw = (await fs.readFile(path.join(__dirname, 'package.json'))).toString();
-        const packageJson = JSON.parse(packageJsonRaw);
+        packageJson = JSON.parse(packageJsonRaw);
         const version = packageJson.version;
         expect(validate(version)).to.be.eql(true);
 
