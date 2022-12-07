@@ -52,7 +52,7 @@ export const TYPE_BOOLEAN = 'boolean';
  * @type {(StringConfig|NumberConfig|BooleanConfig)[]}
  */
 const KeysAndValues = [
-    {key: 'LOG_LEVEL', type: TYPE_STRING, generator: 'debug', accepts: ['debug', 'info', 'warn', 'error']},
+    {key: 'LOG_LEVEL', type: TYPE_STRING, generator: 'warn', accepts: ['debug', 'info', 'warn', 'error']},
     {key: 'DB_USERNAME', type: TYPE_STRING, generator: GENERATE_RANDOM_USERNAME, accepts: ACCEPTS_ALL},
     {key: 'DB_PASSWORD', type: TYPE_STRING, generator: GENERATE_RANDOM_PASSWORD, accepts: ACCEPTS_ALL},
     {key: 'DB_DATABASE', type: TYPE_STRING, generator: 'MiCManager', accepts: ACCEPTS_ALL},
