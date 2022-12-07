@@ -2,6 +2,9 @@
 import testcontainers, {DockerComposeEnvironment, Wait} from 'testcontainers';
 import {faker} from '@faker-js/faker';
 import {validate} from 'compare-versions';
+import puppeteer from 'puppeteer';
+import fs from "fs/promises";
+import path from "path";
 
 import chai from 'chai';
 import chaiHttp from 'chai-http';
@@ -17,8 +20,8 @@ import {
     post,
     postForStatus
 } from "./utils/requests.js";
-import fs from "fs";
-import path from "path";
+import {generateSecrets} from "../scripts/generator.js";
+import {pathExists} from "../src/utils.js";
 
 const __dirname = process.env['NODE_PATH'];
 
@@ -26,14 +29,17 @@ const expect = chai.expect;
 chai.use(chaiHttp);
 chai.use(assertArrays);
 
-describe('API', function () {
+describe('Test Backend', function () {
     this.timeout(3 * 60000); // Timeout at 3 minutes
 
     /** @type {testcontainers.StartedDockerComposeEnvironment} */
     let docker;
     /** @type {string} */
-    let host, port, protocol, server;
+    let host, port, protocol = 'http:', server;
     let token, adminToken;
+
+    const fireflyEmail = faker.internet.email();
+    const fireflyPassword = faker.internet.password(32);
 
     // Utility functions
     const ping = endpoint => {
@@ -68,35 +74,98 @@ describe('API', function () {
         callback(token);
     }));
 
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
     const typeNullCheck = (object, type) => expect(object).to.be.an(type).and.to.not.be.null;
 
-    const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json')).toString());
 
-    before('Version valid', () => {
+    before('Prepare environment', async () => {
+        const packageJsonRaw = (await fs.readFile(path.join(__dirname, 'package.json'))).toString();
+        const packageJson = JSON.parse(packageJsonRaw);
         const version = packageJson.version;
         expect(validate(version)).to.be.eql(true);
-    });
 
-    before('Run Docker', async () => {
+
+        // Prepare output directory
+        console.info('Checking output directories...');
+        const testDir = path.join(__dirname, '.test');
+        const screenshotsDir = path.join(testDir, 'screenshots');
+        const secretsDir = path.join(testDir, 'secrets');
+        if (await pathExists(testDir)) {
+            console.info('Removing output directory...');
+            await fs.rm(testDir, {recursive: true, force: true});
+        }
+        console.info('Creating output directories...');
+        await fs.mkdir(testDir);
+        await fs.mkdir(screenshotsDir);
+        await fs.mkdir(secretsDir);
+        generateSecrets(secretsDir);
+
+
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+
+
         const environment = new DockerComposeEnvironment(__dirname, ['docker-compose.yml', 'docker-compose.testing.yml'])
             .withBuild();
-        docker = await environment
-            .withEnvironmentFile('.test.env')
-            .up(['firefly', 'mariadb', 'radicale']);
+        docker = await environment.up(['firefly', 'mariadb', 'radicale']);
 
         const firefly = docker.getContainer('mic_firefly');
         const fireflyNetworks = firefly.getNetworkNames();
         process.env['FIREFLY_HOST'] = firefly.getIpAddress(fireflyNetworks[0]);
         process.env['FIREFLY_PORT'] = '8080';
+        const fireflyServer = `${protocol}//${process.env.FIREFLY_HOST}:${process.env.FIREFLY_PORT}`;
 
-        await environment
-            .withEnvironmentFile('.test.env')
-            .up();
+
+        const waitAndClick = async (selector) => {
+            await page.waitForSelector(selector);
+            await page.click(selector);
+        };
+        const waitAndType = async (selector, text) => {
+            await page.waitForSelector(selector);
+            await page.type(selector, text);
+        };
+
+
+        await page.setViewport({ width: 1280, height: 720 });
+        await page.goto(`${fireflyServer}/register`);
+
+        await page.waitForSelector('form');
+        await page.type('input[name="email"]', fireflyEmail);
+        await page.type('input[name="password"]', fireflyPassword);
+        await page.type('input[name="password_confirmation"]', fireflyPassword);
+        await page.screenshot({path: path.join(screenshotsDir, 'registration.jpg')});
+        await page.click('button');
+        await page.waitForNavigation();
+
+        await page.goto(`${fireflyServer}/login`);
+        await page.goto(`${fireflyServer}/profile`);
+
+        await waitAndClick('.nav.nav-tabs li:nth-of-type(3)');
+        await waitAndClick('#oauth div:has(> #modal-create-token) a.btn');
+
+        await page.waitForSelector('#modal-create-token[style="display: block;"]');
+        await delay(200);
+        await waitAndType('#modal-create-token input[name="name"]', 'MiC-Manager');
+        await page.screenshot({path: path.join(screenshotsDir, 'create-token-modal.jpg')});
+        await waitAndClick('#modal-create-token .btn-primary');
+
+        await page.waitForSelector('#modal-access-token[style="display: block;"]');
+        await delay(200);
+        await page.screenshot({path: path.join(screenshotsDir, 'token-modal.jpg')});
+        const token = await page.evaluate(selector => document.querySelector(selector).value, '#modal-access-token textarea');
+
+        // await page.click('Create new token');
+        await fs.writeFile(path.join(secretsDir, 'firefly-token.txt'), token)
+
+        await browser.close()
+
+
+        await environment.up();
 
         const container = docker.getContainer('mic_interface');
         host = container.getIpAddress('backend');
         port = container.getMappedPort(3000).toString();
-        protocol = 'http:';
         server = `${protocol}//${host}:${port}`;
         init(server);
     });
