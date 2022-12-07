@@ -193,7 +193,8 @@ describe('Test Backend', function () {
         const password = faker.internet.password();
         const body = {nif, password};
         const bodyWrongPassword = {nif, password: faker.internet.password()};
-        const uid = faker.datatype.string(24);
+        const uid = faker.random.alphaNumeric(24);
+        const email = faker.internet.email();
         const newUserBody = {
             Id: 1,
             NIF: nif,
@@ -205,7 +206,7 @@ describe('Test Backend', function () {
             Associated: null,
         };
         const adminNif = faker.random.numeric(8) + faker.random.alpha({casing: 'upper'});
-        const adminUid = faker.datatype.string(24);
+        const adminUid = faker.random.alphaNumeric(24);
         const adminPassword = faker.internet.password();
         const adminUserBody = {
             Id: 2,
