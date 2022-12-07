@@ -261,7 +261,7 @@ describe('Test Backend', function () {
                     const body = res.body;
                     expect(body).to.have.property('data');
                     const data = body.data;
-                    expect(data).to.have.keys(['Id', 'Hash', 'Uid', 'NIF', 'Role', 'Grade', 'WhitesWheelNumber', 'BlacksWheelNumber', 'AssociatedTo', 'Registration', 'vCard']);
+                    expect(data).to.have.keys(['Id', 'Hash', 'Uid', 'Email', 'NIF', 'Role', 'Grade', 'WhitesWheelNumber', 'BlacksWheelNumber', 'AssociatedTo', 'Registration', 'vCard']);
 
                     typeNullCheck(data.Id, 'number');
                     expect(data.Id).to.be.eql(newUserBody.Id);
@@ -270,6 +270,8 @@ describe('Test Backend', function () {
                     expect(data.Uid).to.be.eql(newUserBody.Uid);
                     typeNullCheck(data.NIF, 'string');
                     expect(data.NIF).to.be.eql(newUserBody.NIF);
+                    typeNullCheck(data.Email, 'string');
+                    expect(data.Email).to.be.eql(newUserBody.Email);
                     expect(data.Role).to.have.keys(['DisplayName', 'Permissions']);
                     expect(data.Grade).to.have.keys(['DisplayName', 'ActsRight', 'LockWhitesWheel', 'LockBlacksWheel', 'Votes', 'MinAge', 'MaxAge']);
                     typeNullCheck(data.WhitesWheelNumber, 'number');
