@@ -17,6 +17,7 @@ services:
       - DB_PASSWORD_FILE=/run/secrets/db_password
       - DB_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
       - FIREFLY_TOKEN_FILE=/run/secrets/firefly_token
+      - KEYS_FILE=/usr/src/app/keys
       # Some variables for wait-for-firefly.sh
       - FIREFLY_HOST=firefly
       - FIREFLY_PORT=8080
