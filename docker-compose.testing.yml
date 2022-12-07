@@ -2,6 +2,8 @@ services:
   mic_interface:
     build: .
     restart: "no"
+    environment:
+      - PROPS=testing
   radicale:
     restart: "no"
     environment:
