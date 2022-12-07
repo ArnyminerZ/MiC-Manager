@@ -47,7 +47,7 @@
 
 import {SqlError} from "mariadb";
 import {escape, query as dbQuery} from '../request/database.js';
-import {UserNotFoundException} from "../exceptions.js";
+import {FireflyApiException, UserNotFoundException} from "../exceptions.js";
 import {getCard} from "../request/caldav.js";
 import dateFormat from "dateformat";
 import {error, log} from "../../cli/logger.js";
@@ -183,7 +183,12 @@ export const getUserData = async (userId) => {
  */
 export const newUser = async (data) => {
     log(`Creating a new user (${data.Email})...`);
-    const fireflyUser = await newFireflyUser(data.Email, data.NIF);
+    let fireflyUser;
+    try {
+        fireflyUser = await newFireflyUser(data.Email, data.NIF);
+    } catch (e) {
+        throw new FireflyApiException('Could not create a new Firefly user. Error:' + JSON.stringify(e));
+    }
     return await dbQuery(
         `INSERT INTO mUsers (Hash, NIF, Email, Uid, FireflyUid, Role, Grade, WhitesWheel, BlacksWheel, Associated)
          VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
@@ -194,8 +199,8 @@ export const newUser = async (data) => {
         parseInt(fireflyUser.id),
         data.Role,
         data.Grade,
-        data.WhitesWheelNumber,
-        data.BlacksWheelNumber,
+        data.WhitesWheelNumber ?? data['WhitesWheel'],
+        data.BlacksWheelNumber ?? data['BlacksWheel'],
         data.AssociatedTo,
     );
 };
