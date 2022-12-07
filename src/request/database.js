@@ -1,4 +1,4 @@
-import mariadb from 'mariadb';
+import mariadb, {SqlError} from 'mariadb';
 import dotenv from 'dotenv';
 import fs from 'fs';
 
@@ -36,7 +36,7 @@ import {
     InsertPositions,
     InsertRolesPermissions,
 } from "../../model/Defaults.js";
-import {error} from '../../cli/logger.js';
+import {error, info, log} from '../../cli/logger.js';
 import {isNumber} from "../utils.js";
 
 dotenv.config();
@@ -48,15 +48,7 @@ let pool;
 
 export const escape = str => pool.escape(str);
 
-/**
- * Connects to the configured database.
- * @author Arnau Mora
- * @since 20221117
- * @param {boolean} debug If true, a message will be displayed on error.
- * @return {Promise<void>}
- * @throws {SqlPermissionException} If the configured user is not authorised to use the database.
- */
-const connect = async (debug = false) => {
+const getDatabasePassword = () => {
     let dbPassword = process.env.DB_PASSWORD;
     const dbPasswordFile = process.env.DB_PASSWORD_FILE;
     if (dbPassword == null)
@@ -67,6 +59,20 @@ const connect = async (debug = false) => {
                 error(`The Database's password file is defined but doesn't exist:`, dbPasswordFile);
         else
             error(`It's required to give either DB_PASSWORD or DB_PASSWORD_FILE`);
+    return dbPassword;
+}
+
+/**
+ * Connects to the configured database.
+ * @author Arnau Mora
+ * @since 20221117
+ * @param {boolean} debug If true, a message will be displayed on error.
+ * @return {Promise<void>}
+ * @throws {SqlPermissionException} If the configured user is not authorised to use the database.
+ */
+const connect = async (debug = false) => {
+    log(`Getting the database's password...`);
+    let dbPassword = getDatabasePassword();
 
     /** @type {mariadb.PoolConfig} */
     const serverConfig = {
@@ -78,7 +84,9 @@ const connect = async (debug = false) => {
     };
 
     try {
+        log('Creating pool...');
         if (pool == null) pool = mariadb.createPool(serverConfig);
+        log('Connecting to the database...');
         conn = await pool.getConnection();
     } catch (e) {
         if (debug) error(e, 'Database Host:', serverConfig.host, 'User:', serverConfig.user);
@@ -91,6 +99,45 @@ const connect = async (debug = false) => {
 
 const disconnect = async () => await conn?.end();
 
+const createDBUser = async () => {
+    info('Default user may not exist. Creating...');
+    const rootPassword = fs.readFileSync(process.env.DB_ROOT_PASSWORD_FILE);
+    const dbPassword = getDatabasePassword();
+
+    /** @type {mariadb.PoolConfig} */
+    const serverConfig = {
+        host: process.env.DB_HOSTNAME,
+        user: 'root',
+        password: rootPassword,
+        connectionLimit: 5,
+        port: process.env.DB_PORT || 3306,
+    };
+    try {
+        log('Logging in as root...');
+        pool = mariadb.createPool(serverConfig);
+        log('Connecting to the database...');
+        conn = await pool.getConnection();
+
+        log('Creating database...');
+        await conn.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_DATABASE};`);
+        log('Creating user...');
+        await conn.query(`CREATE USER IF NOT EXISTS ${process.env.DB_USERNAME}@'%' IDENTIFIED BY '${dbPassword}';`);
+        log('Granting privileges...');
+        await conn.query(`GRANT ALL PRIVILEGES ON ${process.env.DB_DATABASE}.* TO '${process.env.DB_USERNAME}'@'%';`);
+        log('Flushing...');
+        await conn.query(`FLUSH PRIVILEGES;`);
+    } catch (e) {
+        error('Could not create database user from root. Error:', e);
+        if (e instanceof mariadb.SqlError)
+            if (e.code === 'ER_TABLEACCESS_DENIED_ERROR')
+                throw new SqlPermissionException(e.text);
+        throw e;
+    } finally {
+        await conn?.end();
+        pool = null;
+    }
+};
+
 /**
  * Tries connecting to the database, then disconnects.
  * @author Arnau Mora
@@ -101,6 +148,9 @@ const disconnect = async () => await conn?.end();
  */
 export const check = async (debug = false) => {
     try {
+        log('Creating database user if it doesn\'t exist...');
+        await createDBUser();
+        log('Checking database. Starting connection...');
         await connect(debug);
 
         // Check if database exists
@@ -170,7 +220,7 @@ export const query = async (query, shouldDisconnect = true, ...parameters) => {
  * @since 20221105
  * @return {Promise<{version:string}>}
  */
-export const info = async () => {
+export const dbInfo = async () => {
     /**
      * @type {{Id:number,Value:string}[]}
      */
