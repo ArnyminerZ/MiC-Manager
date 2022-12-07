@@ -93,6 +93,8 @@ const connect = async (debug = false) => {
         if (e instanceof mariadb.SqlError)
             if (e.code === 'ER_TABLEACCESS_DENIED_ERROR')
                 throw new SqlPermissionException(e.text);
+            else if (e.code === 'ER_ACCESS_DENIED_ERROR')
+                throw new SqlPermissionException(e.text);
         throw e;
     }
 };
@@ -100,7 +102,7 @@ const connect = async (debug = false) => {
 const disconnect = async () => await conn?.end();
 
 const createDBUser = async () => {
-    info('Default user may not exist. Creating...');
+    info('Creating user if it doesn\'t exist...');
     const rootPassword = fs.readFileSync(process.env.DB_ROOT_PASSWORD_FILE);
     const dbPassword = getDatabasePassword();
 
@@ -118,22 +120,22 @@ const createDBUser = async () => {
         log('Connecting to the database...');
         conn = await pool.getConnection();
 
-        log('Creating database...');
+        log(`Creating database (${process.env.DB_DATABASE})...`);
         await conn.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_DATABASE};`);
-        log('Creating user...');
-        await conn.query(`CREATE USER IF NOT EXISTS ${process.env.DB_USERNAME}@'%' IDENTIFIED BY '${dbPassword}';`);
+        log(`Creating user (${process.env.DB_USERNAME})...`);
+        await conn.query(`CREATE USER IF NOT EXISTS '${process.env.DB_USERNAME}'@'%' IDENTIFIED BY '${dbPassword}';`);
         log('Granting privileges...');
         await conn.query(`GRANT ALL PRIVILEGES ON ${process.env.DB_DATABASE}.* TO '${process.env.DB_USERNAME}'@'%';`);
+        log('Setting password...');
+        await conn.query(`SET PASSWORD FOR '${process.env.DB_USERNAME}'@'%' = PASSWORD('${dbPassword}');`);
         log('Flushing...');
         await conn.query(`FLUSH PRIVILEGES;`);
     } catch (e) {
         error('Could not create database user from root. Error:', e);
-        if (e instanceof mariadb.SqlError)
-            if (e.code === 'ER_TABLEACCESS_DENIED_ERROR')
-                throw new SqlPermissionException(e.text);
         throw e;
     } finally {
         await conn?.end();
+        conn = null;
         pool = null;
     }
 };
