@@ -22,6 +22,7 @@ import {
 } from "./utils/requests.js";
 import {generateSecrets} from "../scripts/generator.js";
 import {pathExists} from "../src/utils.js";
+import {load as loadConfig} from "../src/storage/config.js";
 
 const __dirname = process.env['NODE_PATH'];
 
@@ -80,6 +81,8 @@ describe('Test Backend', function () {
 
 
     before('Prepare environment', async () => {
+        loadConfig();
+
         const packageJsonRaw = (await fs.readFile(path.join(__dirname, 'package.json'))).toString();
         const packageJson = JSON.parse(packageJsonRaw);
         const version = packageJson.version;
@@ -164,7 +167,8 @@ describe('Test Backend', function () {
         docker = await environment.up();
 
         const container = docker.getContainer('mic_interface');
-        host = container.getIpAddress('backend');
+        const networks = container.getNetworkNames();
+        host = container.getIpAddress(networks[0]);
         port = container.getMappedPort(3000).toString();
         server = `${protocol}//${host}:${port}`;
         init(server);
