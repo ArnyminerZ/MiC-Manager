@@ -2,7 +2,6 @@ import fs from "fs";
 import path from "path";
 import {info} from "../cli/logger.js";
 import {faker} from "@faker-js/faker";
-import {generateKeyPair} from 'crypto';
 
 export const generateSecrets = secretsDir => {
     if (!fs.existsSync(secretsDir)) fs.mkdirSync(secretsDir);
@@ -23,28 +22,3 @@ export const generateSecrets = secretsDir => {
         fs.writeFileSync(privateKey, faker.random.alphaNumeric(1024));
     }
 };
-
-/**
- * @deprecated WIP. Not working, do not use.
- * @param secretsDir
- * @param passphrase
- * @returns {Promise<unknown>}
- */
-export const generateKeys = (secretsDir, passphrase) => new Promise((resolve, reject) => {
-    generateKeyPair('rsa', {
-        modulusLength: 4096,
-        publicKeyEncoding: {
-            type: 'spki',
-            format: 'pem'
-        },
-        privateKeyEncoding: {
-            type: 'pkcs8',
-            format: 'pem',
-            cipher: 'aes-256-cbc',
-            passphrase,
-        },
-    }, (err, publicKey, privateKey) => {
-        if (err != null)
-            return reject(err);
-    })
-});
