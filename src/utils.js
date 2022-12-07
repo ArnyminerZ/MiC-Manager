@@ -1,5 +1,6 @@
 import path from 'path';
 import {fileURLToPath} from 'url';
+import fs from "fs/promises";
 
 /**
  * @param {string} ip The IP to parse.
@@ -36,6 +37,26 @@ export const capitalize = text =>
             return newChar + t.substring(1);
         })
         .join(' ');
+
+/**
+ * Checks using the fs/promises library whether a path exists or not.
+ * @author Arnau Mora
+ * @since 20221207
+ * @param {string} path The path to check for. Can be both a file or a directory.
+ * @returns {Promise<boolean>} *true* if the path exists, false otherwise.
+ * @throws If there's another error while checking for the path's existence.
+ */
+export const pathExists = async path => {
+    try {
+        await fs.stat(path);
+        return true;
+    } catch(err) {
+        if (err.code === 'ENOENT')
+            return false;
+        else
+            throw err;
+    }
+}
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(path.join(__filename, '..'));
