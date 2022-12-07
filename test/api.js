@@ -161,7 +161,7 @@ describe('Test Backend', function () {
         await browser.close()
 
 
-        await environment.up();
+        docker = await environment.up();
 
         const container = docker.getContainer('mic_interface');
         host = container.getIpAddress('backend');
