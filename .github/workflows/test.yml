@@ -25,31 +25,6 @@ jobs:
         run: npm install -g mocha
       - name: Install dependencies
         run: npm install
-      - name: Requirements
-        run: |
-          # Create the required directories
-          mkdir -p secrets
-          
-          echo "unsafe-password-unsafe-passwords" > secrets/password.txt
-          echo "unsafe-password-unsafe-passwords" > secrets/root-password.txt
-          echo "unsafe-password-unsafe-passwords" > secrets/firefly-password.txt
-          echo "unsafe-password-unsafe-passwords" > secrets/firefly-root-password.txt
-          echo "unsafe-password-unsafe-passwords" > secrets/firefly-app-key.txt
-          
-          # Generate the server's private key.
-          openssl rand -base64 756 > ./secrets/private.key
-          
-          # Create Radicale user
-          sudo addgroup --gid 2999 radicale
-          sudo adduser --gid 2999 --uid 2999 --shell /bin/false --disabled-password --no-create-home radicale
-      - name: Prepare environment
-        run: |
-          echo 'DB_USERNAME=github' >> .test.env
-          echo 'DB_DATABASE=Github' >> .test.env
-          echo 'CALDAV_USERNAME=radicale' >> .test.env
-          echo 'CALDAV_PASSWORD=' >> .test.env
-          echo 'CALDAV_AB_UUID=9f13c1ce-2501-3f7d-17a4-562294ab6530' >> .test.env
-          echo 'PROPS=testing' >> .test.env
 
       - name: Tests
         if: success() || failure()    # run this step even if previous step failed
