@@ -9,6 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.docker" />
       <excludeFolder url="file://$MODULE_DIR$/.nyc_output" />
       <excludeFolder url="file://$MODULE_DIR$/keys" />
+      <excludeFolder url="file://$MODULE_DIR$/.test" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="swagger-ui-dist" level="application" />
