@@ -5,7 +5,7 @@ import {info, warn} from "../cli/logger.js";
 
 const privateKeyFilePath = process.env.PRIVATE_KEY_FILE ?? './secrets/private.key';
 
-const rsaKeysDir = './keys';
+const rsaKeysDir = process.env.KEYS_FILE ?? './keys';
 const rsaCerFile = `${rsaKeysDir}/cer.pem`;
 const rsaKeyFile = `${rsaKeysDir}/key.pem`;
 
