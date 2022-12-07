@@ -9,12 +9,6 @@ const rsaKeysDir = process.env.KEYS_FILE ?? './keys';
 const rsaCerFile = `${rsaKeysDir}/cer.pem`;
 const rsaKeyFile = `${rsaKeysDir}/key.pem`;
 
-if (!fs.existsSync(privateKeyFilePath)) {
-    warn('Private key file is required but doesn\'t exist.');
-    process.exitCode = 1;
-    throw Error(`Private key file is required but doesn't exist. Path: ` + privateKeyFilePath);
-}
-
 if (!fs.existsSync(rsaCerFile) || !fs.existsSync(rsaKeyFile)) {
     warn(`There are no certificate files. Required:`, rsaCerFile, 'and', rsaKeyFile);
     info(`Creating server certificates...`);
@@ -54,7 +48,15 @@ const rsaPrivateKey = crypto.createPrivateKey({
     encoding: 'utf-8',
 });
 
-const privateKey = fs.readFileSync(privateKeyFilePath).toString();
+let privateKey;
+
+const getPrivateKey = () => {
+    if (!fs.existsSync(privateKeyFilePath))
+        throw Error(`Private key file is required but doesn't exist. Path: ` + privateKeyFilePath);
+    if (privateKey == null)
+        privateKey = fs.readFileSync(privateKeyFilePath).toString()
+    return privateKey;
+}
 
 /**
  * Generates a new JSON Web Token with the given payload.
@@ -65,7 +67,7 @@ const privateKey = fs.readFileSync(privateKeyFilePath).toString();
  * @returns {Promise<string>}
  */
 export const generateToken = (payload, expiresIn = '7d') => new Promise((resolve, reject) => {
-    jwt.sign(payload, privateKey, {expiresIn}, (err, token) => {
+    jwt.sign(payload, getPrivateKey(), {expiresIn}, (err, token) => {
         if (!err)
             resolve(token);
         else
@@ -81,7 +83,7 @@ export const generateToken = (payload, expiresIn = '7d') => new Promise((resolve
  * @returns {Promise<boolean>}
  */
 export const checkToken = (token) => new Promise((resolve) => {
-    jwt.verify(token, privateKey, {}, (err, payload) => {
+    jwt.verify(token, getPrivateKey(), {}, (err, payload) => {
         if (!err)
             if (payload['nif'] != null && payload['userId'] != null)
                 resolve(true);
@@ -100,7 +102,7 @@ export const checkToken = (token) => new Promise((resolve) => {
  * @returns {Promise<{nif:string,userId:number}>}
  */
 export const decodeToken = (token) => new Promise((resolve, reject) => {
-    jwt.verify(token, privateKey, {}, (err, payload) => {
+    jwt.verify(token, getPrivateKey(), {}, (err, payload) => {
         if (!err)
             if (payload.hasOwnProperty('nif') && payload.hasOwnProperty('userId'))
                 resolve({nif: payload.nif, userId: parseInt(payload.userId)});
