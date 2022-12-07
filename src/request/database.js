@@ -199,7 +199,7 @@ export const check = async (debug = false) => {
  * @since 20221030
  * @param {string} query The SQL query to make.
  * @param {boolean} shouldDisconnect If false, the connection to the database won't get disconnected after fetching.
- * @param {any} parameters Parameters to replace in the placeholder.
+ * @param {any?} parameters Parameters to replace in the placeholder.
  * @return {Promise<Object[]>} The rows fetched
  */
 export const query = async (query, shouldDisconnect = true, ...parameters) => {
@@ -208,7 +208,10 @@ export const query = async (query, shouldDisconnect = true, ...parameters) => {
         if (conn == null || !conn.isValid())
             await connect();
         await conn.query(`USE ${process.env.DB_DATABASE};`);
-        result = await conn.query(query, [...parameters.map(p => p.toString().toUpperCase() === 'NULL' ? null : p)]);
+        result = await conn.query(
+            query,
+            [...parameters.map(p => p == null || p.toString().toUpperCase() === 'NULL' ? null : p)],
+        );
     } finally {
         if (shouldDisconnect)
             await disconnect();
