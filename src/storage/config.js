@@ -83,6 +83,9 @@ let loadedConfig;
  * @returns {Object}
  */
 const readConfig = (path) => {
+    // Don't do anything if the path doesn't exist
+    if (!fs.existsSync(path)) return {};
+
     // Read the file's contents, and convert the buffer to string
     const raw = fs.readFileSync(path).toString();
     /** @type {[string,string][]} */
@@ -138,6 +141,7 @@ export const load = () => {
         // The configuration stored at the file is loaded correctly. Now set default values for the missing ones, or
         // break if required and no default value exists.
 
+        info('Reading cached config file...');
         const auxConfigPath = path.join(__dirname, '.micmanager.conf');
         const auxConfig = readConfig(auxConfigPath);
         /** @type {Object} */
