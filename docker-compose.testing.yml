@@ -18,3 +18,24 @@ volumes:
     driver: local
   radicale-testing:
     driver: local
+
+secrets:
+  db_username:
+    file: ./.test/secrets/username.txt
+  db_password:
+    file: ./.test/secrets/password.txt
+  db_root_password:
+    file: ./.test/secrets/root-password.txt
+  db_database:
+    file: ./.test/secrets/database.txt
+  private_key:
+    file: ./.test/secrets/private.key
+  firefly_db_password:
+    file: ./.test/secrets/firefly-password.txt
+  firefly_db_root_password:
+    file: ./.test/secrets/firefly-root-password.txt
+  firefly_app_key:
+    file: ./.test/secrets/firefly-app-key.txt
+  firefly_token:
+    file: ./.test/secrets/firefly-token.txt
+
