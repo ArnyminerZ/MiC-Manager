@@ -26,6 +26,7 @@ import {decodeToken} from "./src/security.js";
 import {hasPermission} from "./src/permissions.js";
 import {SqlError} from "mariadb";
 import {checkPayments} from "./src/monetary/transactions.js";
+import {getLatestRelease} from "./src/info/release.js";
 
 checkVariables();
 checkFiles();
@@ -104,38 +105,12 @@ app.get('/v1/info', async (req, res) => {
         if (unauthorised) return res.json(successResponse({database}));
 
         const version = packageJson.version;
-        const latestRelease = await new Promise((resolve) => https.get({
-            protocol: 'https:',
-            host: 'api.github.com',
-            path: '/repos/ArnyminerZ/MiC-Manager/releases/latest',
-            headers: {
-                'Accept': 'application/vnd.github+json',
-                'Authorization': 'Bearer de24b6a7b50bd3b3cd5cc29eee14100a83fa14e0',
-            },
-        }, res => {
-            res.setEncoding('utf8');
-
-            let rawData = '';
-            res.on('data', chunk => rawData += chunk);
-            res.on('end', () => {
-                let json;
-                try {
-                    if (res.statusCode === 200) {
-                        json = JSON.parse(rawData);
-                        resolve(json['tag_name']);
-                    } else {
-                        warn(`Version information response: (${res.statusCode}): ${res.statusMessage}`);
-                        resolve(null);
-                    }
-                } catch (e) {
-                    if (e instanceof SyntaxError)
-                        error('Could not parse latest version JSON:', json);
-                    else
-                        error('Could not get latest version. Error:', e);
-                    resolve(null);
-                }
-            });
-        }));
+        let latestRelease;
+        try {
+            latestRelease = await getLatestRelease();
+        }catch (err) {
+            error('Could not get latest version information. Error:', err);
+        }
         const newVersion = latestRelease != null ? compareVersion(latestRelease, version, '>') : null;
         res.json(successResponse({database, version: {name: version, update: newVersion}}));
     } catch (e) {
