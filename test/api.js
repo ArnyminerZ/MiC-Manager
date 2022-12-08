@@ -92,15 +92,11 @@ describe('Test Backend', function () {
 
 
         // Prepare output directory
-        console.info('Checking output directories...');
         const testDir = path.join(__dirname, '.test');
         const screenshotsDir = path.join(testDir, 'screenshots');
         const secretsDir = path.join(testDir, 'secrets');
-        if (await pathExists(testDir)) {
-            console.info('Removing output directory...');
+        if (await pathExists(testDir))
             await fs.rm(testDir, {recursive: true, force: true});
-        }
-        console.info('Creating output directories...');
         await fs.mkdir(testDir);
         await fs.mkdir(screenshotsDir);
         await fs.mkdir(secretsDir);
