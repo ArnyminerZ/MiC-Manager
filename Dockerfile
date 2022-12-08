@@ -20,5 +20,6 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=12s --start-period=30s CMD node healthcheck.js
 
 RUN chmod +x ./scripts/wait-for-firefly.sh
+RUN chmod +x ./scripts/wait-for-radicale.sh
 
-CMD [ "./scripts/wait-for-firefly.sh", "node", "index.js" ]
+CMD [ "./scripts/wait-for-firefly.sh", "./scripts/wait-for-radicale.sh", "node", "index.js" ]
