@@ -6,7 +6,7 @@
  */
 
 import {EnvironmentVariableException} from "./exceptions.js";
-import {isNumber} from "./utils.js";
+import {isNumber} from "./utils.mjs";
 import fs from "fs";
 import {error} from "../cli/logger.js";
 

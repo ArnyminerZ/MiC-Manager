@@ -12,7 +12,7 @@ import sql from 'mssql';
 import dateFormat from "dateformat";
 import cliProgress from 'cli-progress';
 
-import {capitalize} from "../src/utils.js";
+import {capitalize} from "../src/utils.mjs";
 
 let server, port, database, schema, user, password, micInstance;
 

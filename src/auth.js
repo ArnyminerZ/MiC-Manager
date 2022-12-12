@@ -13,7 +13,7 @@ import {
 import {findUserWithNif} from './data/users.js';
 
 import securityPolicy from '../security-policy.json' assert {type: 'json'};
-import {ipToLong} from "./utils.js";
+import {ipToLong} from "./utils.mjs";
 import {SqlError} from "mariadb";
 
 /**

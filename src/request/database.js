@@ -37,7 +37,7 @@ import {
     InsertRolesPermissions,
 } from "../../model/Defaults.js";
 import {error, info, log} from '../../cli/logger.js';
-import {isNumber} from "../utils.js";
+import {isNumber} from "../utils.mjs";
 
 dotenv.config();
 
