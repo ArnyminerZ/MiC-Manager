@@ -56,7 +56,14 @@ export const pathExists = async path => {
         else
             throw err;
     }
-}
+};
+
+/**
+ * Waits the given amount of milliseconds.
+ * @param {number} ms The amount of milliseconds to wait.
+ * @returns {Promise<void>}
+ */
+export const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(path.join(__filename, '..'));
