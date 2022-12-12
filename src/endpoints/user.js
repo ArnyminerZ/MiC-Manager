@@ -5,6 +5,7 @@ import {
     LoginAttemptInsertException,
     PasswordlessUserException,
     SecurityException,
+    UserAlreadyExistsException,
     UserNotFoundException,
     WrongPasswordException
 } from "../exceptions.js";
@@ -166,18 +167,24 @@ export const newUser = async (req, res) => {
             uid = newCardResult[0];
         }
 
-        await createUser({
-            NIF: nif,
-            Uid: uid,
-            Email: email,
-            Grade: gradeId,
-            Role: roleId,
-            WhitesWheelNumber: whitesWheelNumber,
-            BlacksWheelNumber: blacksWheelNumber,
-            AssociatedTo: associatedTo,
-        });
+        try {
+            await createUser({
+                NIF: nif,
+                Uid: uid,
+                Email: email,
+                Grade: gradeId,
+                Role: roleId,
+                WhitesWheelNumber: whitesWheelNumber,
+                BlacksWheelNumber: blacksWheelNumber,
+                AssociatedTo: associatedTo,
+            });
 
-        res.send(successResponse());
+            res.send(successResponse());
+        } catch (e) {
+            if (e instanceof UserAlreadyExistsException)
+                res.status(409)
+                    .send(errorResponse('conflict', 'Tried to create an user that already exists.'))
+        }
     } catch (e) {
         res.status(500).send(errorResponse(e));
     }
