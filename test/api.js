@@ -2,7 +2,6 @@
 import testcontainers, {DockerComposeEnvironment, Wait} from 'testcontainers';
 import {faker} from '@faker-js/faker';
 import {validate} from 'compare-versions';
-import puppeteer from 'puppeteer';
 import fs from "fs/promises";
 import path from "path";
 
@@ -21,8 +20,9 @@ import {
     postForStatus
 } from "./utils/requests.js";
 import {generateSecrets} from "../scripts/generator.js";
-import {pathExists} from "../src/utils.js";
+import {pathExists} from "../src/utils.mjs";
 import {load as loadConfig} from "../src/storage/config.js";
+import {configure as configureFirefly} from "../src/monetary/firefly.js";
 
 const __dirname = process.env['NODE_PATH'];
 
@@ -75,8 +75,6 @@ describe('Test Backend', function () {
         callback(token);
     }));
 
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
     const typeNullCheck = (object, type) => expect(object).to.be.an(type).and.to.not.be.null;
 
     /** @type {Object} */
@@ -103,10 +101,6 @@ describe('Test Backend', function () {
         generateSecrets(secretsDir);
 
 
-        const browser = await puppeteer.launch();
-        const page = await browser.newPage();
-
-
         const environment = new DockerComposeEnvironment(__dirname, ['docker-compose.yml', 'docker-compose.testing.yml'])
             .withBuild();
         docker = await environment.up(['firefly', 'mariadb', 'radicale']);
@@ -115,51 +109,8 @@ describe('Test Backend', function () {
         const fireflyNetworks = firefly.getNetworkNames();
         process.env['FIREFLY_HOST'] = firefly.getIpAddress(fireflyNetworks[0]);
         process.env['FIREFLY_PORT'] = '8080';
-        const fireflyServer = `${protocol}//${process.env.FIREFLY_HOST}:${process.env.FIREFLY_PORT}`;
 
-
-        const waitAndClick = async (selector) => {
-            await page.waitForSelector(selector);
-            await page.click(selector);
-        };
-        const waitAndType = async (selector, text) => {
-            await page.waitForSelector(selector);
-            await page.type(selector, text);
-        };
-
-
-        await page.setViewport({ width: 1280, height: 720 });
-        await page.goto(`${fireflyServer}/register`);
-
-        await page.waitForSelector('form');
-        await page.type('input[name="email"]', fireflyEmail);
-        await page.type('input[name="password"]', fireflyPassword);
-        await page.type('input[name="password_confirmation"]', fireflyPassword);
-        await page.screenshot({path: path.join(screenshotsDir, 'registration.jpg')});
-        await page.click('button');
-        await page.waitForNavigation();
-
-        await page.goto(`${fireflyServer}/login`);
-        await page.goto(`${fireflyServer}/profile`);
-
-        await waitAndClick('.nav.nav-tabs li:nth-of-type(3)');
-        await waitAndClick('#oauth div:has(> #modal-create-token) a.btn');
-
-        await page.waitForSelector('#modal-create-token[style="display: block;"]');
-        await delay(200);
-        await waitAndType('#modal-create-token input[name="name"]', 'MiC-Manager');
-        await page.screenshot({path: path.join(screenshotsDir, 'create-token-modal.jpg')});
-        await waitAndClick('#modal-create-token .btn-primary');
-
-        await page.waitForSelector('#modal-access-token[style="display: block;"]');
-        await delay(200);
-        await page.screenshot({path: path.join(screenshotsDir, 'token-modal.jpg')});
-        const token = await page.evaluate(selector => document.querySelector(selector).value, '#modal-access-token textarea');
-
-        // await page.click('Create new token');
-        await fs.writeFile(path.join(secretsDir, 'firefly-token.txt'), token)
-
-        await browser.close()
+        await configureFirefly(fireflyEmail, fireflyPassword, secretsDir, screenshotsDir, protocol);
 
 
         docker = await environment.up();
