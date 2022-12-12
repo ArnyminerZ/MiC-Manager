@@ -206,6 +206,19 @@ export const configure = async (
     const page = await browser.newPage();
     const fireflyServer = `${protocol}//${hostname}:${port}`;
 
+    info('Configuring Firefly server on', fireflyServer);
+
+    // noinspection JSCheckFunctionSignatures
+    if (screenshotsDir != null && !(await pathExists(screenshotsDir))) await fsp.mkdir(screenshotsDir);
+
+    const takeScreenshot = async name => {
+        if (screenshotsDir != null) {
+            const screenshotPath = path.join(screenshotsDir, `${name}.jpg`);
+            if (await pathExists(screenshotPath)) await fsp.rm(screenshotPath);
+            await page.screenshot({path: screenshotPath});
+        }
+    };
+
     const waitAndClick = async (selector) => {
         await page.waitForSelector(selector);
         await page.click(selector);
@@ -222,13 +235,14 @@ export const configure = async (
     await page.type('input[name="email"]', email);
     await page.type('input[name="password"]', password);
     await page.type('input[name="password_confirmation"]', password);
-    if (screenshotsDir != null)
-        await page.screenshot({path: path.join(screenshotsDir, 'registration.jpg')});
+    await takeScreenshot('registration');
     await page.click('button');
     await page.waitForNavigation();
 
     await page.goto(`${fireflyServer}/login`);
     await page.goto(`${fireflyServer}/profile`);
+
+    await takeScreenshot('profile');
 
     await waitAndClick('.nav.nav-tabs li:nth-of-type(3)');
     await waitAndClick('#oauth div:has(> #modal-create-token) a.btn');
@@ -236,14 +250,12 @@ export const configure = async (
     await page.waitForSelector('#modal-create-token[style="display: block;"]');
     await delay(200);
     await waitAndType('#modal-create-token input[name="name"]', 'MiC-Manager');
-    if (screenshotsDir != null)
-        await page.screenshot({path: path.join(screenshotsDir, 'create-token-modal.jpg')});
+    await takeScreenshot('create_token_modal');
     await waitAndClick('#modal-create-token .btn-primary');
 
     await page.waitForSelector('#modal-access-token[style="display: block;"]');
     await delay(200);
-    if (screenshotsDir != null)
-        await page.screenshot({path: path.join(screenshotsDir, 'token-modal.jpg')});
+    await takeScreenshot('token_modal');
     const token = await page.evaluate(selector => document.querySelector(selector).value, '#modal-access-token textarea');
 
     // await page.click('Create new token');
