@@ -183,6 +183,7 @@ export const getUserData = async (userId) => {
  */
 export const newUser = async (data) => {
     log(`Creating a new user (${data.Email})...`);
+    // TODO: Check if user already exists
     let fireflyUser;
     try {
         fireflyUser = await newFireflyUser(data.Email, data.NIF);
