@@ -2,7 +2,7 @@ import assert from 'assert';
 
 import {faker} from '@faker-js/faker';
 
-import {capitalize, ipToLong, isNumber, pathExists, __dirname} from '../src/utils.js';
+import {capitalize, ipToLong, isNumber, pathExists, __dirname} from '../src/utils.mjs';
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
