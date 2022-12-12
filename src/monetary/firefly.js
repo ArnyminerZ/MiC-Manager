@@ -1,13 +1,15 @@
 import http from 'http';
 import fs from "fs";
+import fsp from "fs/promises";
+import puppeteer from "puppeteer";
+import path from "path";
 
 import {error, info, infoSuccess, log, warn} from "../../cli/logger.js";
 
 import packageJson from '../../package.json' assert {type: 'json'};
 import {getAllUsers as getAllRegisteredUsers} from "../data/users.js";
 import {UserNotFoundException} from "../exceptions.js";
-
-const fireflyTokenFile = process.env.FIREFLY_TOKEN_FILE;
+import {delay, pathExists} from "../utils.mjs";
 
 /**
  * @typedef {Object} FireflyAbout
@@ -87,7 +89,7 @@ const fireflyTokenFile = process.env.FIREFLY_TOKEN_FILE;
  * @since 20211121
  * @return {string}
  */
-const getToken = () => fs.readFileSync(fireflyTokenFile).toString('utf8');
+const getToken = () => fs.readFileSync(process.env.FIREFLY_TOKEN_FILE).toString('utf8');
 
 /**
  * Makes a http request to the Firefly server.
@@ -172,6 +174,83 @@ const post = (endpoint, body) => request('POST', endpoint, body);
  * @returns {Promise<Object|Array|{data:Object|Object[]}>}
  */
 const put = (endpoint, body) => request('PUT', endpoint, body);
+
+/**
+ * Initializes the Firefly server, and fetches the default access token.
+ * @author Arnau Mora
+ * @since 20221212
+ * @param {string} email The email to give to the default user.
+ * @param {string} password The password to give to the default user.
+ * @param {string} secretsDir The directory where all the secrets are stored.
+ * @param {?string>} screenshotsDir The directory where to store screenshots. Can be null, and no screenshots will
+ * be made.
+ * @param {'http:','https:'} protocol The protocol to use for making the requests.
+ * @param {string} hostname The hostname associated with the Firefly server.
+ * @param {string|number} port The port number of the Firefly server.
+ */
+export const configure = async (
+    email,
+    password,
+    secretsDir,
+    screenshotsDir = null,
+    protocol = 'http:',
+    hostname = process.env.FIREFLY_HOST,
+    port = process.env.FIREFLY_PORT,
+) => {
+    const tokenFile = path.join(secretsDir, 'firefly-token.txt');
+
+    if (await pathExists(tokenFile))
+        return log('Won\'t configure Firefly since already loaded.');
+
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    const fireflyServer = `${protocol}//${hostname}:${port}`;
+
+    const waitAndClick = async (selector) => {
+        await page.waitForSelector(selector);
+        await page.click(selector);
+    };
+    const waitAndType = async (selector, text) => {
+        await page.waitForSelector(selector);
+        await page.type(selector, text);
+    };
+
+    await page.setViewport({ width: 1280, height: 720 });
+    await page.goto(`${fireflyServer}/register`);
+
+    await page.waitForSelector('form');
+    await page.type('input[name="email"]', email);
+    await page.type('input[name="password"]', password);
+    await page.type('input[name="password_confirmation"]', password);
+    if (screenshotsDir != null)
+        await page.screenshot({path: path.join(screenshotsDir, 'registration.jpg')});
+    await page.click('button');
+    await page.waitForNavigation();
+
+    await page.goto(`${fireflyServer}/login`);
+    await page.goto(`${fireflyServer}/profile`);
+
+    await waitAndClick('.nav.nav-tabs li:nth-of-type(3)');
+    await waitAndClick('#oauth div:has(> #modal-create-token) a.btn');
+
+    await page.waitForSelector('#modal-create-token[style="display: block;"]');
+    await delay(200);
+    await waitAndType('#modal-create-token input[name="name"]', 'MiC-Manager');
+    if (screenshotsDir != null)
+        await page.screenshot({path: path.join(screenshotsDir, 'create-token-modal.jpg')});
+    await waitAndClick('#modal-create-token .btn-primary');
+
+    await page.waitForSelector('#modal-access-token[style="display: block;"]');
+    await delay(200);
+    if (screenshotsDir != null)
+        await page.screenshot({path: path.join(screenshotsDir, 'token-modal.jpg')});
+    const token = await page.evaluate(selector => document.querySelector(selector).value, '#modal-access-token textarea');
+
+    // await page.click('Create new token');
+    await fsp.writeFile(tokenFile, token)
+
+    await browser.close()
+};
 
 /**
  * Checks that the Firefly instance is correctly configured and running.
