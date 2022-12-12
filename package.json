@@ -28,7 +28,7 @@
     "tsdav": "^2.0.3",
     "uuid": "^9.0.0",
     "compare-versions": "^5.0.1",
-    "stripe": "^11.1.0"
+    "stripe": "^11.3.0"
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
