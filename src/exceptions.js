@@ -40,6 +40,20 @@ export class PasswordlessUserException extends Error {
     }
 }
 
+export class UserAlreadyExistsException extends Error {
+    /**
+     * Creates a new UserAlreadyExistsException class.
+     * @author Arnau Mora
+     * @since 20221212
+     * @param {string} message
+     * @param conflictType
+     */
+    constructor(message, conflictType) {
+        super(message);
+        this.name = 'UserAlreadyExistsException';
+    }
+}
+
 export class WrongPasswordException extends Error {
     constructor(message) {
         super(message);
