@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   api:
-    image: arnyminerz/mic_manager:development
+    build: .
     container_name: mic_api
     restart: unless-stopped
     networks:
