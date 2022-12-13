@@ -71,6 +71,8 @@ const KeysAndValues = [
     {key: 'FIREFLY_HOST', type: TYPE_STRING, generator: 'firefly', accepts: ACCEPTS_ALL},
     {key: 'FIREFLY_PORT', type: TYPE_NUMBER, generator: 8080, accepts: ACCEPTS_ALL},
     {key: 'STRIPE_SECRET', type: TYPE_STRING, generator: null, accepts: ACCEPTS_ALL},
+    {key: 'BRAND_NAME', type: TYPE_STRING, generator: 'MiC Manager', accepts: ACCEPTS_ALL},
+    {key: 'BRAND_ICON', type: TYPE_STRING, generator: 'logo.svg', accepts: ACCEPTS_ALL},
 ];
 
 let loadedConfig;
