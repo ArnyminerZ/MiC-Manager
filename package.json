@@ -17,7 +17,7 @@
   "dependencies": {
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.1",
-    "compare-versions": "^5.0.1",
+    "compare-versions": "^5.0.3",
     "cors": "^2.8.5",
     "dateformat": "^5.0.3",
     "dotenv": "^16.0.3",
@@ -28,7 +28,7 @@
     "mariadb": "^3.0.1",
     "request-ip": "^3.3.0",
     "sharp": "^0.31.2",
-    "stripe": "^11.1.0",
+    "stripe": "^11.3.0",
     "tsdav": "^2.0.3",
     "uuid": "^9.0.0"
   },
@@ -39,7 +39,7 @@
     "chai-arrays": "^2.2.0",
     "chai-http": "^4.3.0",
     "cli-progress": "^3.11.2",
-    "mocha": "^10.1.0",
+    "mocha": "^10.2.0",
     "mssql": "^9.0.1",
     "nyc": "^15.1.0",
     "puppeteer": "^19.4.0",
