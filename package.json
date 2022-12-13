@@ -17,6 +17,7 @@
   "dependencies": {
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.1",
+    "checksum": "^1.0.0",
     "compare-versions": "^5.0.3",
     "cors": "^2.8.5",
     "dateformat": "^5.0.3",
