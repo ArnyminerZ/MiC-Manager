@@ -35,6 +35,15 @@ const fileChecksum = (path, options = {}) => new Promise((resolve, reject) => {
 });
 
 /**
+ * Returns the size of the given file.
+ * @author Arnau Mora
+ * @since 20221213
+ * @param {string} path The path of the file to get the size of.
+ * @return {Promise<number>}
+ */
+const fileSize = async (path) => (await fsp.stat(path)).size;
+
+/**
  * Gets the path of the given file inside the assets directory.
  * @author Arnau Mora
  * @since 20221213
@@ -52,7 +61,19 @@ const asset = file => path.join(__dirname, 'assets', file);
  */
 const generated = file => path.join(__dirname, 'assets', '.generated', file);
 
+/**
+ * Stores the checksum of all the available asset files.
+ * @since 20221213
+ * @type {Object.<string, string>}
+ */
 let hashes = {};
+
+/**
+ * Stores the size of all the available asset files.
+ * @since 20221213
+ * @type {Object.<string, number>}
+ */
+let sizes = {};
 
 /**
  * @callback FileGenerator
@@ -129,6 +150,11 @@ const hashFiles = async () => {
     hashes['icon'] = await fileChecksum(iconPath);
     hashes['banner'] = await fileChecksum(bannerPath);
     hashes['favicon'] = await fileChecksum(faviconPath);
+
+    log('Storing size of all the asset files...');
+    sizes['icon'] = await fileSize(iconPath);
+    sizes['banner'] = await fileSize(bannerPath);
+    sizes['favicon'] = await fileSize(faviconPath);
 };
 
 /**
@@ -154,14 +180,17 @@ export const branding = (req, res) => {
             icon: {
                 path: '/branding/icon',
                 checksum: hashes['icon'],
+                size: sizes['icon'],
             },
             favicon: {
                 path: '/branding/favicon',
                 checksum: hashes['favicon'],
+                size: sizes['favicon'],
             },
             banner: {
                 path: '/branding/banner',
                 checksum: hashes['banner'],
+                size: sizes['banner'],
             },
         },
     }));
