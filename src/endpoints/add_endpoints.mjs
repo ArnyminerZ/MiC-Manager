@@ -4,11 +4,18 @@ import {infoEndpoints} from "./info.mjs";
 import {auth, changePassword, data, newUser} from "./user.js";
 import {create, join, list, setMenu} from "./events.js";
 import {errorResponse} from "../response.js";
+import {assets, branding} from "./branding.mjs";
 
+/**
+ * @param {import('express').core.Express} app
+ * @param {string[]} props
+ */
 export const addEndpoints = (app, props) => {
     // Regular endpoints
     app.get('/ping', (req, res) => res.status(200).type('text/plain').send('pong'));
     app.get('/v1/info', infoEndpoints);
+    app.get('/v1/branding', branding);
+    app.get('/v1/branding/:resource', assets);
     app.post('/v1/user/auth', auth);
     app.get('/v1/user/data', data);
     app.post('/v1/user/change_password', changePassword);
