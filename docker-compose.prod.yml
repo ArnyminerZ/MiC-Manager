@@ -1,4 +1,6 @@
 services:
+  mic_interface:
+    image: arnyminerz/mic_manager:development
   radicale:
     init: true
     read_only: true
