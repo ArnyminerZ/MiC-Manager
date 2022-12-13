@@ -39,7 +39,7 @@
     "chai-arrays": "^2.2.0",
     "chai-http": "^4.3.0",
     "cli-progress": "^3.11.2",
-    "mocha": "^10.1.0",
+    "mocha": "^10.2.0",
     "mssql": "^9.0.1",
     "nyc": "^15.1.0",
     "puppeteer": "^19.4.0",
