@@ -22,8 +22,9 @@ export const branding = (req, res) => {
     res.json(successResponse({
         name: process.env.BRAND_NAME,
         assets: {
-            icon: '/v1/branding/icon',
-            favicon: '/v1/branding/favicon',
+            icon: '/branding/icon',
+            favicon: '/branding/favicon',
+            banner: '/branding/banner',
         },
     }));
 };
@@ -41,6 +42,7 @@ export const assets = async (req, res) => {
     const resource = params.resource;
 
     const iconPath = path.join(__dirname, 'assets', process.env.BRAND_ICON);
+    const bannerPath = path.join(__dirname, 'assets', process.env.BRAND_BANNER);
 
     switch (resource) {
         case 'icon':
@@ -52,6 +54,13 @@ export const assets = async (req, res) => {
                 .resize(64, 64)
                 .toBuffer();
             res.type('image/png').send(favicon);
+            break;
+        case 'banner':
+            const banner = await sharp(bannerPath)
+                .png()
+                .resize(1080, 400)
+                .toBuffer();
+            res.type('image/png').send(banner);
             break;
         default:
             res.status(404).send(errorResponse('not-found', `Could not find the requested asset: '${resource}'`));

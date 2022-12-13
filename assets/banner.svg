@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1080"
+   height="400"
+   viewBox="0 0 285.74999 105.83334"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="banner.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="px"
+     showgrid="false"
+     units="px"
+     width="1080px"
+     inkscape:zoom="0.73139029"
+     inkscape:cx="467.6026"
+     inkscape:cy="218.76145"
+     inkscape:window-width="1920"
+     inkscape:window-height="1007"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Capa 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       inkscape:label="MiC Manager"
+       id="layer1-5"
+       transform="matrix(0.12978576,0,0,0.12978576,18.944831,19.691513)">
+      <g
+         id="g2026"
+         inkscape:label="background">
+        <rect
+           style="fill:#f2f2f2;stroke-width:2.53416"
+           id="rect846"
+           width="512"
+           height="512"
+           x="0"
+           y="0"
+           inkscape:label="background-color" />
+        <rect
+           style="fill:#aa0000;fill-opacity:1;stroke:none;stroke-width:2.53984"
+           id="rect2498"
+           width="512"
+           height="80"
+           x="0"
+           y="304.66162"
+           inkscape:label="cross-horizontal" />
+        <rect
+           style="fill:#aa0000;fill-opacity:1;stroke:none;stroke-width:2.53984"
+           id="rect2376"
+           width="80"
+           height="512"
+           x="319.23706"
+           y="0"
+           inkscape:label="cross-vertical" />
+      </g>
+      <g
+         id="g2029"
+         inkscape:label="overlay">
+        <path
+           style="fill:#07650d;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 0,0 V 409.6 L 512,102.4 V 0 H 0"
+           id="path1115"
+           inkscape:label="overlay-color" />
+        <path
+           id="rect2253"
+           style="fill:#ebcb16;fill-opacity:1;stroke:none;stroke-width:1.90488"
+           inkscape:label="moon"
+           d="m 177.40039,102.40039 c -41.55,0 -75,33.45 -75,75 0,41.55 33.45,75 75,75 18.5886,0 35.54283,-6.71006 48.61914,-17.83008 -7.30726,2.98279 -15.30803,4.63672 -23.71289,4.63672 -34.625,0 -62.5,-27.875 -62.5,-62.5 0,-34.625 27.875,-62.5 62.5,-62.5 7.19313,0 14.08671,1.21892 20.50781,3.43555 -12.58996,-9.56666 -28.31158,-15.24219 -45.41406,-15.24219 z" />
+      </g>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:28.2222px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="99.227852"
+       y="60.144474"
+       id="text2542"
+       inkscape:label="text"><tspan
+         sodipodi:role="line"
+         id="tspan2540"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.2222px;font-family:FreeSans;-inkscape-font-specification:FreeSans;stroke-width:0.264583"
+         x="99.227852"
+         y="60.144474">MiC Manager</tspan></text>
+  </g>
+</svg>
