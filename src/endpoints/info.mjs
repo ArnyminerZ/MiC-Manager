@@ -29,12 +29,15 @@ export const infoEndpoints = async (req, res) => {
         if (unauthorised) return res.json(successResponse({database}));
 
         const version = packageJson.version;
+
+        // Get the latest version information from GitHub
         let latestRelease;
         try {
             latestRelease = await getLatestRelease();
-        }catch (err) {
+        } catch (err) {
             error('Could not get latest version information. Error:', err);
         }
+
         const newVersion = latestRelease != null ? compareVersion(latestRelease, version, '>') : null;
         res.json(successResponse({database, version: {name: version, update: newVersion}}));
     } catch (e) {
