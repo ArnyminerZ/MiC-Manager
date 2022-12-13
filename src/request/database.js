@@ -233,6 +233,7 @@ export const dbInfo = async () => {
                               FROM mInfo`);
     return {
         version: info.find(v => v.Id === 1)?.Value,
+        registration: info.find(v => v.Id === 2)?.Value === '1',
     };
 }
 
