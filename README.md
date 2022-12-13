@@ -33,6 +33,12 @@ FIREFLY_HOST=localhost FIREFLY_PORT=8080 SCREENSHOTS_DIR=/home/arnyminerz/GitPro
 docker-compose up -d
 ```
 
+# Asset files
+There's a folder called `/assets`, this is where all the branding files are stored. There are matching config options
+for each file type. Currently, there's no officially supported way of mapping this files in Docker.
+
+When booting, it's checked that all of them are correct and ready. If they are modified, the server needs to restart.
+
 # Migration
 
 ## GesTro
