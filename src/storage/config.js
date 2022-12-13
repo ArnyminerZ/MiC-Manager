@@ -4,6 +4,7 @@ import path from "path";
 import {__dirname} from '../utils.mjs';
 import {error, info} from "../../cli/logger.js";
 import {faker} from "@faker-js/faker";
+import {IllegalConfigParameterError, InvalidConfigurationError, MissingConfigParameterError} from "../exceptions.js";
 
 export const GENERATE_RANDOM_USERNAME = -1000;
 export const GENERATE_RANDOM_PASSWORD = -1001;
@@ -14,6 +15,13 @@ export const ACCEPTS_ALL = -2000;
 export const TYPE_STRING = 'string';
 export const TYPE_NUMBER = 'number';
 export const TYPE_BOOLEAN = 'boolean';
+/**
+ * @returns {TypeFile}
+ * @constructor
+ */
+export const TYPE_FILE = (baseDir) => {
+    return { baseDir };
+};
 
 /**
  * @typedef {Object} AcceptsRange
@@ -22,6 +30,12 @@ export const TYPE_BOOLEAN = 'boolean';
  */
 
 /** @typedef {GENERATE_RANDOM_USERNAME|GENERATE_RANDOM_PASSWORD|GENERATE_RANDOM_UUID} Generator */
+
+/**
+ * @typedef {Object} TypeFile
+ * @since 20221213
+ * @property {string} baseDir The base directory in which to find this file.
+ */
 
 /**
  * @typedef {Object} StringConfig
@@ -48,8 +62,17 @@ export const TYPE_BOOLEAN = 'boolean';
  */
 
 /**
+ * @typedef {Object} FileConfig
+ * @property {string} key
+ * @property {TypeFile} type An instance of `TYPE_FILE`
+ * @property {string} generator The name of the file.
+ * @property {ACCEPTS_ALL|string[]} accepts
+ * @see {TYPE_FILE}
+ */
+
+/**
  * Stores all the available configuration options.
- * @type {(StringConfig|NumberConfig|BooleanConfig)[]}
+ * @type {(StringConfig|NumberConfig|BooleanConfig|FileConfig)[]}
  */
 const KeysAndValues = [
     {key: 'LOG_LEVEL', type: TYPE_STRING, generator: 'warn', accepts: ['debug', 'info', 'warn', 'error']},
@@ -72,8 +95,8 @@ const KeysAndValues = [
     {key: 'FIREFLY_PORT', type: TYPE_NUMBER, generator: 8080, accepts: ACCEPTS_ALL},
     {key: 'STRIPE_SECRET', type: TYPE_STRING, generator: null, accepts: ACCEPTS_ALL},
     {key: 'BRAND_NAME', type: TYPE_STRING, generator: 'MiC Manager', accepts: ACCEPTS_ALL},
-    {key: 'BRAND_ICON', type: TYPE_STRING, generator: 'logo.svg', accepts: ACCEPTS_ALL},
-    {key: 'BRAND_BANNER', type: TYPE_STRING, generator: 'banner.svg', accepts: ACCEPTS_ALL},
+    {key: 'BRAND_ICON', type: TYPE_FILE('assets'), generator: 'logo.svg', accepts: ACCEPTS_ALL},
+    {key: 'BRAND_BANNER', type: TYPE_FILE('assets'), generator: 'banner.svg', accepts: ACCEPTS_ALL},
 ];
 
 let loadedConfig;
@@ -160,26 +183,21 @@ export const load = () => {
                 const value = config[key];
                 if (type === TYPE_NUMBER) {
                     const int = parseInt(value);
-                    if (isNaN(int)) {
-                        error(`Invalid configuration for`, key);
-                        error('Reason: expected type', type, 'and got NaN');
-                    }
+                    if (isNaN(int))
+                        throw new IllegalConfigParameterError(key, `Expected type ${type} and got NaN`);
                 } else if (type === TYPE_BOOLEAN) {
                     const valid = ['true','false','0','1','yes','no'].includes(value.toString().toLowerCase());
-                    if (!valid) {
-                        error(`Invalid configuration for`, key);
-                        error('Reason: expected a boolean value and got', value);
-                    }
-                } else if (typeof value !== type) {
-                    error(`Invalid configuration for`, key);
-                    error('Reason: expected type', type, 'and got', typeof value);
-                    throw Error();
-                }
-                if (!checkValueIntegrity(value, accepts)) {
-                    error(`Invalid configuration for`, key);
-                    error(`Reason: the value "${value}" doesn't match the given predicate:`, accepts);
-                    throw Error();
-                }
+                    if (!valid)
+                        throw new IllegalConfigParameterError(key, `Expected a boolean value and got ${value}`);
+                } else if (type.hasOwnProperty('baseDir')) { // TYPE_FILE
+                    const fullPath = path.join(__dirname, type.baseDir, value);
+                    const valid = fs.existsSync(fullPath);
+                    if (!valid)
+                        throw new IllegalConfigParameterError(key, `The given file does not exist. Path: ${fullPath}`);
+                } else if (typeof value !== type)
+                    throw new IllegalConfigParameterError(key, `Expected type ${type} and got ${typeof value}`);
+                if (!checkValueIntegrity(value, accepts))
+                    throw new IllegalConfigParameterError(key, `The value "${value}" doesn't match the given predicate: ${accepts}`);
             } else {
                 // If no value given, generate one, or drop
                 generatedKeys.push(key);
@@ -195,9 +213,7 @@ export const load = () => {
                         break;
                     case null:
                     case undefined:
-                        error(`Invalid configuration for`, key);
-                        error(`Reason: the field is required, and any value has been set.`);
-                        throw Error();
+                        throw new MissingConfigParameterError(key, 'The field is required, but any value has been set.');
                     default:
                         config[key] = generator;
                         break;
