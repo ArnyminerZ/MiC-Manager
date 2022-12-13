@@ -4,17 +4,19 @@
  * @file bootup.mjs
  */
 
-import {load as loadConfig} from "./storage/config.js";
-import {checkFiles, checkVariables, getProps} from "./environment.js";
-import {error, info, infoSuccess} from "../cli/logger.js";
-import {check as dbCheck} from "./request/database.js";
 import {SqlError} from "mariadb";
-import {createClient as calCreateClient, getAddressBookUrl, getCards} from "./request/caldav.js";
-import {check as checkFirefly} from "./monetary/firefly.js";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import reqIp from "request-ip";
 import bodyParser from "body-parser";
+import cors from 'cors';
+
+import {load as loadConfig} from "./storage/config.js";
+import {checkFiles, checkVariables, getProps} from "./environment.js";
+import {error, info, infoSuccess} from "../cli/logger.js";
+import {check as dbCheck} from "./request/database.js";
+import {createClient as calCreateClient, getAddressBookUrl, getCards} from "./request/caldav.js";
+import {check as checkFirefly} from "./monetary/firefly.js";
 import {addEndpoints} from "./endpoints/add_endpoints.mjs";
 
 /**
@@ -101,6 +103,7 @@ export const bootServer = () => {
     app.use(bodyParser.json({strict: false}));
     app.use(bodyParser.urlencoded({extended: true}));
     app.use(limiter);
+    app.use(cors());
 
     addEndpoints(app, props);
 
