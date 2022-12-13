@@ -1,9 +1,9 @@
 version: '3.7'
 
 services:
-  mic_interface:
+  api:
     image: arnyminerz/mic_manager:development
-    container_name: mic_interface
+    container_name: mic_api
     restart: unless-stopped
     networks:
       - backend
