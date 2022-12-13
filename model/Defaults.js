@@ -18,6 +18,8 @@ const insertIfNotExists = (table, pairs) => {
 export const InsertInfo = [
     // Database version
     insertIfNotExists('mInfo', {Id: 1, Value: '1'}),
+    // Registration enabled
+    insertIfNotExists('mInfo', {Id: 2, Value: '1'}),
 ];
 
 export const InsertDefaultRoles = [
