@@ -123,3 +123,24 @@ export class FireflyApiException extends Error {
         this.name = 'FireflyApiException';
     }
 }
+
+export class InvalidConfigurationError extends Error {
+    constructor(key, reason) {
+        super(`Invalid configuration for "${key}".\nReason: ${reason}`);
+        this.name = 'InvalidConfigurationError';
+    }
+}
+
+export class IllegalConfigParameterError extends InvalidConfigurationError {
+    constructor(key, reason) {
+        super(key, reason);
+        this.name = 'IllegalConfigParameterError';
+    }
+}
+
+export class MissingConfigParameterError extends InvalidConfigurationError {
+    constructor(key, reason) {
+        super(key, reason);
+        this.name = 'MissingConfigParameterError';
+    }
+}
