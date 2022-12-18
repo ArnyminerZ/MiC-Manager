@@ -43,7 +43,7 @@
     "mocha": "^10.2.0",
     "mssql": "^9.0.1",
     "nyc": "^15.1.0",
-    "puppeteer": "^19.4.0",
+    "puppeteer": "^19.4.1",
     "testcontainers": "^9.1.0"
   }
 }
