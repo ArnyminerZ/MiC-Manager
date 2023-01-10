@@ -24,7 +24,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-rate-limit": "^6.7.0",
-    "fast-xml-parser": "^4.0.12",
+    "fast-xml-parser": "^4.0.13",
     "jsonwebtoken": "^9.0.0",
     "mariadb": "^3.0.1",
     "request-ip": "^3.3.0",
