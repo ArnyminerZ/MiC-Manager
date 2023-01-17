@@ -41,7 +41,7 @@
     "chai-http": "^4.3.0",
     "cli-progress": "^3.11.2",
     "mocha": "^10.2.0",
-    "mssql": "^9.0.1",
+    "mssql": "^9.1.0",
     "nyc": "^15.1.0",
     "puppeteer": "^19.5.2",
     "testcontainers": "^9.1.1"
