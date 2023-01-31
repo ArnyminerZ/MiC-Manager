@@ -77,7 +77,7 @@ services:
       - ./radicale-config:/config:ro
 
   firefly:
-    image: fireflyiii/core
+    image: fireflyiii/core:version-5.7.18
     container_name: mic_firefly
     restart: unless-stopped
     depends_on:
