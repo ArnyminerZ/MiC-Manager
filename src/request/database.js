@@ -1,5 +1,4 @@
 import mariadb, {SqlError} from 'mariadb';
-import dotenv from 'dotenv';
 import fs from 'fs';
 
 import {
@@ -38,8 +37,6 @@ import {
 } from "../../model/Defaults.js";
 import {error, info, log} from '../../cli/logger.js';
 import {isNumber} from "../utils.mjs";
-
-dotenv.config();
 
 /** @type {mariadb.PoolConnection} */
 let conn;
@@ -90,7 +87,7 @@ const connect = async (debug = false) => {
         conn = await pool.getConnection();
     } catch (e) {
         if (debug) error(e, 'Database Host:', serverConfig.host, 'User:', serverConfig.user);
-        if (e instanceof mariadb.SqlError)
+        if (e instanceof SqlError)
             if (e.code === 'ER_TABLEACCESS_DENIED_ERROR')
                 throw new SqlPermissionException(e.text);
             else if (e.code === 'ER_ACCESS_DENIED_ERROR')

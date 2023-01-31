@@ -5,7 +5,7 @@
  * @file environment.js
  */
 
-import {EnvironmentVariableException} from "./exceptions.js";
+import {EnvironmentVariableError} from "./exceptions.js";
 import {isNumber} from "./utils.mjs";
 import fs from "fs";
 import {error} from "../cli/logger.js";
@@ -14,6 +14,7 @@ import {error} from "../cli/logger.js";
  * Checks that all the required environment variables are set, and have valid values.
  * @author Arnau Mora
  * @since 20221103
+ * @throws {EnvironmentVariableError} If there's one or more missing environment variables.
  */
 export const checkVariables = () => {
   const HTTP_PORT = process.env.HTTP_PORT;
@@ -24,19 +25,21 @@ export const checkVariables = () => {
     process.env.HTTP_PORT = '3000';
   }
 
+  let missingVariables = [];
+
   const dbHost = process.env.DB_HOSTNAME;
   const dbUser = process.env.DB_USERNAME;
   const dbPass = process.env.DB_PASSWORD;
   const dbPassFile = process.env.DB_PASSWORD_FILE;
   const dbName = process.env.DB_DATABASE;
   if (dbHost == null)
-    throw new EnvironmentVariableException("DB_HOSTNAME was not set.");
+    missingVariables.push('DB_HOSTNAME');
   if (dbUser == null)
-    throw new EnvironmentVariableException("DB_USERNAME was not set.");
+    missingVariables.push('DB_USERNAME');
   if (dbPass == null && dbPassFile == null)
-    throw new EnvironmentVariableException("DB_PASSWORD and DB_PASSWORD_FILE were not set.");
+    missingVariables.push('DB_PASSWORD', 'DB_PASSWORD_FILE');
   if (dbName == null)
-    throw new EnvironmentVariableException("DB_DATABASE was not set.");
+    missingVariables.push('DB_DATABASE');
 
   const calHost = process.env.CALDAV_HOSTNAME;
   const calPort = process.env.CALDAV_PORT;
@@ -45,13 +48,13 @@ export const checkVariables = () => {
   const calPass = process.env.CALDAV_PASSWORD;
   const calAb = process.env.CALDAV_AB_UUID;
   if (calHost == null)
-    throw new EnvironmentVariableException("CALDAV_HOSTNAME was not set.");
+    missingVariables.push('CALDAV_HOSTNAME');
   if (calUser == null)
-    throw new EnvironmentVariableException("CALDAV_USERNAME was not set.");
+    missingVariables.push('CALDAV_USERNAME');
   if (calPass == null)
-    throw new EnvironmentVariableException("CALDAV_PASSWORD was not set.");
+    missingVariables.push('CALDAV_PASSWORD');
   if (calAb == null)
-    throw new EnvironmentVariableException("CALDAV_AB_UUID was not set.");
+    missingVariables.push('CALDAV_AB_UUID');
   if (calPort == null) process.env.CALDAV_PORT = '5232';
   if (calSsl == null) process.env.CALDAV_SSL_ENABLE = 'false';
 
@@ -59,11 +62,11 @@ export const checkVariables = () => {
   const fireflyPort = process.env.FIREFLY_PORT;
   const fireflyToken = process.env.FIREFLY_TOKEN_FILE;
   if (fireflyHost == null)
-    throw new EnvironmentVariableException("FIREFLY_HOST was not set.");
+    missingVariables.push('FIREFLY_HOST');
   if (fireflyPort == null)
-    throw new EnvironmentVariableException("FIREFLY_PORT was not set.");
+    missingVariables.push('FIREFLY_PORT');
   if (fireflyToken == null)
-    throw new EnvironmentVariableException("FIREFLY_TOKEN_FILE was not set.");
+    missingVariables.push('FIREFLY_TOKEN_FILE');
 
   const billingDay = parseInt(process.env.BILLING_CYCLE_DAY);
   const billingMonth = parseInt(process.env.BILLING_CYCLE_MONTH);
@@ -72,7 +75,10 @@ export const checkVariables = () => {
 
   const stripeSecret = parseInt(process.env.STRIPE_SECRET);
   if (stripeSecret == null)
-    throw new EnvironmentVariableException("STRIPE_SECRET was not set.");
+    missingVariables.push('STRIPE_SECRET');
+
+  if (missingVariables.length > 0)
+    throw new EnvironmentVariableError("Missing environment variables:", missingVariables.join(', '));
 };
 
 /**

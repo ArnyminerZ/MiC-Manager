@@ -68,7 +68,7 @@ export class InvalidTokenException extends Error {
     }
 }
 
-export class EnvironmentVariableException extends Error {
+export class EnvironmentVariableError extends Error {
     constructor(message) {
         super(message);
         this.name = 'EnvironmentVariableException';
@@ -128,6 +128,13 @@ export class InvalidConfigurationError extends Error {
     constructor(key, reason) {
         super(`Invalid configuration for "${key}".\nReason: ${reason}`);
         this.name = 'InvalidConfigurationError';
+    }
+}
+
+export class ConfigurationParseError extends ParseException {
+    constructor(lineNumber, line, reason) {
+        super(`Invalid configuration at line #${lineNumber}: ${line}.\nReason: ${reason}`);
+        this.name = 'ConfigurationParseError';
     }
 }
 
