@@ -7,6 +7,7 @@
 import {SqlError} from "mariadb";
 import express from "express";
 import rateLimit from "express-rate-limit";
+import { createProxyMiddleware } from "http-proxy-middleware";
 import reqIp from "request-ip";
 import bodyParser from "body-parser";
 import cors from 'cors';
@@ -35,7 +36,7 @@ export const bootEnvironment = () => {
  * everything is up and running.
  * @author Arnau Mora
  * @since 20221212
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
 export const bootDatabase = async () => {
     info(`Checking database...`);
@@ -47,24 +48,28 @@ export const bootDatabase = async () => {
         else
             error('Error:', dbCheckResult);
         process.exit(1);
+        return false;
     } else
         infoSuccess(`Database connected.`);
+    return true;
 };
 
 /**
  * Checks that the CalDAV server is up and running correctly, and creates any necessary collections if necessary.
  * @author Arnau Mora
  * @since 20221212
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
 export const bootCaldav = async () => {
     info(`Checking CalDAV server...`);
     if (!(await calCreateClient())) {
         error(`Could not connect to the CalDAV server.`)
         process.exit(1);
+        return false;
     }
     await getCards();
     infoSuccess(`CalDAV server ready. AB Url:`, getAddressBookUrl());
+    return true;
 };
 
 /**
@@ -104,6 +109,12 @@ export const bootServer = () => {
     app.use(bodyParser.urlencoded({extended: true}));
     app.use(limiter);
     app.use(cors());
+
+    // Redirect all oauth requests to the Firefly authorizer
+    app.use('/oauth', createProxyMiddleware('/oauth', {
+        target: `http://${process.env.FIREFLY_HOST}:${parseInt(process.env.FIREFLY_PORT)}`,
+        changeOrigin: true,
+    }));
 
     addEndpoints(app, props);
 
