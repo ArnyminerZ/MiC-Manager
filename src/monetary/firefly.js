@@ -9,7 +9,7 @@ import {error, info, infoSuccess, log, warn} from "../../cli/logger.js";
 import packageJson from '../../package.json' assert {type: 'json'};
 import {getAllUsers as getAllRegisteredUsers} from "../data/users.js";
 import {UserNotFoundException} from "../exceptions.js";
-import {delay, pathExists} from "../utils.mjs";
+import {delay, pad, pathExists} from "../utils.mjs";
 
 /**
  * @typedef {Object} FireflyAbout
@@ -189,10 +189,10 @@ const put = (endpoint, body) => request('PUT', endpoint, body);
  * Initializes the Firefly server, and fetches the default access token.
  * @author Arnau Mora
  * @since 20221212
- * @param {string} email The email to give to the default user.
- * @param {string} password The password to give to the default user.
+ * @param {string|null} email The email to give to the default user.
+ * @param {string|null} password The password to give to the default user.
  * @param {string} secretsDir The directory where all the secrets are stored.
- * @param {?string>} screenshotsDir The directory where to store screenshots. Can be null, and no screenshots will
+ * @param {string|null} screenshotsDir The directory where to store screenshots. Can be null, and no screenshots will
  * be made.
  * @param {'http:','https:'} protocol The protocol to use for making the requests.
  * @param {string} hostname The hostname associated with the Firefly server.
@@ -208,9 +208,15 @@ export const configure = async (
     port = process.env.FIREFLY_PORT,
 ) => {
     const tokenFile = path.join(secretsDir, 'firefly-token.txt');
+    const oAuthSecretFile = path.join(secretsDir, 'firefly-oauth-secret.txt');
+    const fireflyUserEmailFile = path.join(secretsDir, 'firefly-user-email.txt');
+    const fireflyUserPasswordFile = path.join(secretsDir, 'firefly-user-password.txt');
 
-    if (await pathExists(tokenFile))
+    if (await pathExists(tokenFile) && await pathExists(oAuthSecretFile))
         return log('Won\'t configure Firefly since already loaded.');
+
+    const fireflyEmail = email ?? (await fsp.readFile(fireflyUserEmailFile)).toString();
+    const fireflyPassword = password ?? (await fsp.readFile(fireflyUserPasswordFile)).toString();
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -238,40 +244,98 @@ export const configure = async (
         await page.type(selector, text);
     };
 
-    await page.setViewport({ width: 1280, height: 720 });
+    await page.setViewport({width: 1280, height: 720});
+
+    // Try registering
     await page.goto(`${fireflyServer}/register`);
+    const alreadyRegistered = await page.evaluate(selector => document.querySelector(selector), 'form') == null;
+    if (!alreadyRegistered) {
+        info('Registering...');
 
-    await page.waitForSelector('form');
-    await page.type('input[name="email"]', email);
-    await page.type('input[name="password"]', password);
-    await page.type('input[name="password_confirmation"]', password);
-    await takeScreenshot('registration');
-    await page.click('button');
-    await page.waitForNavigation();
+        await page.waitForSelector('form');
+        await page.type('input[name="email"]', fireflyEmail);
+        await page.type('input[name="password"]', fireflyPassword);
+        await page.type('input[name="password_confirmation"]', fireflyPassword);
+        await takeScreenshot('1_registration');
+        await page.click('button');
+        await page.waitForNavigation();
+    } else {
+        log('Registration not needed. Trying to log in...');
 
-    await page.goto(`${fireflyServer}/login`);
-    await page.goto(`${fireflyServer}/profile`);
+        await page.goto(`${fireflyServer}/login`);
+        await page.waitForSelector('form');
+        await page.type('input[name="email"]', fireflyEmail);
+        await page.type('input[name="password"]', fireflyPassword);
+        await takeScreenshot('1_login');
+        await page.click('button');
+        await page.waitForNavigation();
+    }
 
-    await takeScreenshot('profile');
+    if (!(await pathExists(tokenFile))) {
+        info('Creating Access Token...');
 
-    await waitAndClick('.nav.nav-tabs li:nth-of-type(3)');
-    await waitAndClick('#oauth div:has(> #modal-create-token) a.btn');
+        await page.goto(`${fireflyServer}/profile`);
 
-    await page.waitForSelector('#modal-create-token[style="display: block;"]');
-    await delay(200);
-    await waitAndType('#modal-create-token input[name="name"]', 'MiC-Manager');
-    await takeScreenshot('create_token_modal');
-    await waitAndClick('#modal-create-token .btn-primary');
+        await takeScreenshot('2_profile');
 
-    await page.waitForSelector('#modal-access-token[style="display: block;"]');
-    await delay(200);
-    await takeScreenshot('token_modal');
-    const token = await page.evaluate(selector => document.querySelector(selector).value, '#modal-access-token textarea');
+        await waitAndClick('.nav.nav-tabs li:nth-of-type(3)');
+        await waitAndClick('#oauth div:has(> #modal-create-token) a.btn');
 
-    // await page.click('Create new token');
-    await fsp.writeFile(tokenFile, token)
+        await page.waitForSelector('#modal-create-token[style="display: block;"]');
+        await delay(200);
+        await waitAndType('#modal-create-token input[name="name"]', 'MiC-Manager');
+        await takeScreenshot('3_create_token_modal');
+        await waitAndClick('#modal-create-token .btn-primary');
 
-    await browser.close()
+        await page.waitForSelector('#modal-access-token[style="display: block;"]');
+        await delay(200);
+        await takeScreenshot('4_token_modal');
+
+        const token = await page.evaluate(selector => document.querySelector(selector).value, '#modal-access-token textarea');
+        await fsp.writeFile(tokenFile, token);
+
+        // Close the dialog
+        await waitAndClick('#modal-access-token .btn-secondary');
+        await delay(200);
+    } else
+        log('Access token already generated.');
+
+    if (!(await pathExists(oAuthSecretFile))) {
+        info('Creating OAuth Token...');
+
+        // Access the profile page
+        await page.goto(`${fireflyServer}/profile`);
+
+        // Go to the oAuth page
+        await waitAndClick('.nav.nav-tabs li:nth-of-type(3)');
+
+        // Press the "Create New Client" button
+        await waitAndClick('#oauth div:has(> #modal-create-client) a.btn');
+        await delay(200);
+
+        // Introduce all the data
+        await waitAndType('#create-client-name', 'MiC-Manager');
+        await waitAndType('#modal-create-client input[name="redirect"]', 'http://empty');
+        await takeScreenshot('5_oauth_client');
+
+        // Click the create button
+        await waitAndClick('#modal-create-client .btn-primary');
+        await delay(2000);
+        await takeScreenshot('6_oauth_page');
+
+        // Get the oAuth secret and store in the file
+        const oAuthSecret = await page.evaluate(function () {
+            const row = document.querySelector('#oauth .row:nth-of-type(1)')
+                .querySelector('tbody')
+                .querySelectorAll('tr')[0];
+            const values = [...row.querySelectorAll('td')].map(field => field.innerText);
+            return values[2];
+        });
+        await fsp.writeFile(oAuthSecretFile, oAuthSecret);
+    } else
+        log('OAuth token already generated.');
+
+    await browser.close();
 };
 
 /**
@@ -342,7 +406,7 @@ export const check = async () => {
                         type: 'asset',
                         account_role: 'defaultAsset',
                         opening_balance: '0.0',
-                        opening_balance_date: `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`,
+                        opening_balance_date: now,
                     },
                 );
                 infoSuccess('Created default account successfully.');
