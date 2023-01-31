@@ -103,6 +103,16 @@ const getToken = () => fs.readFileSync(process.env.FIREFLY_TOKEN_FILE).toString(
  * @return {Promise<Object|Array|{data:Object|Object[]}|string>}
  */
 const request = (method, endpoint, body, searchParams = null, isJson = true) => new Promise((resolve, reject) => {
+    /** @type {[string,*][]} */
+    const bodyEntries = body != null ? [...Object.entries(body)]
+            .map(function ([key, value], index) {
+                if (value instanceof Date)
+                    return [key, `${value.getUTCFullYear()}-${pad(value.getUTCMonth() + 1, 2)}-${pad(value.getUTCDate(), 2)}`];
+                else
+                    return [key, value];
+            })
+        : null;
+    const newBody = bodyEntries != null ? Object.fromEntries(bodyEntries) : null;
     const req = http.request({
         protocol: 'http:',
         host: process.env.FIREFLY_HOST,
@@ -114,7 +124,7 @@ const request = (method, endpoint, body, searchParams = null, isJson = true) => 
             'Accept': 'application/vnd.api+json',
             'Authorization': `Bearer ${getToken()}`,
             'Content-Type': 'application/json',
-            'Content-Length': body != null ? Buffer.byteLength(JSON.stringify(body)) : 0,
+            'Content-Length': newBody != null ? Buffer.byteLength(JSON.stringify(newBody)) : 0,
             'User-Agent': `MiC-Manager ${packageJson.version}`,
         },
     }, response => {
@@ -139,7 +149,7 @@ const request = (method, endpoint, body, searchParams = null, isJson = true) => 
             }
         });
     });
-    if (body != null) req.write(JSON.stringify(body));
+    if (newBody != null) req.write(JSON.stringify(newBody));
 
     log(`Firefly ${req.method} > ${req.protocol}//${req.host}${req.path}`);
     req.end();
