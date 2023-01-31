@@ -25,11 +25,33 @@ Just as a note, the Radicale users match the server's registered users. You migh
 this purpose.
 
 # Getting started
-For the first run, access the project's directory, and run the following commands:
+MiC Manager uses [Firefly III](https://firefly-iii.org) for authorization and monetary management. You need to set it
+up before using the application. Don't worry because we have some scripts ready to make it as smooth as possible.
+
+The first thing to do is installing all the 
+
+First, generate some random keys and secrets with:
 ```shell
 node scripts/generate-files.js
+```
+_Note: you must have [Node JS](https://nodejs.org/) installed in the system._
+
+Feel free to change the files on `/secrets` if you want to. Note that `firefly-app-key.txt` must be exactly `32`
+characters long.
+
+Now, start the Firefly III container with:
+```shell
 docker-compose up -d firefly
-FIREFLY_HOST=localhost FIREFLY_PORT=8080 SCREENSHOTS_DIR=/home/arnyminerz/GitProjects/MiC-Manager/screenshots node scripts/configure-firefly.js
+```
+Wait a little so it boots up. You can check the progress with `docker logs mic_firefly`. Once it's ready, this command
+will configure the server for you:
+```shell
+FIREFLY_HOST=localhost FIREFLY_PORT=8080 SCREENSHOTS_DIR=$PWD/screenshots node scripts/configure-firefly.js
+```
+You may need to replace `FIREFLY_HOST` and `FIREFLY_PORT` if you have modified something from `docker-compose.yml`.
+
+If no error is shown, everything is ready to spin up the other containers. You can do it with:
+```shell
 docker-compose up -d
 ```
 

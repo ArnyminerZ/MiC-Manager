@@ -8,7 +8,7 @@ services:
     networks:
       - backend
     depends_on:
-      - mariadb
+      - db
       - radicale
       - firefly
     environment:
@@ -37,28 +37,26 @@ services:
     volumes:
       - server-keys:/usr/src/app/keys
 
-  mariadb:
+  db:
     image: linuxserver/mariadb
-    container_name: mic_mariadb
+    container_name: mic_database
     restart: unless-stopped
-    # TODO: Remove, just for testing
-    # ports:
-    #   - "3306:3306"
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Madrid
 
-      - MYSQL_USER=${DB_USERNAME}
-      - MYSQL_DATABASE=${DB_DATABASE}
-
+      - FILE__MYSQL_DATABASE=/run/secrets/db_database
+      - FILE__MYSQL_USER=/run/secrets/db_username
       - FILE__MYSQL_PASSWORD=/run/secrets/db_password
       - FILE__MYSQL_ROOT_PASSWORD=/run/secrets/db_root_password
     secrets:
+      - db_database
+      - db_username
       - db_password
       - db_root_password
     volumes:
-      - ./.docker/mariadb/config:/config
+      - database:/config
     networks:
       - backend
 
@@ -83,68 +81,55 @@ services:
     container_name: mic_firefly
     restart: unless-stopped
     depends_on:
-      - firefly_db
-      - firefly_cache
-    # TODO: Disable exposing ports
-    ports:
-      - "8080:8080"
+      - db
+      - cache
+    links:
+      - db
+      - cache
     networks:
       - backend
-      - firefly
     env_file: firefly.env
     environment:
       - APP_KEY_FILE=/run/secrets/firefly_app_key
-      - DB_HOST=firefly_db
-      - DB_DATABASE=firefly
-      - DB_USERNAME=firefly
-      - DB_PASSWORD_FILE=/run/secrets/firefly_db_password
+      # Database Configuration
+      - DB_HOST=db
+      - DB_DATABASE_FILE=/run/secrets/db_database
+      - DB_USERNAME_FILE=/run/secrets/db_username
+      - DB_PASSWORD_FILE=/run/secrets/db_password
+      # Redis Cache
+      - REDIS_HOST=cache
+      - REDIS_PORT=6379
+      - REDIS_USERNAME=
       - REDIS_PASSWORD=SRGjFe44zo4UaTqFm7UcZ6pcqeRG9PRw
+    ports:
+      - "8080:8080"
     volumes:
       - firefly_iii_upload:/var/www/html/storage/upload
     secrets:
       - firefly_app_key
-      - firefly_db_password
-  firefly_db:
-    image: mariadb
-    container_name: mic_firefly_db
-    restart: unless-stopped
-    networks:
-      - firefly
-    environment:
-      - MARIADB_USER=firefly
-      - MARIADB_DATABASE=firefly
-
-      - MARIADB_PASSWORD_FILE=/run/secrets/firefly_db_password
-      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/firefly_db_root_password
-    volumes:
-      - firefly_iii_db:/var/lib/mysql
-    secrets:
-      - firefly_db_password
-      - firefly_db_root_password
-  firefly_cache:
+      - db_database
+      - db_username
+      - db_password
+  cache:
     image: redis:6.2-alpine
-    container_name: mic_firefly_cache
+    container_name: mic_cache
     restart: unless-stopped
     networks:
-      - firefly
+      - backend
     command: redis-server --save 20 1 --loglevel warning --requirepass SRGjFe44zo4UaTqFm7UcZ6pcqeRG9PRw
     volumes:
-      - firefly_iii_cache:/data
+      - cache:/data
 
 networks:
   backend:
     driver: bridge
-  firefly:
-    driver: bridge
 
 volumes:
-  mariadb-data:
-    driver: local
+  database:
   server-keys:
     driver: local
   firefly_iii_upload:
-  firefly_iii_db:
-  firefly_iii_cache:
+  cache:
     driver: local
 
 secrets:
@@ -158,10 +143,6 @@ secrets:
     file: ./secrets/database.txt
   private_key:
     file: ./secrets/private.key
-  firefly_db_password:
-    file: ./secrets/firefly-password.txt
-  firefly_db_root_password:
-    file: ./secrets/firefly-root-password.txt
   firefly_app_key:
     file: ./secrets/firefly-app-key.txt
   firefly_token:
