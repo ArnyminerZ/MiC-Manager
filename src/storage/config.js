@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from "path";
 
 import {__dirname} from '../utils.mjs';
-import {error, info} from "../../cli/logger.js";
+import {info} from "../../cli/logger.js";
 import {faker} from "@faker-js/faker";
 import {
     ConfigurationParseError,
@@ -244,7 +244,9 @@ export const load = () => {
     loadedConfig = config;
 
     info('Exporting config to environment...');
-    for (const key in config) process.env[key] = config[key];
+    for (const key in config)
+        if (process.env[key] == null && process.env[key + "_FILE"] == null)
+            process.env[key] = config[key];
 
     info('Log level:', process.env.LOG_LEVEL);
 };
