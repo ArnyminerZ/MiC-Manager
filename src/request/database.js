@@ -45,19 +45,25 @@ let pool;
 
 export const escape = str => pool.escape(str);
 
-const getDatabasePassword = () => {
-    let dbPassword = process.env.DB_PASSWORD;
-    const dbPasswordFile = process.env.DB_PASSWORD_FILE;
-    if (dbPassword == null)
-        if (dbPasswordFile != null)
-            if (fs.existsSync(dbPasswordFile))
-                dbPassword = fs.readFileSync(dbPasswordFile);
+/**
+ * Gets the value of the environment variable named `name`, or the contents of the file at the environment variable
+ * `name_FILE`.
+ * @param {string} name The name of the environment variable.
+ * @return {string}
+ */
+const getEnvOrFile = (name) => {
+    const env = process.env[name];
+    const file = process.env[name + `_FILE`];
+    if (env == null)
+        if (file != null)
+            if (fs.existsSync(file))
+                return fs.readFileSync(file).toString();
             else
-                error(`The Database's password file is defined but doesn't exist:`, dbPasswordFile);
+                error(`File for ${name} is defined but doesn't exist:`, file);
         else
-            error(`It's required to give either DB_PASSWORD or DB_PASSWORD_FILE`);
-    return dbPassword;
-}
+            error(`It's required to give either ${name} or ${name}_FILE`);
+    return env
+};
 
 /**
  * Connects to the configured database.
@@ -68,14 +74,11 @@ const getDatabasePassword = () => {
  * @throws {SqlPermissionException} If the configured user is not authorised to use the database.
  */
 const connect = async (debug = false) => {
-    log(`Getting the database's password...`);
-    let dbPassword = getDatabasePassword();
-
     /** @type {mariadb.PoolConfig} */
     const serverConfig = {
-        host: process.env.DB_HOSTNAME,
-        user: process.env.DB_USERNAME,
-        password: dbPassword,
+        host: getEnvOrFile('DB_HOSTNAME'),
+        user: getEnvOrFile('DB_USERNAME'),
+        password: getEnvOrFile('DB_PASSWORD'),
         connectionLimit: 5,
         port: process.env.DB_PORT || 3306,
     };
@@ -98,96 +101,53 @@ const connect = async (debug = false) => {
 
 const disconnect = async () => await conn?.end();
 
-const createDBUser = async () => {
-    info('Creating user if it doesn\'t exist...');
-    const rootPassword = fs.readFileSync(process.env.DB_ROOT_PASSWORD_FILE);
-    const dbPassword = getDatabasePassword();
-
-    /** @type {mariadb.PoolConfig} */
-    const serverConfig = {
-        host: process.env.DB_HOSTNAME,
-        user: 'root',
-        password: rootPassword,
-        connectionLimit: 5,
-        port: process.env.DB_PORT || 3306,
-    };
-    try {
-        log('Logging in as root...');
-        pool = mariadb.createPool(serverConfig);
-        log('Connecting to the database...');
-        conn = await pool.getConnection();
-
-        log(`Creating database (${process.env.DB_DATABASE})...`);
-        await conn.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_DATABASE};`);
-        log(`Creating user (${process.env.DB_USERNAME})...`);
-        await conn.query(`CREATE USER IF NOT EXISTS '${process.env.DB_USERNAME}'@'%' IDENTIFIED BY '${dbPassword}';`);
-        log('Granting privileges...');
-        await conn.query(`GRANT ALL PRIVILEGES ON ${process.env.DB_DATABASE}.* TO '${process.env.DB_USERNAME}'@'%';`);
-        log('Setting password...');
-        await conn.query(`SET PASSWORD FOR '${process.env.DB_USERNAME}'@'%' = PASSWORD('${dbPassword}');`);
-        log('Flushing...');
-        await conn.query(`FLUSH PRIVILEGES;`);
-    } catch (e) {
-        error('Could not create database user from root. Error:', e);
-        throw e;
-    } finally {
-        await conn?.end();
-        conn = null;
-        pool = null;
-    }
-};
-
 /**
  * Tries connecting to the database, then disconnects.
  * @author Arnau Mora
  * @since 20221018
  * @param {boolean} debug If `true` and an error has been thrown, it will get logged.
- * @returns {Promise<Error>} `true` if the database is available, `false` otherwise.
+ * @returns {Promise<*>} `true` if the database is available, `false` otherwise.
  * @throws {SqlPermissionException} If the configured user is not authorised to use the database.
+ * @throws {DatabaseException} If the database configured doesn't exist.
  */
 export const check = async (debug = false) => {
-    try {
-        log('Creating database user if it doesn\'t exist...');
-        await createDBUser();
-        log('Checking database. Starting connection...');
-        await connect(debug);
+    log('Checking database. Starting connection...');
+    await connect(debug);
 
-        // Check if database exists
-        const queryResult = await query(
-            `SELECT SCHEMA_NAME
-             FROM information_schema.SCHEMATA
-             WHERE SCHEMA_NAME = ?`,
-            true,
-            process.env.DB_DATABASE,
-        );
-        if (queryResult.length <= 0)
-            throw new DatabaseException(`❌ Could not find a database named`, process.env.DB_DATABASE);
+    const database = getEnvOrFile('DB_DATABASE');
+    log('DB_DATABASE:', process.env.DB_DATABASE, 'DB_DATABASE_FILE:', process.env.DB_DATABASE_FILE);
+    log('database:', database);
 
-        // Create tables
-        /** @type {string[]} */
-        const tables = [
-            InfoTable, RolesTable, GradesTable, UsersTable, LoginAttemptsTable, PermissionsTable, CategoriesTable,
-            EventsTable, AssistanceTable, TablesTable, PeopleTablesTable, RolesPermissionsTable, RegistrationsTable,
-            AscentsTable, PositionsTable, UserPositionsTable, UserTrebuchetTable, UserShootsTable, EventMenusTable,
-            MenuPricingTable, GradesPricingTable
-        ];
-        for (let table of tables) await query(table);
+    // Check if database exists
+    const queryResult = await query(
+        `SELECT SCHEMA_NAME
+         FROM information_schema.SCHEMATA
+         WHERE SCHEMA_NAME = ?`,
+        true,
+        database,
+    );
+    if (queryResult.length <= 0)
+        throw new DatabaseException(`❌ Could not find a database named`, database);
 
-        // Insert default data
-        /** @type {string[][]} */
-        const defaults = [
-            InsertInfo, InsertDefaultRoles, InsertPermissions, InsertRolesPermissions, InsertGrades, InsertPositions,
-            InsertCategories, InsertDefaultGradePricing,
-        ];
-        for (let i of defaults) for (let q of i) await query(q);
+    // Create tables
+    /** @type {string[]} */
+    const tables = [
+        InfoTable, RolesTable, GradesTable, UsersTable, LoginAttemptsTable, PermissionsTable, CategoriesTable,
+        EventsTable, AssistanceTable, TablesTable, PeopleTablesTable, RolesPermissionsTable, RegistrationsTable,
+        AscentsTable, PositionsTable, UserPositionsTable, UserTrebuchetTable, UserShootsTable, EventMenusTable,
+        MenuPricingTable, GradesPricingTable
+    ];
+    for (let table of tables) await query(table);
 
-        await disconnect();
+    // Insert default data
+    /** @type {string[][]} */
+    const defaults = [
+        InsertInfo, InsertDefaultRoles, InsertPermissions, InsertRolesPermissions, InsertGrades, InsertPositions,
+        InsertCategories, InsertDefaultGradePricing,
+    ];
+    for (let i of defaults) for (let q of i) await query(q);
 
-        return null;
-    } catch (e) {
-        error('Could not connect to the database. Error:', e);
-        return e;
-    }
+    await disconnect();
 };
 
 /**
@@ -204,7 +164,7 @@ export const query = async (query, shouldDisconnect = true, ...parameters) => {
     try {
         if (conn == null || !conn.isValid())
             await connect();
-        await conn.query(`USE ${process.env.DB_DATABASE};`);
+        await conn.query(`USE ${getEnvOrFile('DB_DATABASE')};`);
         result = await conn.query(
             query,
             [...parameters.map(p => p == null || p.toString().toUpperCase() === 'NULL' ? null : p)],
