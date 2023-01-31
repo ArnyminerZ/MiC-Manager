@@ -4,7 +4,7 @@ services:
   api:
     build: .
     container_name: mic_api
-    restart: unless-stopped
+    restart: "no"
     networks:
       - backend
     depends_on:
