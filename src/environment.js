@@ -28,18 +28,21 @@ export const checkVariables = () => {
   let missingVariables = [];
 
   const dbHost = process.env.DB_HOSTNAME;
+  const dbHostFile = process.env.DB_HOSTNAME_FILE;
   const dbUser = process.env.DB_USERNAME;
+  const dbUserFile = process.env.DB_USERNAME_FILE;
   const dbPass = process.env.DB_PASSWORD;
   const dbPassFile = process.env.DB_PASSWORD_FILE;
   const dbName = process.env.DB_DATABASE;
-  if (dbHost == null)
-    missingVariables.push('DB_HOSTNAME');
-  if (dbUser == null)
-    missingVariables.push('DB_USERNAME');
+  const dbNameFile = process.env.DB_DATABASE_FILE;
+  if (dbHost == null && dbHostFile == null)
+    missingVariables.push('DB_HOSTNAME', 'DB_HOSTNAME_FILE');
+  if (dbUser == null && dbUserFile == null)
+    missingVariables.push('DB_USERNAME', 'DB_USERNAME_FILE');
   if (dbPass == null && dbPassFile == null)
     missingVariables.push('DB_PASSWORD', 'DB_PASSWORD_FILE');
-  if (dbName == null)
-    missingVariables.push('DB_DATABASE');
+  if (dbName == null && dbNameFile == null)
+    missingVariables.push('DB_DATABASE', 'DB_DATABASE_FILE');
 
   const calHost = process.env.CALDAV_HOSTNAME;
   const calPort = process.env.CALDAV_PORT;
