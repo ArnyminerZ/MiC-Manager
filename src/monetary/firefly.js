@@ -332,7 +332,7 @@ export const check = async () => {
                         type: 'asset',
                         account_role: 'defaultAsset',
                         opening_balance: '0.0',
-                        opening_balance_date: `${now.getUTCFullYear()}/${now.getUTCMonth()}/${now.getUTCDate()}`,
+                        opening_balance_date: `${now.getUTCFullYear()}-${now.getUTCMonth()}-${now.getUTCDate()}`,
                     },
                 );
                 infoSuccess('Created default account successfully.');
