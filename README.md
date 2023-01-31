@@ -55,6 +55,8 @@ If no error is shown, everything is ready to spin up the other containers. You c
 docker-compose up -d
 ```
 
+The next time you want to start the server it's only required to use the last command.
+
 # Asset files
 There's a folder called `/assets`, this is where all the branding files are stored. There are matching config options
 for each file type. Currently, there's no officially supported way of mapping this files in Docker.
