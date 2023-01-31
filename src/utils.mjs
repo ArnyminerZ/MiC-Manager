@@ -65,5 +65,17 @@ export const pathExists = async path => {
  */
 export const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+/**
+ * Adds leading `0` to `num` until it has length `size`.
+ * @param {number} number The number to pad.
+ * @param {number} size The final length of the number.
+ * @returns {string}
+ */
+export const pad = (number, size) => {
+    let num = number.toString();
+    while (num.length < size) num = "0" + num;
+    return num;
+};
+
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(path.join(__filename, '..'));
