@@ -4,7 +4,11 @@ import path from "path";
 import {__dirname} from '../utils.mjs';
 import {error, info} from "../../cli/logger.js";
 import {faker} from "@faker-js/faker";
-import {IllegalConfigParameterError, InvalidConfigurationError, MissingConfigParameterError} from "../exceptions.js";
+import {
+    ConfigurationParseError,
+    IllegalConfigParameterError,
+    MissingConfigParameterError
+} from "../exceptions.js";
 
 export const GENERATE_RANDOM_USERNAME = -1000;
 export const GENERATE_RANDOM_PASSWORD = -1001;
@@ -80,7 +84,7 @@ const KeysAndValues = [
     {key: 'DB_USERNAME', type: TYPE_STRING, generator: GENERATE_RANDOM_USERNAME, accepts: ACCEPTS_ALL},
     {key: 'DB_PASSWORD', type: TYPE_STRING, generator: GENERATE_RANDOM_PASSWORD, accepts: ACCEPTS_ALL},
     {key: 'DB_DATABASE', type: TYPE_STRING, generator: 'MiCManager', accepts: ACCEPTS_ALL},
-    {key: 'DB_HOSTNAME', type: TYPE_STRING, generator: 'mariadb', accepts: ACCEPTS_ALL},
+    {key: 'DB_HOSTNAME', type: TYPE_STRING, generator: 'db', accepts: ACCEPTS_ALL},
     {key: 'CALDAV_HOSTNAME', type: TYPE_STRING, generator: 'radicale', accepts: ACCEPTS_ALL},
     {key: 'CALDAV_USERNAME', type: TYPE_STRING, generator: GENERATE_RANDOM_USERNAME, accepts: ACCEPTS_ALL},
     {key: 'CALDAV_PASSWORD', type: TYPE_STRING, generator: GENERATE_RANDOM_PASSWORD, accepts: ACCEPTS_ALL},
@@ -103,10 +107,14 @@ let loadedConfig;
 
 /**
  * Reads the configuration at the given path, and returns a built object with all the loaded values.
+ *
  * Uses `{key}={value}` notation, and `#` for comments.
+ *
+ * Returns empty if the `path` doesn't exist.
  * @author Arnau Mora
  * @since 20221201
  * @param {string} path The path where the configuration file is stored at.
+ * @throws {ConfigurationParseError} If there's an invalid line in the given configuration file.
  * @returns {Object}
  */
 const readConfig = (path) => {
@@ -128,11 +136,8 @@ const readConfig = (path) => {
             // Divide the key and the value
             const pieces = line.split('=');
             // If there are not at least two components (value might contain =), drop the load
-            if (pieces.length < 2) {
-                error(`Invalid configuration at line #${index}:`, line);
-                error('Reason: missing required "=".');
-                throw Error();
-            }
+            if (pieces.length < 2)
+                throw ConfigurationParseError(index, line, 'Reason: missing required "=".');
             // The key matches the first element of the split
             const key = pieces[0];
             // The value matches the rest. Note that we use '=' as the glue for join, since split removed the character.
@@ -160,89 +165,86 @@ const checkValueIntegrity = (value, accepts) => {
     return accepts.includes(value);
 }
 
+/**
+ * Loads all the configuration parameters from `micmanager.conf`. Creates `.micmanager.conf` with all the missing
+ * parameters. Returns the success status of the request.
+ * @throws {ConfigurationParseError} If there's an invalid line in a configuration file.
+ * @throws {IllegalConfigParameterError} If there's an invalid configuration parameter. This can be a wrong type, or a
+ * non-existing file, for example. Error will tell more information.
+ * @throws {MissingConfigParameterError} If a required configuration parameter is missing.
+ */
 export const load = () => {
-    try {
-        info('Loading main config file...');
-        const configPath = path.join(__dirname, 'micmanager.conf');
-        const configData = readConfig(configPath);
-        // The configuration stored at the file is loaded correctly. Now set default values for the missing ones, or
-        // break if required and no default value exists.
+    info('Loading main config file...');
+    const configPath = path.join(__dirname, 'micmanager.conf');
+    const configData = readConfig(configPath);
+    // The configuration stored at the file is loaded correctly. Now set default values for the missing ones, or
+    // break if required and no default value exists.
 
-        info('Reading cached config file...');
-        const auxConfigPath = path.join(__dirname, '.micmanager.conf');
-        const auxConfig = readConfig(auxConfigPath);
-        /** @type {Object} */
-        const config = {...auxConfig,...configData}; // Place configData second since it has more importance
+    info('Reading cached config file...');
+    const auxConfigPath = path.join(__dirname, '.micmanager.conf');
+    const auxConfig = readConfig(auxConfigPath);
+    /** @type {Object} */
+    const config = {...auxConfig,...configData}; // Place configData second since it has more importance
 
-        info('Checking config data integrity and generating defaults...');
-        let generatedKeys = [];
-        KeysAndValues.forEach(({key, type, generator, accepts}) => {
-            // If value already given, check if type matches
-            if (config.hasOwnProperty(key)) {
-                /** @type {string|number|boolean} */
-                const value = config[key];
-                if (type === TYPE_NUMBER) {
-                    const int = parseInt(value);
-                    if (isNaN(int))
-                        throw new IllegalConfigParameterError(key, `Expected type ${type} and got NaN`);
-                } else if (type === TYPE_BOOLEAN) {
-                    const valid = ['true','false','0','1','yes','no'].includes(value.toString().toLowerCase());
-                    if (!valid)
-                        throw new IllegalConfigParameterError(key, `Expected a boolean value and got ${value}`);
-                } else if (type.hasOwnProperty('baseDir')) { // TYPE_FILE
-                    const fullPath = path.join(__dirname, type.baseDir, value);
-                    const valid = fs.existsSync(fullPath);
-                    if (!valid)
-                        throw new IllegalConfigParameterError(key, `The given file does not exist. Path: ${fullPath}`);
-                } else if (typeof value !== type)
-                    throw new IllegalConfigParameterError(key, `Expected type ${type} and got ${typeof value}`);
-                if (!checkValueIntegrity(value, accepts))
-                    throw new IllegalConfigParameterError(key, `The value "${value}" doesn't match the given predicate: ${accepts}`);
-            } else {
-                // If no value given, generate one, or drop
-                generatedKeys.push(key);
-                switch (generator) {
-                    case GENERATE_RANDOM_USERNAME:
-                        config[key] = faker.internet.userName();
-                        break;
-                    case GENERATE_RANDOM_PASSWORD:
-                        config[key] = faker.internet.password(32);
-                        break;
-                    case GENERATE_RANDOM_UUID:
-                        config[key] = faker.datatype.uuid();
-                        break;
-                    case null:
-                    case undefined:
-                        throw new MissingConfigParameterError(key, 'The field is required, but any value has been set.');
-                    default:
-                        config[key] = generator;
-                        break;
-                }
+    info('Checking config data integrity and generating defaults...');
+    let generatedKeys = [];
+    KeysAndValues.forEach(({key, type, generator, accepts}) => {
+        // If value already given, check if type matches
+        if (config.hasOwnProperty(key)) {
+            /** @type {string|number|boolean} */
+            const value = config[key];
+            if (type === TYPE_NUMBER) {
+                const int = parseInt(value);
+                if (isNaN(int))
+                    throw new IllegalConfigParameterError(key, `Expected type ${type} and got NaN`);
+            } else if (type === TYPE_BOOLEAN) {
+                const valid = ['true','false','0','1','yes','no'].includes(value.toString().toLowerCase());
+                if (!valid)
+                    throw new IllegalConfigParameterError(key, `Expected a boolean value and got ${value}`);
+            } else if (type.hasOwnProperty('baseDir')) { // TYPE_FILE
+                const fullPath = path.join(__dirname, type.baseDir, value);
+                const valid = fs.existsSync(fullPath);
+                if (!valid)
+                    throw new IllegalConfigParameterError(key, `The given file does not exist. Path: ${fullPath}`);
+            } else if (typeof value !== type)
+                throw new IllegalConfigParameterError(key, `Expected type ${type} and got ${typeof value}`);
+            if (!checkValueIntegrity(value, accepts))
+                throw new IllegalConfigParameterError(key, `The value "${value}" doesn't match the given predicate: ${accepts}`);
+        } else {
+            // If no value given, generate one, or drop
+            generatedKeys.push(key);
+            switch (generator) {
+                case GENERATE_RANDOM_USERNAME:
+                    config[key] = faker.internet.userName();
+                    break;
+                case GENERATE_RANDOM_PASSWORD:
+                    config[key] = faker.internet.password(32);
+                    break;
+                case GENERATE_RANDOM_UUID:
+                    config[key] = faker.datatype.uuid();
+                    break;
+                case null:
+                case undefined:
+                    throw new MissingConfigParameterError(key, 'The field is required, but any value has been set.');
+                default:
+                    config[key] = generator;
+                    break;
             }
-        });
+        }
+    });
 
-        info('Storing generated values...');
-        const existingAux = fs.existsSync(auxConfigPath) ? fs.readFileSync(auxConfigPath).toString() : '';
-        fs.writeFileSync(
-            auxConfigPath,
-            [existingAux, ...generatedKeys.map(key => key + '=' + config[key])]
-                .join('\n'),
-        );
+    info('Storing generated values...');
+    const existingAux = fs.existsSync(auxConfigPath) ? fs.readFileSync(auxConfigPath).toString() : '';
+    fs.writeFileSync(
+        auxConfigPath,
+        [existingAux, ...generatedKeys.map(key => key + '=' + config[key])]
+            .join('\n'),
+    );
 
-        loadedConfig = config;
+    loadedConfig = config;
 
-        info('Exporting config to environment...');
-        for (const key in config) process.env[key] = config[key];
+    info('Exporting config to environment...');
+    for (const key in config) process.env[key] = config[key];
 
-        return true;
-    } catch (e) {
-        process.exit(1);
-        return false;
-    } finally {
-        info('Log level:', process.env.LOG_LEVEL);
-    }
-};
-
-export const get = (key) => {
-
+    info('Log level:', process.env.LOG_LEVEL);
 };
