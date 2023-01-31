@@ -38,6 +38,7 @@ const loginAttemptsCount = async (ip) => {
  * Tries to authorise in the system using the given credentials.
  * @author Arnau Mora
  * @since 20221019
+ * @deprecated Use Firefly authentication
  * @param {string} nif The DNI of the authenticating user. With letter.
  * @param {string} password The password of the authenticating user.
  * @param {string} reqIp The IP address of the requester.
