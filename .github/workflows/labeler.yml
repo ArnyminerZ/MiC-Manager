@@ -2,6 +2,8 @@ name: labeler
 
 on: push
 
+permissions: write-all
+
 jobs:
   labeler:
     runs-on: ubuntu-latest
