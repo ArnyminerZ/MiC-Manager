@@ -1,0 +1,13 @@
+{
+  "password": "password123",
+  "name": "Mitchell",
+  "surname": "Patterson",
+  "nif": "123456789B",
+  "email": "mitchell.patterson@example.com",
+  "information": {
+    "birthday": "1952-02-06",
+    "phone": {
+      "cell": "+34147258369"
+    }
+  }
+}
