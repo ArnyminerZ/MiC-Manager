@@ -77,5 +77,15 @@ export const pad = (number, size) => {
     return num;
 };
 
+/**
+ * Checks if a given date follows the format YYYY-MM-dd.
+ * @param {string} date
+ * @return {boolean}
+ */
+export const isValidDate = (date) => {
+    const regex = /^\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$/g;
+    return regex.test(date);
+}
+
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(path.join(__filename, '..'));

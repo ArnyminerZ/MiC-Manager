@@ -71,4 +71,5 @@ export const KeysAndValues = [
     {key: 'LOG_LEVEL', type: TYPE_STRING, generator: 'warn', accepts: ['debug', 'info', 'warn', 'error']},
     {key: 'LOG_FILE', type: TYPE_FILE('.', true), generator: 'mic_manager.log', accepts: ACCEPTS_ALL },
     {key: 'SQLITE_FILE', type: TYPE_FILE('.', true), generator: 'database.sqlite', accepts: ACCEPTS_ALL },
+    {key: 'PHONE_REGION', type: TYPE_NUMBER, generator: 34, accepts: ACCEPTS_ALL},
 ];

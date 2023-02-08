@@ -32,3 +32,10 @@ export class MissingConfigParameterError extends InvalidConfigurationError {
         this.name = 'MissingConfigParameterError';
     }
 }
+
+export class IllegalDateFormatException extends ParseException {
+    constructor(message) {
+        super(message);
+        this.name = 'IllegalDateFormatException';
+    }
+}

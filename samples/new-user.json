@@ -6,8 +6,8 @@
   "email": "mitchell.patterson@example.com",
   "information": {
     "birthday": "1952-02-06",
-    "phone": {
-      "cell": "+34147258369"
-    }
+    "phone": [
+      ["cell", "+34147258369"]
+    ]
   }
 }

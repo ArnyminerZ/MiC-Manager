@@ -2,8 +2,9 @@ import {requireBody} from "../utils.mjs";
 import {errorResponse, successResponse} from "../response.mjs";
 import {register} from "../../users/registration.mjs";
 import {UserAlreadyExistsError} from "../../users/errors.mjs";
-import {userAlreadyExists} from "../errors.mjs";
+import {illegalDateFormat, userAlreadyExists} from "../errors.mjs";
 import {login} from "../../users/access.mjs";
+import {IllegalDateFormatException} from "../../errors.mjs";
 
 /**
  * @param {import('express').Request} req The express request.
@@ -15,12 +16,14 @@ export const registerEndpoint = async (req, res) => {
 
     const {password, name, surname, nif, email, information} = req.body;
     try {
-        await register(password, name, surname, nif, email, information);
+        await register(password, name, surname, nif, email, JSON.stringify(information));
 
         res.status(200).send(successResponse('OK'));
     } catch (e) {
         if (e instanceof UserAlreadyExistsError)
-            res.status(406).send(userAlreadyExists());
+            res.status(409).send(userAlreadyExists());
+        else if (e instanceof IllegalDateFormatException)
+            res.status(400).send(illegalDateFormat('information.birthday'));
         else
             res.status(500).send(errorResponse(-1, e.message));
     }

@@ -2,7 +2,7 @@ import assert from 'assert';
 
 import {faker} from '@faker-js/faker';
 
-import {__dirname, capitalize, ipToLong, isNumber, pathExists} from '../src/utils.mjs';
+import {__dirname, capitalize, ipToLong, isNumber, isValidDate, pathExists} from '../src/utils.mjs';
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
@@ -37,5 +37,14 @@ describe('Utils testing', () => {
             assert.ok(await pathExists(testDir), 'New directory now exists');
             await fsp.rmdir(testDir);
         });
+    });
+    it('Date format check', () => {
+        assert.ok(isValidDate('2023-02-08'));
+        assert.ok(!isValidDate('2023-2-08'));
+        assert.ok(!isValidDate('2023-02-8'));
+        assert.ok(!isValidDate('1-02-8'));
+        assert.ok(!isValidDate('aaa'));
+        assert.ok(!isValidDate('2023-02-32'));
+        assert.ok(!isValidDate('2023-13-25'));
     });
 });

@@ -56,3 +56,11 @@ export const invalidToken = () => errorResponse(7, `The given token is not valid
  * @return {Response}
  */
 export const missingAuthenticationHeader = () => errorResponse(8, `There's no valid Authentication header.`);
+
+/**
+ * Thrown when the request doesn't have a valid Authentication header.
+ * @param {string} field The name of the field that has the wrong date format.
+ * @param {string} format The format that it should have had.
+ * @return {Response}
+ */
+export const illegalDateFormat = (field, format = 'YYYY-MM-dd') => errorResponse(9, `The given format for the date at field ${field} is not valid. Valid format: ${format}`);
