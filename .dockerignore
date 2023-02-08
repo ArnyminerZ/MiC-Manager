@@ -1,0 +1,7 @@
+node_modules
+*.log
+database.sqlite
+.micmanager.conf
+package-lock.json
+keys
+.idea

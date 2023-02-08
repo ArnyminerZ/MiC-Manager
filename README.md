@@ -1,5 +1,19 @@
-# MiC Manager
+<div style="text-align: center; margin-top: 15px">
+    <img src="./images/banner.png" alt="MiC Manager" />
+</div>
+
 A backend server API for managing local groups data.
+
+## Docker
+### Running locally
+```shell
+docker build -t mic-manager .
+docker run -dp 3000:3000 mic-manager
+```
+
+### Docker compose
+You can take a look at the [docker-compose.yml](/docker-compose.yml) file to inspire yourself in building a custom
+version, or just run that one with `docker-compose up -d`. Everything should work fine.
 
 ## Development
 ### Requirements

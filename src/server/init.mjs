@@ -14,6 +14,7 @@ export const initServer = () => {
     log('Adding middlewares...');
     app.use(express.json());
 
+    app.get('/', (req, res) => res.status(200).send('ok'));
     app.get('/v1/ping', pingEndpoint);
     app.get('/v1/auth/register', registerEndpoint);
     app.get('/v1/auth/login', loginEndpoint);
