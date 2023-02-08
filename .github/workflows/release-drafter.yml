@@ -5,7 +5,10 @@ on:
     branches:
       - master
 
-permission: write-all
+permissions: write-all
+
+concurrency:
+  group: docker-ci
 
 jobs:
   update_release_draft:

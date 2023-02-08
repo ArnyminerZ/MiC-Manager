@@ -5,6 +5,9 @@ on:
     branches:
       - 'master'
 
+concurrency:
+  group: docker-ci
+
 jobs:
   docker:
     runs-on: ubuntu-latest
