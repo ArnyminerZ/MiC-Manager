@@ -5,6 +5,33 @@ on:
     types: [ published ]
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 18.x ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: Install mocha
+        run: npm install -g mocha
+      - name: Install dependencies
+        run: npm install
+      - name: Run Report
+        run: npm run ci
+        env:
+          PROPS: testing
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: Mocha Tests           # Name of the check run which will be created
+          path: test-*.json           # Path to test results
+          reporter: mocha-json        # Format of test results
   docker:
     runs-on: ubuntu-latest
     name: 🐳 Docker build and push
