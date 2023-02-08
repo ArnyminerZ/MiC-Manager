@@ -1,0 +1,11 @@
+version: '3.7'
+
+services:
+  api:
+    build: .
+    container_name: mic_api
+    restart: "no"
+    ports:
+      - '3000:3000'
+    volumes:
+      - server-keys:/usr/src/app/keys
