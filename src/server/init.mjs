@@ -1,5 +1,5 @@
 import express from 'express';
-import RateLimit from 'express-rate-limit';
+import rateLimit from 'express-rate-limit';
 
 import {info, log} from '../../cli/logger.mjs';
 import {pingEndpoint} from './endpoints/utils.mjs';
@@ -7,17 +7,17 @@ import {loginEndpoint, registerEndpoint} from "./endpoints/auth.mjs";
 import {userDataEndpoint} from "./endpoints/users.mjs";
 
 /**
- * Initializes the express web server.
+ * Creates a new express server with all the required middleware and endpoints.
+ * @return {import(express).core.Express}
  */
-export const initServer = () => {
+export const create = () => {
     info('Initializing web server...');
     const app = express();
-
 
     log('Adding middlewares...');
     app.use(express.json());
 
-    const limiter = new RateLimit({
+    const limiter = rateLimit({
         windowMs: 60*1000, // 1 minute
         max: 5
     });
@@ -29,6 +29,15 @@ export const initServer = () => {
     app.get('/v1/auth/register', registerEndpoint);
     app.get('/v1/auth/login', loginEndpoint);
     app.get('/v1/user/data', userDataEndpoint);
+
+    return app;
+};
+
+/**
+ * Initializes the express web server.
+ */
+export const initServer = () => {
+    const app = create();
 
     log('Starting to listen for web server...');
     app.listen(3000, () => {

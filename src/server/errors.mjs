@@ -7,6 +7,21 @@ export class MissingHeaderError extends Error {
     }
 }
 
+export class HttpRequestError extends Error {
+    constructor(message, code) {
+        super(`Got a non-successful response code from server. Code: ${code}`);
+        this.code = code;
+        this.name = 'HttpRequestError';
+    }
+}
+
+export class InvalidContentTypeError extends Error {
+    constructor(got, expected) {
+        super(`Invalid content-type.\nExpected ${expected} but received ${got}`);
+        this.name = 'InvalidContentTypeError';
+    }
+}
+
 /**
  * Thrown when some required parameters are not present in the body.
  * @param {string[]} missingKeys The keys that should be present.
