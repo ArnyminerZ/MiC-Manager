@@ -20,7 +20,7 @@ export const registerEndpoint = async (req, res) => {
         res.status(200).send(successResponse('OK'));
     } catch (e) {
         if (e instanceof UserAlreadyExistsError)
-            res.status(406).send(userAlreadyExists);
+            res.status(406).send(userAlreadyExists());
         else
             res.status(500).send(errorResponse(-1, e.message));
     }
