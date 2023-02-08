@@ -1,0 +1,40 @@
+name: ✏️ Release Drafter
+
+on:
+  push:
+    branches:
+      - master
+
+permission: write-all
+
+jobs:
+  update_release_draft:
+    runs-on: ubuntu-latest
+    outputs:
+      updated_version: ${{ steps.update_package.outputs.updated_version }}
+    steps:
+      - name: 🖥️ Checkout
+        uses: actions/checkout@v3
+      # Drafts your next Release notes as Pull Requests are merged into "master"
+      - name: 🗒️ Draft release
+        uses: release-drafter/release-drafter@v5
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 🟢 Setup node
+        uses: actions/setup-node@v3.6.0
+        with:
+          node-version: 18
+      - name: 📦 Update package.json
+        id: update_package
+        env:
+          tag_name: ${{ steps.create_release.outputs.tag_name }}
+        run: npm run --silent version >> $GITHUB_ENV
+      - name: 🤖 Commit package.json changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        if: ${{ env.UPDATED_VERSION == 'true' }}
+        with:
+          commit_message: ":robot: Update version of package.json"
+          file_pattern: "package.json"
+          branch: master
+          commit_options: '--signoff'

@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.mjs",
     "test": "NODE_PATH=. mocha",
-    "ci": "NODE_PATH=. PROPS=testing mocha --reporter json > test-results.json"
+    "ci": "NODE_PATH=. PROPS=testing mocha --reporter json > test-results.json",
+    "version": "node update_version.js"
   },
   "repository": {
     "type": "git",

@@ -77,14 +77,26 @@
   description: Updates related to the docker daemon.
   color: 307BD1
 
-- name: major
+- name: release_major
   description: Major changes. Used for release bump
   color: 16970B
 
+- name: major
+  description: Major changes.
+  color: 16970B
+
+- name: release_minor
+  description: Minor changes. Used for release bump
+  color: 16970B
+
 - name: minor
-  description: minor changes. Used for release bump
+  description: Minor changes.
+  color: 16970B
+
+- name: release_patch
+  description: Patch changes. Used for release bump
   color: 16970B
 
 - name: patch
-  description: Patch changes. Used for release bump
+  description: Patch changes.
   color: 16970B
