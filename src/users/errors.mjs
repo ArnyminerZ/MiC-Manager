@@ -32,3 +32,10 @@ export class InvalidTokenError extends Error {
         this.name = 'InvalidTokenError';
     }
 }
+
+export class UserNotVerifiedError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'UserNotVerifiedError';
+    }
+}

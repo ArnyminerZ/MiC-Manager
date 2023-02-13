@@ -79,3 +79,9 @@ export const missingAuthenticationHeader = () => errorResponse(8, `There's no va
  * @return {Response}
  */
 export const illegalDateFormat = (field, format = 'YYYY-MM-dd') => errorResponse(9, `The given format for the date at field ${field} is not valid. Valid format: ${format}`);
+
+/**
+ * Thrown when the user is not verified, this is, that doesn't have the `user:usage` scope.
+ * @return {Response}
+ */
+export const userNotVerifiedError = () => errorResponse(10, `The user is not verified.`);

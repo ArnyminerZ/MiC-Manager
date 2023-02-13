@@ -91,6 +91,8 @@ describe('API Testing', function () {
         });
     });
 
+    // TODO: Add login
+
     after('Stop server', async () => await new Promise((resolve, reject) => {
         if (server == null) resolve();
 

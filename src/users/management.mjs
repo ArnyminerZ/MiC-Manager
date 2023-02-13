@@ -35,3 +35,14 @@ export const findById = async (id) => {
     if (users.length <= 0) return null;
     return users[0];
 };
+
+/**
+ * Checks if the user with the given id has the indicated scope.
+ * @param {number} id The ID of the user to check for.
+ * @param {string} scope The scope to look for.
+ * @return {Promise<boolean>}
+ */
+export const hasScope = async (id, scope) => {
+    const rows = await query('SELECT * FROM UserScopes WHERE UserId=? AND ScopeId=(SELECT Id FROM Scopes WHERE Scope=?);', id, scope);
+    return rows.length > 0;
+};

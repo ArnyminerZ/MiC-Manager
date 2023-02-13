@@ -1,9 +1,10 @@
-import {findById, findByNif} from "./management.mjs";
+import {findById, findByNif, hasScope} from "./management.mjs";
 import {verify} from "../security/cryptography.mjs";
 import {
     InvalidTokenError,
     UnsupportedAuthenticationMethodError,
     UserNotFoundError,
+    UserNotVerifiedError,
     WrongCredentialsError
 } from "./errors.mjs";
 import {sign, validate} from "../security/tokens.mjs";
@@ -17,6 +18,7 @@ import {check, hash} from "../security/verifiers.mjs";
  * @param {string} password
  * @throws {UserNotFoundError} If there's no user with the given `nif`.
  * @throws {WrongCredentialsError} If the given NIF-password combination is not correct.
+ * @throws {UserNotVerifiedError} If the user is not verified. This is, that doesn't have the `user:usage` scope.
  * @return {Promise<User>}
  */
 const tryToLogin = async (nif, password) => {
@@ -27,6 +29,9 @@ const tryToLogin = async (nif, password) => {
     // Check that the password is correct
     if (!verify(password, user.Hash)) throw new WrongCredentialsError("The given NIF-password combination is not correct.");
 
+    // Check that the user has the `user:usage` scope
+    if (!await hasScope(user.id, 'user:usage')) throw new UserNotVerifiedError(`The user with id ${user.id} doesn't have the "user:usage" scope.`);
+
     return user;
 };
 
@@ -36,6 +41,7 @@ const tryToLogin = async (nif, password) => {
  * @param {string} password
  * @throws {UserNotFoundError} If there's no user with the given `nif`.
  * @throws {WrongCredentialsError} If the given NIF-password combination is not correct.
+ * @throws {UserNotVerifiedError} If the user is not verified. This is, that doesn't have the `user:usage` scope.
  */
 export const login = async (nif, password) => {
     const user = await tryToLogin(nif, password);
@@ -60,6 +66,7 @@ export const login = async (nif, password) => {
  * @throws {InvalidTokenError} If the given token is not valid, or has expired.
  * @throws {UserNotFoundError} If the user that matches the given token doesn't exist.
  * @throws {WrongCredentialsError} If the given NIF-password combination is not correct.
+ * @throws {UserNotVerifiedError} If the user is not verified. This is, that doesn't have the `user:usage` scope.
  * @throws {UnsupportedAuthenticationMethodError} If the authentication method given in the header is not valid.
  */
 export const checkAuth = async (req) => {

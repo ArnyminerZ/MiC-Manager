@@ -7,12 +7,14 @@ import {
     MissingHeaderError,
     unsupportedAuthenticationMethod,
     userNotFound,
+    userNotVerifiedError,
     wrongCredentials
 } from "../errors.mjs";
 import {
     InvalidTokenError,
     UnsupportedAuthenticationMethodError,
     UserNotFoundError,
+    UserNotVerifiedError,
     WrongCredentialsError
 } from "../../users/errors.mjs";
 import {errorResponse, successResponseData} from "../response.mjs";
@@ -59,6 +61,8 @@ export const userDataEndpoint = async (req, res) => {
             res.status(404).send(userNotFound());
         else if (e instanceof WrongCredentialsError)
             res.status(406).send(wrongCredentials());
+        else if (e instanceof UserNotVerifiedError)
+            res.status(412).send(userNotVerifiedError());
         else if (e instanceof UnsupportedAuthenticationMethodError)
             res.status(405).send(unsupportedAuthenticationMethod());
         else {
