@@ -7,8 +7,9 @@ import {
     WrongCredentialsError
 } from "./errors.mjs";
 import {sign, validate} from "../security/tokens.mjs";
-import {query} from "../storage/database/query.mjs";
+import {insert, query} from "../storage/database/query.mjs";
 import {MissingHeaderError} from "../server/errors.mjs";
+import {check, hash} from "../security/verifiers.mjs";
 
 /**
  * Tries to log in with the given password. Checks that the NIF exists, and that the password is correct.
@@ -42,8 +43,11 @@ export const login = async (nif, password) => {
     // Generate an access token
     const token = sign({nif});
 
+    // Sign the transaction
+    const row = hash({AccessToken: token, UserId: user.Id});
+
     // Insert it into the database
-    await query('INSERT INTO AccessTokens (AccessToken, UserId) VALUES (?, ?)', token, user.Id);
+    await insert('AccessTokens', row);
 
     return token;
 };
@@ -81,7 +85,19 @@ export const checkAuth = async (req) => {
         const token = data[0];
 
         // Check that the token has not expired
-        if (!validate(token.AccessToken)) {
+        let isValid;
+        try {
+            validate(token.AccessToken);
+            isValid = true;
+        } catch (e) {
+            isValid = false;
+        }
+
+        // Check that the token row signature is correct
+        if (isValid === true) isValid = check(token);
+
+        // Check that the token is valid, or remove it and throw
+        if (!isValid) {
             // If the token is not valid, remove it
             await query("DELETE FROM AccessTokens WHERE Id=?;", token.Id);
             // And throw an exception
