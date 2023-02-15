@@ -1,12 +1,12 @@
 import crypto from "crypto";
 import fs from "fs";
 
-import {keysDir, privateKeyFile, publicKeyFile} from "./cryptography.mjs";
+import {keysDir, privateKeyFile, publicKeyFile} from "./cryptography";
 
 /**
  * Generates public and private keys and stores them into the `keys` directory.
  */
-export const generateKeys = () => {
+export function generateKeys() {
     if (fs.existsSync(privateKeyFile) && fs.existsSync(publicKeyFile)) return;
 
     const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
@@ -18,4 +18,4 @@ export const generateKeys = () => {
 
     fs.writeFileSync(privateKeyFile, privateKey.export({ format: 'pem', type: 'pkcs1' }).toString());
     fs.writeFileSync(publicKeyFile, publicKey.export({ format: 'pem', type: 'pkcs1' }).toString());
-};
+}

@@ -137,3 +137,6 @@ database.sqlite
 
 # Keys directory
 /keys
+
+# Built files directory
+/build

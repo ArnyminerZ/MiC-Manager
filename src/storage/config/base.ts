@@ -1,19 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 
-import {__dirname} from '../../utils.mjs';
-import {info, log} from "../../../cli/logger.mjs";
+import {__dirname} from '../../utils';
+import {info, log} from "../../../cli/logger";
 import {faker} from "@faker-js/faker";
-import {ConfigurationParseError, IllegalConfigParameterError, MissingConfigParameterError} from "../../errors.mjs";
+import {ConfigurationParseError, IllegalConfigParameterError, MissingConfigParameterError} from "../../errors";
 import {
     ACCEPTS_ALL,
-    GENERATE_RANDOM_PASSWORD,
-    GENERATE_RANDOM_USERNAME,
-    GENERATE_RANDOM_UUID,
+    AcceptsRange,
+    Generator,
+    instanceOfTypeFile,
     KeysAndValues,
     TYPE_BOOLEAN,
-    TYPE_NUMBER
-} from "./config.mjs";
+    TYPE_NUMBER,
+} from "./config";
 
 let loadedConfig;
 
@@ -25,18 +25,17 @@ let loadedConfig;
  * Returns empty if the `path` doesn't exist.
  * @author Arnau Mora
  * @since 20221201
- * @param {string} path The path where the configuration file is stored at.
+ * @param path The path where the configuration file is stored at.
  * @throws {ConfigurationParseError} If there's an invalid line in the given configuration file.
- * @returns {Object}
  */
-const readConfig = (path) => {
+function readConfig(path: string): Map<string, string> {
     // Don't do anything if the path doesn't exist
-    if (!fs.existsSync(path)) return {};
+    if (!fs.existsSync(path)) return new Map();
 
     // Read the file's contents, and convert the buffer to string
     const raw = fs.readFileSync(path).toString();
     /** @type {[string,string][]} */
-    const rows = raw
+    const rows: [string, string][] = raw
         // Split lines
         .split('\n')
         // Trim whitespaces
@@ -49,7 +48,7 @@ const readConfig = (path) => {
             const pieces = line.split('=');
             // If there are not at least two components (value might contain =), drop the load
             if (pieces.length < 2)
-                throw ConfigurationParseError(index, line, 'Reason: missing required "=".');
+                throw new ConfigurationParseError(index, line, 'Reason: missing required "=".');
             // The key matches the first element of the split
             const key = pieces[0];
             // The value matches the rest. Note that we use '=' as the glue for join, since split removed the character.
@@ -58,23 +57,21 @@ const readConfig = (path) => {
             return [key, value]
         });
     // Convert all the entries into an object.
-    return Object.fromEntries(rows);
-};
+    return new Map(rows);
+}
 
 /**
  * Checks that a given value matches the predicate of the given accepts.
  * @author Arnau Mora
  * @since 20221201
- * @param {string|number} value
- * @param {ACCEPTS_ALL,string[],number[],AcceptsRange} accepts
  */
-const checkValueIntegrity = (value, accepts) => {
+function checkValueIntegrity(value: string | number, accepts: typeof ACCEPTS_ALL | string[] | number[] | AcceptsRange): Boolean {
     if (accepts === ACCEPTS_ALL) return true;
     if (accepts.hasOwnProperty('min') && accepts.hasOwnProperty('max')) {
-        const {min, max} = accepts;
+        const {min, max} = accepts as AcceptsRange;
         return value >= min && value <= max;
     }
-    return accepts.includes(value);
+    return (accepts as (string | number)[]).includes(value);
 }
 
 /**
@@ -85,7 +82,7 @@ const checkValueIntegrity = (value, accepts) => {
  * non-existing file, for example. Error will tell more information.
  * @throws {MissingConfigParameterError} If a required configuration parameter is missing.
  */
-export const loadConfig = () => {
+export function loadConfig() {
     info('Loading configuration...');
 
     log('Loading main config file...');
@@ -97,29 +94,28 @@ export const loadConfig = () => {
     log('Reading cached config file...');
     const auxConfigPath = path.join(__dirname, '.micmanager.conf');
     const auxConfig = readConfig(auxConfigPath);
-    /** @type {Object} */
-    const config = {...auxConfig,...configData}; // Place configData second since it has more importance
+
+    const config: Map<string, string | number | boolean> = new Map({...auxConfig, ...configData}); // Place configData second since it has more importance
 
     log('Checking config data integrity and generating defaults...');
-    let generatedKeys = [];
-    KeysAndValues.forEach(({key, type, generator, accepts}) => {
+    let generatedKeys: string[] = [];
+    for (const {key, type, generator, accepts} of KeysAndValues) {
         // If value already given, check if type matches
         if (config.hasOwnProperty(key)) {
-            /** @type {string|number|boolean} */
-            const value = config[key];
+            const value: string | number | boolean = config.get(key) as (string | number | boolean);
             if (type === TYPE_NUMBER) {
-                const int = parseInt(value);
+                const int = parseInt(value as string);
                 if (isNaN(int))
                     throw new IllegalConfigParameterError(key, `Expected type ${type} and got NaN`);
             } else if (type === TYPE_BOOLEAN) {
-                const valid = ['true','false','0','1','yes','no'].includes(value.toString().toLowerCase());
+                const valid = ['true', 'false', '0', '1', 'yes', 'no'].includes(value.toString().toLowerCase());
                 if (!valid)
                     throw new IllegalConfigParameterError(key, `Expected a boolean value and got ${value}`);
-            } else if (type.hasOwnProperty('baseDir')) { // TYPE_FILE
-                const fullPath = path.join(__dirname, type.baseDir, value);
+            } else if (instanceOfTypeFile(type)) { // TYPE_FILE
+                const fullPath = path.join(__dirname, type.baseDir, value as string);
 
                 // Touch file if property touch is true
-                if (type['touch'] === true) {
+                if (type['touch']) {
                     log('Touching file for config:', fullPath);
                     const fd = fs.openSync(fullPath, 'a');
                     fs.closeSync(fd);
@@ -130,45 +126,48 @@ export const loadConfig = () => {
                     throw new IllegalConfigParameterError(key, `The given file does not exist. Path: ${fullPath}`);
             } else if (typeof value !== type)
                 throw new IllegalConfigParameterError(key, `Expected type ${type} and got ${typeof value}`);
-            if (!checkValueIntegrity(value, accepts))
+            if (!checkValueIntegrity(value as (string | number), accepts))
                 throw new IllegalConfigParameterError(key, `The value "${value}" doesn't match the given predicate: ${accepts}`);
         } else {
             // If no value given, generate one, or drop
             generatedKeys.push(key);
             switch (generator) {
-                case GENERATE_RANDOM_USERNAME:
-                    config[key] = faker.internet.userName();
+                case Generator.GENERATE_RANDOM_USERNAME:
+                    config.set(key, faker.internet.userName());
                     break;
-                case GENERATE_RANDOM_PASSWORD:
-                    config[key] = faker.internet.password(32);
+                case Generator.GENERATE_RANDOM_PASSWORD:
+                    config.set(key, faker.internet.password(32));
                     break;
-                case GENERATE_RANDOM_UUID:
-                    config[key] = faker.datatype.uuid();
+                case Generator.GENERATE_RANDOM_UUID:
+                    config.set(key, faker.datatype.uuid());
                     break;
                 case null:
                 case undefined:
                     throw new MissingConfigParameterError(key, 'The field is required, but any value has been set.');
                 default:
-                    config[key] = generator;
+                    config.set(key, generator);
                     break;
             }
         }
-    });
+    }
 
     log('Storing generated values...');
     const existingAux = fs.existsSync(auxConfigPath) ? fs.readFileSync(auxConfigPath).toString() : '';
     fs.writeFileSync(
         auxConfigPath,
-        [existingAux, ...generatedKeys.map(key => key + '=' + config[key])]
-            .join('\n'),
+        [existingAux, ...generatedKeys.map(function (key: string) {
+            return key + '=' + config.get(key);
+        })].join('\n'),
     );
 
     loadedConfig = config;
 
     log('Exporting config to environment...');
     for (const key in config)
-        if (process.env[key] == null && process.env[key + "_FILE"] == null)
-            process.env[key] = config[key];
+        if (process.env[key] == null && process.env[key + "_FILE"] == null) {
+            // @ts-ignore
+            process.env[key] = config[key] as string;
+        }
 
     info('Log level:', process.env.LOG_LEVEL);
-};
+}

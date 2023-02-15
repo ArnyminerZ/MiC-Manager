@@ -3,9 +3,9 @@ import fs from "fs";
 import path from "path";
 import assert from "node:assert/strict";
 
-import {create as createServer} from '../src/server/init.mjs'
-import {HttpRequestError, InvalidContentTypeError} from "../src/server/errors.mjs";
-import {__dirname} from "../src/utils.mjs";
+import {create as createServer} from '../src/server/init.ts'
+import {HttpRequestError, InvalidContentTypeError} from "../src/server/errors.ts";
+import {__dirname} from "../src/utils.ts";
 
 /**
  * Makes a request to the server running on localhost at port 3000, targeting the given `path`.

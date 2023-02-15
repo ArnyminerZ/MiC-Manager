@@ -1,53 +1,26 @@
-import {findById, findByNif, hasScope} from "./management.mjs";
-import {verify} from "../security/cryptography.mjs";
+import {findById, findByNif, hasScope} from "./management";
+import {verify} from "../security/cryptography";
 import {
     InvalidTokenError,
     UnsupportedAuthenticationMethodError,
     UserNotFoundError,
     UserNotVerifiedError,
     WrongCredentialsError
-} from "./errors.mjs";
-import {sign, validate} from "../security/tokens.mjs";
-import {insert, query} from "../storage/database/query.mjs";
-import {MissingHeaderError} from "../server/errors.mjs";
-import {check, hash} from "../security/verifiers.mjs";
+} from "./errors";
+import {sign, validate} from "../security/tokens";
+import {insert, query} from "../storage/database/query";
+import {MissingHeaderError} from "../server/errors";
+import {check, hash} from "../security/verifiers";
+import {Request as ExpressRequest} from "express";
+import {StateError} from "../errors";
 
 /**
- * Tries to log in with the given password. Checks that the NIF exists, and that the password is correct.
- * @param {string} nif
- * @param {string} password
- * @throws {UserNotFoundError} If there's no user with the given `nif`.
- * @throws {WrongCredentialsError} If the given NIF-password combination is not correct.
- * @throws {UserNotVerifiedError} If the user is not verified. This is, that doesn't have the `user:usage` scope.
- * @return {Promise<User>}
+ * Creates a new access token for the given user.
+ * @return The generated Access Token.
  */
-const tryToLogin = async (nif, password) => {
-    const user = await findByNif(nif);
-
-    if (user == null) throw new UserNotFoundError(`There's no registered user with NIF ${nif}`);
-
-    // Check that the password is correct
-    if (!verify(password, user.Hash)) throw new WrongCredentialsError("The given NIF-password combination is not correct.");
-
-    // Check that the user has the `user:usage` scope
-    if (!await hasScope(user.id, 'user:usage')) throw new UserNotVerifiedError(`The user with id ${user.id} doesn't have the "user:usage" scope.`);
-
-    return user;
-};
-
-/**
- * Tries to log in with the given NIF and password.
- * @param {string} nif
- * @param {string} password
- * @throws {UserNotFoundError} If there's no user with the given `nif`.
- * @throws {WrongCredentialsError} If the given NIF-password combination is not correct.
- * @throws {UserNotVerifiedError} If the user is not verified. This is, that doesn't have the `user:usage` scope.
- */
-export const login = async (nif, password) => {
-    const user = await tryToLogin(nif, password);
-
+export async function newAccessToken(user: User): Promise<string> {
     // Generate an access token
-    const token = sign({nif});
+    const token = sign({NIF: user.NIF});
 
     // Sign the transaction
     const row = hash({AccessToken: token, UserId: user.Id});
@@ -56,7 +29,40 @@ export const login = async (nif, password) => {
     await insert('AccessTokens', row);
 
     return token;
-};
+}
+
+/**
+ * Checks that the nif-password combination is correct. And makes sure the user is confirmed.
+ * @throws {UserNotFoundError} If there's no user with the given `nif`.
+ * @throws {WrongCredentialsError} If the given NIF-password combination is not correct.
+ * @throws {UserNotVerifiedError} If the user is not verified. This is, that doesn't have the `user:usage` scope.
+ */
+async function authorizeUser(nif: string, password: string): Promise<User> {
+    const user = await findByNif(nif);
+
+    if (user == null) throw new UserNotFoundError(`There's no registered user with NIF ${nif}`);
+    if (user.Hash == null) throw new StateError('The user obtained did not have a valid hash.');
+
+    // Check that the password is correct
+    if (!verify(password, user.Hash)) throw new WrongCredentialsError("The given NIF-password combination is not correct.");
+
+    // Check that the user has the `user:usage` scope
+    if (!await hasScope(user.Id, 'user:usage')) throw new UserNotVerifiedError(`The user with id ${user.Id} doesn't have the "user:usage" scope.`);
+
+    return user;
+}
+
+/**
+ * Tries to log in with the given NIF and password. If the combination is correct, generates a new access token and
+ * returns it.
+ * @throws {UserNotFoundError} If there's no user with the given `nif`.
+ * @throws {WrongCredentialsError} If the given NIF-password combination is not correct.
+ * @throws {UserNotVerifiedError} If the user is not verified. This is, that doesn't have the `user:usage` scope.
+ */
+export async function login(nif: string, password: string): Promise<string> {
+    const user = await authorizeUser(nif, password);
+    return await newAccessToken(user);
+}
 
 /**
  * Checks that the given request has a valid authentication header, and that it is correct.
@@ -69,7 +75,7 @@ export const login = async (nif, password) => {
  * @throws {UserNotVerifiedError} If the user is not verified. This is, that doesn't have the `user:usage` scope.
  * @throws {UnsupportedAuthenticationMethodError} If the authentication method given in the header is not valid.
  */
-export const checkAuth = async (req) => {
+export async function checkAuth(req: ExpressRequest): Promise<User> {
     const authHeader = req.header("Authorization");
     if (authHeader == null) throw new MissingHeaderError(`It's required to give the Authentication header.`);
 
@@ -83,7 +89,7 @@ export const checkAuth = async (req) => {
         const [nif, password] = [value.substring(0, separatorPos), value.substring(separatorPos + 1)];
 
         // Check if credentials are valid
-        return await tryToLogin(nif, password);
+        return await authorizeUser(nif, password);
     } else if (method.toUpperCase() === 'BEARER') {
         // Get the user id for the given token
         /** @type {AccessToken[]} */
@@ -117,4 +123,4 @@ export const checkAuth = async (req) => {
         return user;
     } else
         throw new UnsupportedAuthenticationMethodError(`The given authentication method (${method}) is not supported. Supported methods: Login, Bearer.`);
-};
+}

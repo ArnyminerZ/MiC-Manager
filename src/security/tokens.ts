@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
+import jwt, {JwtPayload} from "jsonwebtoken";
 import fs from "fs";
-import {privateKeyFile} from "./cryptography.mjs";
+import {privateKeyFile} from "./cryptography";
 
 /**
  * The amount of seconds in a day.
@@ -22,23 +22,24 @@ export const ONE_YEAR = 365 * ONE_DAY;
 
 /**
  * Signs the given payload with the private key.
- * @param {Object} payload
- * @param {number} expiresIn The amount of seconds until the token expires
+ * @param payload The payload to encode.
+ * @param expiresIn The amount of seconds until the token expires
  * @return {string}
  */
-export const sign = (payload, expiresIn = (30 * ONE_DAY)) => {
+export function sign(payload: Object, expiresIn: number = (30 * ONE_DAY)) {
     const privateKey = fs.readFileSync(privateKeyFile);
+    // @ts-ignore
     payload['exp'] = Math.floor(Date.now() / 1000) + expiresIn;
     return jwt.sign(payload, privateKey, {algorithm: 'RS256'});
-};
+}
 
 /**
  * Checks that the given token is valid, and returns the decoded data.
- * @param {string} token The token to decode.
- * @return {Object} The loaded data from the key.
+ * @param token The token to decode.
+ * @return The loaded data from the key.
  * @throws If the token is not valid.
  */
-export const validate = (token) => {
+export function validate(token: string): string | JwtPayload {
     const privateKey = fs.readFileSync(privateKeyFile);
-    return jwt.verify(token, privateKey, {algorithm: 'RS256'});
+    return jwt.verify(token, privateKey, {algorithms: ['RS256']});
 }

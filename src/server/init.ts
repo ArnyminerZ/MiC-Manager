@@ -1,16 +1,13 @@
-import express from 'express';
+import express, {Express} from 'express';
 import rateLimit from 'express-rate-limit';
 
-import {info, log} from '../../cli/logger.mjs';
-import {pingEndpoint} from './endpoints/utils.mjs';
-import {loginEndpoint, registerEndpoint} from "./endpoints/auth.mjs";
-import {userDataEndpoint} from "./endpoints/users.mjs";
+import {info, log} from '../../cli/logger';
+import {pingEndpoint} from './endpoints/utils';
+import {loginEndpoint, registerEndpoint} from "./endpoints/auth";
+import {userDataEndpoint} from "./endpoints/users";
 
-/**
- * Creates a new express server with all the required middleware and endpoints.
- * @return {import(express).core.Express}
- */
-export const create = () => {
+/** Creates a new express server with all the required middleware and endpoints. */
+export function create(): Express {
     info('Initializing web server...');
     const app = express();
 
@@ -31,16 +28,16 @@ export const create = () => {
     app.get('/v1/user/data', userDataEndpoint);
 
     return app;
-};
+}
 
 /**
  * Initializes the express web server.
  */
-export const initServer = () => {
+export function initServer() {
     const app = create();
 
     log('Starting to listen for web server...');
     app.listen(3000, () => {
         info('Server listening on http://localhost:3000');
     });
-};
+}
