@@ -12,7 +12,7 @@
     "build": "tsc",
     "clean": "tsc --build --clean && rm -rf build",
     "dev": "ts-node-dev --respawn --transpile-only ./app.ts",
-    "prod": "tsc && node ./build/app.js"
+    "prod": "npm run clean && tsc && node ./scripts/rename_build.js && node ./build/app.js"
   },
   "repository": {
     "type": "git",
