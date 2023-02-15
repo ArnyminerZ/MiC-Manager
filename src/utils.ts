@@ -85,5 +85,20 @@ export function isValidDate (date: string): boolean {
     return regex.test(date);
 }
 
+/**
+ * Merges two maps together.
+ * @param maps All the maps to join.
+ */
+export function merge<K, V>(...maps: Map<K, V>[]): Map<K, V> {
+    const newMap = new Map<K, V>();
+    for (const map of maps) {
+        for (const key in map.keys()) {
+            const value = map.get(key as K);
+            newMap.set(key as K, value as V);
+        }
+    }
+    return newMap;
+}
+
 const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(path.join(__filename, '..'));
