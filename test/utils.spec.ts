@@ -2,7 +2,7 @@ import assert from 'assert';
 
 import {faker} from '@faker-js/faker';
 
-import {__dirname, capitalize, ipToLong, isNumber, isValidDate, pathExists} from '../src/utils.ts';
+import {__dirname, capitalize, ipToLong, isNumber, isValidDate, merge, pathExists} from '../src/utils';
 import fs from "fs";
 import fsp from "fs/promises";
 import path from "path";
@@ -46,5 +46,21 @@ describe('Utils testing', () => {
         assert.ok(!isValidDate('aaa'));
         assert.ok(!isValidDate('2023-02-32'));
         assert.ok(!isValidDate('2023-13-25'));
+    });
+    it('Map merging', () => {
+        const map1 = new Map();
+        map1.set('key1', 'value1');
+        const map2 = new Map();
+        map2.set('key2', 'value2');
+
+        const map = merge(map1, map2);
+        for (const key in map1) {
+            assert.ok(map.has(key));
+            assert.equal(map.get(key), map1.get(key));
+        }
+        for (const key in map2) {
+            assert.ok(map.has(key));
+            assert.equal(map.get(key), map2.get(key));
+        }
     });
 });
