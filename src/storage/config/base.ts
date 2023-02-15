@@ -30,7 +30,7 @@ let loadedConfig;
  */
 function readConfig(path: string): Map<string, string> {
     // Don't do anything if the path doesn't exist
-    if (!fs.existsSync(path)) return new Map();
+    if (!fs.existsSync(path)) return new Map<string, string>();
 
     // Read the file's contents, and convert the buffer to string
     const raw = fs.readFileSync(path).toString();
@@ -57,7 +57,7 @@ function readConfig(path: string): Map<string, string> {
             return [key, value]
         });
     // Convert all the entries into an object.
-    return new Map(rows);
+    return new Map<string, string>(rows);
 }
 
 /**
@@ -95,7 +95,7 @@ export function loadConfig() {
     const auxConfigPath = path.join(__dirname, '.micmanager.conf');
     const auxConfig = readConfig(auxConfigPath);
 
-    const config: Map<string, string | number | boolean> = new Map({...auxConfig, ...configData}); // Place configData second since it has more importance
+    const config: Map<string, string | number | boolean> = new Map<string,string>({...auxConfig.entries(), ...configData.entries()}); // Place configData second since it has more importance
 
     log('Checking config data integrity and generating defaults...');
     let generatedKeys: string[] = [];
