@@ -138,5 +138,10 @@ database.sqlite
 # Keys directory
 /keys
 
-# Built files directory
-/build
+# Ignore built files
+/app.js
+/tables/**/*.js
+/cli/**/*.js
+/db/**/*.js
+/src/**/*.js
+/src/**/*.mjs
