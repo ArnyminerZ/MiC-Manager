@@ -34,30 +34,34 @@ function readConfig(path: string): Map<string, string> {
 
     // Read the file's contents, and convert the buffer to string
     const raw = fs.readFileSync(path).toString();
-    /** @type {[string,string][]} */
-    const rows: [string, string][] = raw
+
+    const result = new Map<string, string>();
+    const lines: string[] = raw
         // Split lines
         .split('\n')
         // Trim whitespaces
         .map(l => l.trim())
         // Filter all comments and empty lines
-        .filter(l => l.length > 0 && !l.startsWith('#'))
-        // Parse each line
-        .map((line, index) => {
-            // Divide the key and the value
-            const pieces = line.split('=');
-            // If there are not at least two components (value might contain =), drop the load
-            if (pieces.length < 2)
-                throw new ConfigurationParseError(index, line, 'Reason: missing required "=".');
-            // The key matches the first element of the split
-            const key = pieces[0];
-            // The value matches the rest. Note that we use '=' as the glue for join, since split removed the character.
-            const value = pieces.slice(1).join('=');
-            // Return an entry
-            return [key, value]
-        });
+        .filter(l => l.length > 0 && !l.startsWith('#'));
+
+    for (const index in lines) {
+        const line = lines[index];
+
+        // Divide the key and the value
+        const pieces = line.split('=');
+        // If there are not at least two components (value might contain =), drop the load
+        if (pieces.length < 2)
+            throw new ConfigurationParseError(index, line, 'Reason: missing required "=".');
+        // The key matches the first element of the split
+        const key = pieces[0];
+        // The value matches the rest. Note that we use '=' as the glue for join, since split removed the character.
+        const value = pieces.slice(1).join('=');
+        // Return an entry
+        result.set(key, value);
+    }
+
     // Convert all the entries into an object.
-    return new Map<string, string>(rows);
+    return result;
 }
 
 /**
@@ -88,14 +92,17 @@ export function loadConfig() {
     log('Loading main config file...');
     const configPath = path.join(__dirname, 'micmanager.conf');
     const configData = readConfig(configPath);
+    log('Got', configData.size, 'config elements from main config file.');
     // The configuration stored at the file is loaded correctly. Now set default values for the missing ones, or
     // break if required and no default value exists.
 
     log('Reading cached config file...');
     const auxConfigPath = path.join(__dirname, '.micmanager.conf');
     const auxConfig = readConfig(auxConfigPath);
+    log('Got', configData.size, 'config elements from auxiliary config file.');
 
     const config: Map<string, string | number | boolean> = merge(auxConfig, configData); // Place configData second since it has more importance
+    log('Got', config.size, 'config elements from mixed map.');
 
     log('Checking config data integrity and generating defaults...');
     let generatedKeys: string[] = [];
@@ -162,12 +169,10 @@ export function loadConfig() {
 
     loadedConfig = config;
 
-    log('Exporting config to environment...');
-    for (const key in config)
-        if (process.env[key] == null && process.env[key + "_FILE"] == null) {
-            // @ts-ignore
-            process.env[key] = config[key] as string;
-        }
+    log(`Exporting config (${config.size} elements) to environment...`);
+    for (const [key, value] of config)
+        if (process.env[key] == null && process.env[key + "_FILE"] == null)
+            process.env[key] = value as string;
 
     info('Log level:', process.env.LOG_LEVEL);
 }
