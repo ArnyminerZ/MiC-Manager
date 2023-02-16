@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import buildDir from './utils/build.mjs';
-const build = buildDir();
+import {__dirname} from "./utils/files.mjs";
 
 const importRegex = /import .* from ["'].*["'];?/gm;
 
@@ -18,7 +17,10 @@ function renameDir(dir, depth = 0) {
         const stat = fs.lstatSync(file);
         // console.log(' '.repeat(depth) + "-", file);
         if (stat.isDirectory())
-            renameDir(file, depth + 1);
+            if (file.endsWith('node_modules'))
+                continue;
+            else
+                renameDir(file, depth + 1);
         else {
             if (!file.endsWith('js')) continue;
 
@@ -34,14 +36,14 @@ function renameDir(dir, depth = 0) {
                 const pos = line.length - 2;
                 const newLine = line.substring(0, pos) + '.js' + line.substring(pos);
 
-                console.log(' '.repeat(depth) + "-", myArray[0], '->', newLine);
+                // console.log(' '.repeat(depth) + "-", myArray[0], '->', newLine);
                 updatedContents = updatedContents.replace(myArray[0], newLine);
             }
-            console.log(' '.repeat(depth) + "-", file);
+            // console.log(' '.repeat(depth) + "-", file);
             fs.rmSync(file);
             fs.writeFileSync(file, updatedContents);
         }
     }
 }
 
-renameDir(build);
+renameDir(__dirname);

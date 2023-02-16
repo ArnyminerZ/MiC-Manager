@@ -5,9 +5,3 @@
 
 // Add .js extension to all imports
 import './fix_imports.js';
-
-// Move all sql files
-import './copy_sql.js';
-
-// Copy the default config file
-import './copy_config';
