@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-import {__dirname} from '../../utils';
+import {__dirname, merge} from '../../utils';
 import {info, log} from "../../../cli/logger";
 import {faker} from "@faker-js/faker";
 import {ConfigurationParseError, IllegalConfigParameterError, MissingConfigParameterError} from "../../errors";
@@ -95,7 +95,7 @@ export function loadConfig() {
     const auxConfigPath = path.join(__dirname, '.micmanager.conf');
     const auxConfig = readConfig(auxConfigPath);
 
-    const config: Map<string, string | number | boolean> = new Map<string,string>({...auxConfig.entries(), ...configData.entries()}); // Place configData second since it has more importance
+    const config: Map<string, string | number | boolean> = merge(auxConfig, configData); // Place configData second since it has more importance
 
     log('Checking config data integrity and generating defaults...');
     let generatedKeys: string[] = [];

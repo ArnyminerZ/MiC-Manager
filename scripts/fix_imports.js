@@ -1,14 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import {fileURLToPath} from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(path.join(__filename, '..'));
-const build = path.join(__dirname, 'build');
-if (!fs.existsSync(build)) {
-    console.warn('Build directory doesn\'t exist');
-    process.exit(1);
-}
+import buildDir from './utils/build.mjs';
+const build = buildDir();
 
 const importRegex = /import .* from ["'].*["'];?/gm;
 

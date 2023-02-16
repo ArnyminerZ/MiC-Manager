@@ -9,10 +9,11 @@
     "ci": "NODE_PATH=. PROPS=testing mocha --reporter json > test-results.json",
     "version": "node update_version.js",
     "tsc": "tsc",
-    "build": "tsc",
+    "build": "tsc && node scripts/after_build.js",
+    "start": "node ./build/app.js",
     "clean": "tsc --build --clean && rm -rf build",
     "dev": "ts-node-dev --respawn --transpile-only ./app.ts",
-    "prod": "npm run clean && tsc && node ./scripts/rename_build.js && node ./build/app.js"
+    "prod": "npm run clean && npm run build && node ./build/app.js"
   },
   "repository": {
     "type": "git",
