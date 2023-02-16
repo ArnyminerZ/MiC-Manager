@@ -91,12 +91,9 @@ export function isValidDate (date: string): boolean {
  */
 export function merge<K, V>(...maps: Map<K, V>[]): Map<K, V> {
     const newMap = new Map<K, V>();
-    for (const map of maps) {
-        for (const key in map.keys()) {
-            const value = map.get(key as K);
+    for (const map of maps)
+        for (const [key, value] of map)
             newMap.set(key as K, value as V);
-        }
-    }
     return newMap;
 }
 
