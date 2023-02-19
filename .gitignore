@@ -145,3 +145,4 @@ database.sqlite
 /db/**/*.js
 /src/**/*.js
 /src/**/*.mjs
+/test/**.js
