@@ -12,6 +12,7 @@ import {
     wrongCredentials
 } from "../errors";
 import {
+    CategoryNotFoundError,
     InvalidTokenError,
     UnsupportedAuthenticationMethodError,
     UserNotFoundError,
@@ -22,6 +23,25 @@ import {successResponseData} from "../response";
 import {error} from "../../../cli/logger";
 
 import {Request, Response} from "express";
+import {setCategory} from "../../users/management";
+import {requireBody} from "../utils";
+
+function handleCheckAuth(e: unknown, res: Response): Boolean {
+    if (e instanceof MissingHeaderError)
+        missingAuthenticationHeader().send(res);
+    else if (e instanceof InvalidTokenError)
+        invalidToken().send(res);
+    else if (e instanceof UserNotFoundError)
+        userNotFound().send(res);
+    else if (e instanceof WrongCredentialsError)
+        wrongCredentials().send(res);
+    else if (e instanceof UserNotVerifiedError)
+        userNotVerifiedError().send(res);
+    else if (e instanceof UnsupportedAuthenticationMethodError)
+        unsupportedAuthenticationMethod().send(res);
+    else return false;
+    return true;
+}
 
 /**
  * @param req The express request.
@@ -88,21 +108,28 @@ export const userDataEndpoint = async (req: Request, res: Response) => {
         } else
             successResponseData(JSON.stringify(user), user).send(res);
     } catch (e) {
-        if (e instanceof MissingHeaderError)
-            missingAuthenticationHeader().send(res);
-        else if (e instanceof InvalidTokenError)
-            invalidToken().send(res);
-        else if (e instanceof UserNotFoundError)
-            userNotFound().send(res);
-        else if (e instanceof WrongCredentialsError)
-            wrongCredentials().send(res);
-        else if (e instanceof UserNotVerifiedError)
-            userNotVerifiedError().send(res);
-        else if (e instanceof UnsupportedAuthenticationMethodError)
-            unsupportedAuthenticationMethod().send(res);
-        else {
+        if (!handleCheckAuth(e, res)) {
             error(e as any);
             unknownError(e).send(res);
         }
     }
 };
+
+export async function setUserCategoryEndpoint(req: Request, res: Response) {
+    if (!requireBody(req, res, ['category', 'string'])) return;
+    const {category} = req.body;
+
+    try {
+        const user: User = await checkAuth(req);
+        await setCategory(user.Id, category);
+        successResponseData('Changed user category').send(res);
+    } catch (e) {
+        if (handleCheckAuth(e, res)) return
+        if (e instanceof CategoryNotFoundError)
+            userNotFound().send(res);
+        else {
+            error(e as any);
+            unknownError(e).send(res);
+        }
+    }
+}

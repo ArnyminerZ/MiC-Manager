@@ -28,7 +28,7 @@ export function query(sql: string, ...params: any): Promise<any[]> {
  * @param row The data of the row to insert. Keys indicate column names, and values their respective values.
  * @return A promise that runs the query, and returns the amount of updated rows.
  */
-export function insert(database: string, row: Object): Promise<number> {
+export function insert(database: TablesNames, row: Object): Promise<number> {
     const keys = Object.keys(row);
     const values = Object.values(row);
     const columns = keys.join(', ');

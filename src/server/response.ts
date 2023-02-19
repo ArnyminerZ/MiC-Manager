@@ -48,7 +48,7 @@ export function successResponse(message: string, httpCode: number = 200): Respon
  * @param data The response data.
  * @param httpCode The HTTP code associated with the response.
  */
-export function successResponseData(message: string, data: Object, httpCode: number = 200): Response {
+export function successResponseData(message: string, data: Object | null | undefined = null, httpCode: number = 200): Response {
     return new Response(true, 0, httpCode, message, data);
 }
 

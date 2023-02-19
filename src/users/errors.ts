@@ -39,3 +39,10 @@ export class UserNotVerifiedError extends Error {
         this.name = 'UserNotVerifiedError';
     }
 }
+
+export class CategoryNotFoundError extends Error {
+    constructor(identifier: string) {
+        super(`There's no category defined with the identifier "${identifier}"`);
+        this.name = 'CategoryNotFoundError';
+    }
+}

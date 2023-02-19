@@ -4,7 +4,7 @@ import rateLimit from 'express-rate-limit';
 import {info, log} from '../../cli/logger';
 import {pingEndpoint} from './endpoints/utils';
 import {loginEndpoint, registerEndpoint} from "./endpoints/auth";
-import {userDataEndpoint} from "./endpoints/users";
+import {setUserCategoryEndpoint, userDataEndpoint} from "./endpoints/users";
 
 /** Creates a new express server with all the required middleware and endpoints. */
 export function create(): Express {
@@ -26,6 +26,7 @@ export function create(): Express {
     app.get('/v1/auth/register', registerEndpoint);
     app.get('/v1/auth/login', loginEndpoint);
     app.get('/v1/user/data', userDataEndpoint);
+    app.get('/v1/user/set_category', setUserCategoryEndpoint);
 
     return app;
 }

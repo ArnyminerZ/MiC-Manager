@@ -1,7 +1,8 @@
 import {insert, query} from "../storage/database/query";
 import {hash} from "../security/cryptography";
 import {hash as verifyRow} from '../security/verifiers';
-import {scopesIds} from './scopes';
+import {scopesIds} from '../../db/types/Scopes';
+import {CategoryNotFoundError} from "./errors";
 
 /**
  * Checks if a user with the given NIF exists.
@@ -71,4 +72,31 @@ export async function verify(nif: string): Promise<boolean> {
 export async function create(password: string, name: string, surname: string, nif: string, email: string, information: Object): Promise<number> {
     const passwordHash = hash(Buffer.from(password));
     return await insert('Users', {Hash: passwordHash, Name: name, Surname: surname, NIF: nif, Email: email, Information: JSON.stringify(information)})
+}
+
+/**
+ * Moves the given user to the target category.
+ * @param userId The id of the user to move.
+ * @param categoryIdentifier The identifier of the target category.
+ * @throws {CategoryNotFoundError} If the given category doesn't exist.
+ * @throws {Error} If the request could not be performed.
+ * @return A promise that tells if the movement was performed successfully.
+ */
+export async function setCategory(userId: number, categoryIdentifier: string): Promise<boolean> {
+    const movements = await query('SELECT * FROM UserHistory WHERE UserId=?', userId) as UserHistory[];
+    const userCategory = movements.length > 0 ? movements[movements.length - 1] : null;
+
+    const newCategories = await query('SELECT Id FROM Categories WHERE Identifier=? LIMIT 1;', categoryIdentifier) as {Id: number}[];
+    if (newCategories.length <= 0) throw new CategoryNotFoundError(categoryIdentifier);
+    const newCategory = newCategories[0];
+
+    const movement: UserHistoryProto = {
+        UserId: userId,
+        FromCategory: userCategory?.Id,
+        ToCategory: newCategory.Id,
+        Timestamp: new Date().getDate(),
+    };
+    const verifiedRow = verifyRow(movement);
+    const result = await insert('Categories', verifiedRow);
+    return result > 0;
 }

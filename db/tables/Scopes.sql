@@ -12,3 +12,6 @@ CREATE TABLE IF NOT EXISTS Scopes (
 
 INSERT OR IGNORE INTO Scopes(Id, Scope, Description) VALUES (1, 'user:usage', 'Allows the user to use the application. Given to all the confirmed users.');
 INSERT OR IGNORE INTO Scopes(Id, Scope, Description) VALUES (2, 'admin:monetary:transaction:confirm', 'Allows the user to confirm transactions.');
+INSERT OR IGNORE INTO Scopes(Id, Scope, Description) VALUES (3, 'admin:categories:create', 'Allows the user to create new categories.');
+INSERT OR IGNORE INTO Scopes(Id, Scope, Description) VALUES (4, 'admin:categories:delete', 'Allows the user to delete existing categories.');
+INSERT OR IGNORE INTO Scopes(Id, Scope, Description) VALUES (5, 'admin:user:category', 'Allows the user to move users between categories.');
