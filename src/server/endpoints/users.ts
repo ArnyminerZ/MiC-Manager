@@ -1,4 +1,4 @@
-import VCard from 'vcard-creator';
+import vCardsJS from 'vcards-js';
 
 import {checkAuth} from "../../users/access";
 import {
@@ -36,24 +36,55 @@ export const userDataEndpoint = async (req: Request, res: Response) => {
         if (user.Information instanceof String)
             user.Information = JSON.parse(user.Information as string);
         if (contentType === 'text/x-vcard') {
-            const card = new VCard();
+            const card = vCardsJS();
 
             // Add all the default parameters
-            card.addName(user.Surname, user.Name)
-                .addEmail(user.Email)
-                .addNickname(user.NIF);
+            card.firstName = user.Name;
+            card.lastName = user.Surname;
+            card.email = user.Email;
+            card.nickname = user.NIF;
 
             // Add all the extra properties
             const information = user.Information as UserInformation
             const birthday = information.birthday;
-            if (birthday != null) card.addBirthday(birthday);
+            if (birthday != null) card.birthday = new Date(birthday);
             const phone = information.phone;
             if (phone != null && phone.length > 0)
                 for (const [type, number] of phone)
-                    card.addPhoneNumber(number, type);
+                    switch (type) {
+                        case PhoneType.cell: {
+                            card.cellPhone = number;
+                            break;
+                        }
+                        case PhoneType.home: {
+                            card.homePhone = number;
+                            break;
+                        }
+                        case PhoneType.pager: {
+                            card.pagerPhone = number;
+                            break;
+                        }
+                        case PhoneType.voice: {
+                            card.workPhone = number;
+                            break;
+                        }
+                        default: {
+                            if (card.otherPhone == null)
+                                card.otherPhone = [number];
+                            else {
+                                let phones = card.otherPhone;
+                                if (phones instanceof String)
+                                    phones = [phones as string, number]
+                                else
+                                    (phones as string[]).push(number);
+                                card.otherPhone = phones;
+                            }
+                            break;
+                        }
+                    }
 
             // Return the resulting vCard
-            res.status(200).contentType('text/x-vcard').send(card.toString());
+            res.status(200).contentType('text/x-vcard').send(card.getFormattedString());
         } else
             successResponseData(JSON.stringify(user), user).send(res);
     } catch (e) {

@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS Scopes (
     UNIQUE(Id, Scope)
 );
 
-INSERT OR IGNORE INTO Scopes(Scope, Description) VALUES ('user:usage', 'Allows the user to use the application. Given to all the confirmed users.');
-INSERT OR IGNORE INTO Scopes(Scope, Description) VALUES ('admin:monetary:transaction:confirm', 'Allows the user to confirm transactions.');
+INSERT OR IGNORE INTO Scopes(Id, Scope, Description) VALUES (1, 'user:usage', 'Allows the user to use the application. Given to all the confirmed users.');
+INSERT OR IGNORE INTO Scopes(Id, Scope, Description) VALUES (2, 'admin:monetary:transaction:confirm', 'Allows the user to confirm transactions.');

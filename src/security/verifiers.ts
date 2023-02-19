@@ -19,6 +19,10 @@ type HashedRow = {
 export function hash(data: Object): Object {
     // @ts-ignore
     data['TransactionHash'] = sign(data, ONE_YEAR * 10_000);
+    if (data.hasOwnProperty('exp')) {
+        // @ts-ignore
+        delete data['exp'];
+    }
     return data;
 }
 

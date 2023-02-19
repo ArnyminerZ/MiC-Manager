@@ -1,5 +1,7 @@
-import {query} from "../storage/database/query";
+import {insert, query} from "../storage/database/query";
 import {hash} from "../security/cryptography";
+import {hash as verifyRow} from '../security/verifiers';
+import {scopesIds} from './scopes';
 
 /**
  * Checks if a user with the given NIF exists.
@@ -45,6 +47,19 @@ export async function hasScope(id: number, scope: string): Promise<boolean> {
 }
 
 /**
+ * Verifies the user with the given NIF by adding the user:usage scope.
+ * @param nif The NIF of the user to verify.
+ */
+export async function verify(nif: string): Promise<boolean> {
+    const user = await findByNif(nif);
+    if (user == null) return false;
+
+    const sql = {UserId: user.Id, ScopeId: scopesIds.user.usage};
+    const updatedRows = await insert('UserScopes', verifyRow(sql));
+    return updatedRows > 0;
+}
+
+/**
  * Creates a new user in the `Users` table.
  * @param password The password to give to the user.
  * @param name The name of the user.
@@ -53,7 +68,7 @@ export async function hasScope(id: number, scope: string): Promise<boolean> {
  * @param email The contact email of the user.
  * @param information Some extra information for the user.
  */
-export async function create(password: string, name: string, surname: string, nif: string, email: string, information: Object) {
+export async function create(password: string, name: string, surname: string, nif: string, email: string, information: Object): Promise<number> {
     const passwordHash = hash(Buffer.from(password));
-    await query("INSERT INTO Users (Hash, Name, Surname, NIF, Email, Information) VALUES (?, ?, ?, ?, ?, ?)", passwordHash, name, surname, nif, email, JSON.stringify(information));
+    return await insert('Users', {Hash: passwordHash, Name: name, Surname: surname, NIF: nif, Email: email, Information: JSON.stringify(information)})
 }

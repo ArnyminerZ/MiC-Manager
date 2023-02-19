@@ -1,11 +1,8 @@
 enum PhoneType {
-    text = "text",
-    voice = "voice",
-    fax = "fax",
     cell = "cell",
-    video = "video",
+    home = "home",
     pager = "pager",
-    textphone = "textphone",
+    voice = "voice",
 }
 
 type Phone = [

@@ -1,14 +1,17 @@
 import {getQueries as getTablesQueries} from "../../../db/tables";
 
-import sqlite3 from 'sqlite3';
-import {info, log} from "../../../cli/logger";
+import sqlite3, {Database} from 'sqlite3';
+import {info} from "../../../cli/logger";
 
-export let db: sqlite3.Database;
+export let db: Database;
 
 /** Initializes the database, creating all the required tables if necessary. */
 export async function initDatabase() {
     return new Promise<void>((resolve, reject) => {
+        if (db != null) return resolve();
+
         const file = process.env.SQLITE_FILE ?? ':memory:';
+        info('DATABASE > Booting into', file);
         db = new sqlite3.Database(file);
         db.serialize(() => {
             // Create all the tables if they don't exist
@@ -20,7 +23,7 @@ export async function initDatabase() {
                             if (err != null) reject(err);
                             else if (this.changes > 0) {
                                 info('DATABASE > Updated', this.changes, 'fields.');
-                                log('SQL >', query);
+                                // log('SQL >', query);
                             }
                         })
                     );
