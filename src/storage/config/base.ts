@@ -108,7 +108,7 @@ export function loadConfig() {
     let generatedKeys: string[] = [];
     for (const {key, type, generator, accepts} of KeysAndValues) {
         // If value already given, check if type matches
-        if (config.hasOwnProperty(key)) {
+        if (config.has(key)) {
             const value: string | number | boolean = config.get(key) as (string | number | boolean);
             if (type === TYPE_NUMBER) {
                 const int = parseInt(value as string);

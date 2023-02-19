@@ -28,8 +28,8 @@ export interface TypeFile extends Type {
     touch: boolean;
 }
 
-export function instanceOfTypeFile(object: any): object is TypeFile {
-    return 'baseDir' in object && 'touch' in object;
+export function instanceOfTypeFile(object: Type): object is TypeFile {
+    return object.hasOwnProperty('baseDir') && object.hasOwnProperty('touch');
 }
 
 export interface ConfigDefinition {
