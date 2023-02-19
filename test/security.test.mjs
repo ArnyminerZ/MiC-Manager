@@ -1,6 +1,6 @@
-import {sign, validate} from "../src/security/tokens.ts";
+import {sign, validate} from "../src/security/tokens.js";
 import assert from "assert";
-import {check, hash} from "../src/security/verifiers.ts";
+import {check, hash} from "../src/security/verifiers.js";
 
 describe('Tokens test', function () {
     it('Encrypt and verify', function () {
