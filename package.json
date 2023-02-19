@@ -10,9 +10,8 @@
     "version": "node update_version.js",
     "tsc": "tsc",
     "build": "tsc && node scripts/after_build.js",
-    "start": "node ./build/app.js",
-    "clean": "tsc --build --clean",
-    "prod": "npm run clean && npm run build && node ./app.js"
+    "start": "npm run clean && npm run build && node ./app.js",
+    "clean": "tsc --build --clean"
   },
   "repository": {
     "type": "git",
