@@ -42,9 +42,9 @@ export const definition: Command = {
                 } catch (e) {
                     if (e instanceof Error) {
                         console.error(e);
-                        return {success: false, message: `Categories fetch error: ${e.message}`};
+                        return {success: false, message: `Category creation error: ${e.message}`};
                     }
-                    return {success: false, message: 'Unknown error occurred while getting the categories from the database.'}
+                    return {success: false, message: 'Unknown error occurred while creating the category.'}
                 }
             },
         ],

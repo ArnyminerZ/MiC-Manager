@@ -7,6 +7,7 @@ import {error, log} from "../../../cli/logger";
  * @param params Parameters to replace in the query.
  */
 export function query(sql: string, ...params: any): Promise<any[]> {
+    log('SQL >', sql);
     return new Promise<any[]>((resolve, reject) => {
         let builder: any[] = [];
         db.each(sql, [...params], function (err, row) {
