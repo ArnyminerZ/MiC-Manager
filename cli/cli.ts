@@ -1,3 +1,10 @@
+import {generateKeys} from "../src/security/generator";
+import {Dim, FgBlue, FgGreen, FgRed, FgYellow, Reset} from './colors';
+
+import {commandsList} from './commands/list';
+import {loadConfig} from "../src/storage/config/base";
+import {db, initDatabase} from "../src/storage/database/init";
+
 let startIndex = -1;
 
 process.argv.forEach(function (value, index) {
@@ -9,10 +16,6 @@ if (startIndex < 0) {
     console.error('Invalid parameter given, or command not correctly formatted. argv:', process.argv);
     process.exit(1);
 }
-
-import {FgRed, FgYellow, FgGreen, FgBlue, Reset, Dim} from './colors';
-
-import {commandsList} from './commands/list';
 
 const args: string[] = process.argv.slice(startIndex + 1);
 
@@ -35,7 +38,18 @@ async function runCommand(command: Command, ...args: string[]): Promise<CommandR
         const requiredArguments = argument.parameters.filter(([_, required]) => required);
         if (args.length < requiredArguments.length)
             return {success: false, message: `Missing arguments for "${command.base} ${argument.base}" (${args.length} < ${requiredArguments.length})`}
-        return await call(...args.slice(1));
+
+        if (argument.requiresDatabase) {
+            generateKeys();
+            loadConfig();
+            await initDatabase();
+        }
+
+        const result = await call(...args.slice(1));
+
+        if (argument.requiresDatabase) db.close();
+
+        return result;
     }
     return {success: false, message: `Unknown argument "${args[0]}" for command "${command.base}"`};
 }

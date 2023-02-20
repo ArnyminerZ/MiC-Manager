@@ -1,5 +1,6 @@
 type CommandArgument = {
     base: string,
+    requiresDatabase: boolean,
     parameters: [key: string, required: boolean][],
 }
 
