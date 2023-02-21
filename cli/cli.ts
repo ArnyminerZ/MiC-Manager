@@ -39,6 +39,8 @@ async function runCommand(command: Command, ...args: string[]): Promise<CommandR
         if (args.length < requiredArguments.length)
             return {success: false, message: `Missing arguments for "${command.base} ${argument.base}" (${args.length} < ${requiredArguments.length})`}
 
+        process.env.LOG_LEVEL= 'none';
+
         if (argument.requiresDatabase) {
             generateKeys();
             loadConfig();
