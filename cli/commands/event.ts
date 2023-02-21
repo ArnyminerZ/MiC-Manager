@@ -1,4 +1,11 @@
-import {eventTypeFromName, getEventsData, newEvent, removeEvent} from "../../src/events/events";
+import {
+    eventTypeFromName,
+    getEvent,
+    getEventsData,
+    newEvent,
+    removeEvent,
+    updateEventProperty
+} from "../../src/events/events";
 import {Event} from "../../src/events/types";
 import {getEventPrices, removeEventPrice, setEventPrice} from "../../src/events/price";
 
@@ -79,6 +86,40 @@ export const definition: Command = {
                     const eventId = parseInt(id);
                     await removeEvent(eventId);
                     return {success: true, message: `Removed event #${eventId}`};
+                } catch (e) {
+                    if (e instanceof Error) {
+                        console.error(e);
+                        return {success: false, message: `Event creation error: ${e.message}`};
+                    }
+                    return {success: false, message: 'Unknown error occurred while creating the event.'}
+                }
+            },
+        ],
+        [
+            {
+                base: 'update',
+                requiresDatabase: true,
+                parameters: [['eventId', true], ['DisplayName|DateTime|Location|Type|Description', true], ['value', true]]
+            },
+            'Creates a new event in the database.',
+            async (...args): Promise<CommandResult> => {
+                const [eventIdStr, property, value] = args;
+
+                try {
+                    if (eventIdStr == null || property == null || value == null)
+                        return {success: false, message: 'Missing parameters.'};
+
+                    const eventId = parseInt(eventIdStr);
+                    const event = await getEvent(eventId);
+                    if (event == null)
+                        return {success: false, message: `Could not find the event #${eventId}`};
+
+                    if (property === 'DisplayName' || property === 'DateTime' || property === 'Location' || property === 'Type' || property === 'Description') {
+                        await updateEventProperty(eventId, property, value);
+                        return {success: true, message: `Updated event #${eventId} correctly.`};
+                    }
+
+                    return {success: false, message: `The property "${property}" is not valid.`};
                 } catch (e) {
                     if (e instanceof Error) {
                         console.error(e);

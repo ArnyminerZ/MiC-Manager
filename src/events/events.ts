@@ -25,6 +25,16 @@ export async function newEvent(displayName: string, date: Date, location: string
 }
 
 /**
+ * Updates the given property for the event.
+ * @param id The id of the event to update.
+ * @param key The key of the property to update.
+ * @param value The value to set.
+ */
+export async function updateEventProperty(id: number, key: 'DisplayName' | 'DateTime' | 'Location' | 'Type' | 'Description', value: string): Promise<void> {
+    await query(`UPDATE EventList SET ${key} = ? WHERE Id=?`, value, id);
+}
+
+/**
  * Removes an event from the database.
  * @param id The id of the event to remove.
  * @return If the request was successful.
@@ -42,6 +52,15 @@ export async function getEvents(): Promise<EventItem[]> {
 }
 
 /**
+ * Gets an event from the events available in the database.
+ * @param id The id of the event to fetch.
+ */
+export async function getEvent(id: number): Promise<EventItem | null> {
+    const events = await query('SELECT * FROM EventList WHERE Id=? LIMIT 1;', id);
+    return events[0];
+}
+
+/**
  * Gets a list of all the events in the database with their respective data.
  */
 export async function getEventsData(): Promise<Event[]> {
@@ -55,7 +74,9 @@ export async function getEventsData(): Promise<Event[]> {
             Date: new Date(event.DateTime),
             Location: event.Location,
             Type: event.Type,
-            Prices: prices.map(price => { return {Category: price.Category, Price: price.Price} }),
+            Prices: prices.map(price => {
+                return {Category: price.Category, Price: price.Price}
+            }),
         });
     }
     return eventsWithPrice;
