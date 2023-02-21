@@ -21,7 +21,7 @@ export const definition: Command = {
                     if (list.length <= 0)
                         return {success: true, message: 'No events available. Create some with "event create".'}
                     const text = list
-                        .map(item => `  ${item.Id} : ${item.DisplayName} (Type=${item.Type})\n` + [
+                        .map(item => `  ${item.Id} : ${item.DisplayName} (Type=${item.Type})\n    ` + [
                             `Date: ${item.Date}`,
                             `Location: ${item.Location}`,
                             `Description: ${item.Description}`,
