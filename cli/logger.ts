@@ -8,6 +8,7 @@
  *   - `warn`
  *   - `info`
  *   - `debug`
+ *   - 'none
  * - `LOG_FILE`: The path where to store all the messages logged.
  */
 
@@ -16,25 +17,16 @@ import fs from 'fs';
 import {BgBlack, BgBlue, BgGreen, BgRed, BgYellow, FgWhite, Reset} from './colors';
 import path from "path";
 
+type LogLevels = 'error' | 'warn' | 'info' | 'debug' | 'none'
+
 /**
  * All the available log levels.
  */
-enum LogLevels {
-    ERROR = 'error',
-    WARN = 'warn',
-    INFO = 'info',
-    DEBUG = 'debug'
-}
+export const LogLevels = ['error', 'warn', 'info', 'debug', 'none']
 
 /** Gets the index of the given logLevel. Returns -1 if not found. */
 function findLogLevelIndex(logLevel: LogLevels|string): number {
-    let index = 0;
-    for (const level in LogLevels)
-        if (level == logLevel)
-            return index
-        else
-            index++;
-    return -1;
+    return LogLevels.indexOf(logLevel);
 }
 
 /** Checks the currently set log level, in comparison with a desired one. */
@@ -45,6 +37,8 @@ function checkLogLevel(level: LogLevels): boolean {
     const choseIndex = findLogLevelIndex(process.env.LOG_LEVEL);
     return levelIndex >= 0 && choseIndex >= 0 ? choseIndex < levelIndex : true;
 }
+
+export const exposedForTesting = {findLogLevelIndex, checkLogLevel};
 
 /**
  * Writes a log message to `LOG_FILE`, if set.
@@ -78,31 +72,31 @@ function writeLogMessage(level: LogLevels, ...objects: any) {
 }
 
 export function error(...objects: any) {
-    if (!checkLogLevel(LogLevels.ERROR)) return;
-    writeLogMessage(LogLevels.ERROR, ...objects);
+    if (!checkLogLevel('error')) return;
+    writeLogMessage('error', ...objects);
     console.error(BgRed + FgWhite + " FAIL " + Reset, ...objects)
 }
 
 export function warn(...objects: any) {
-    if (!checkLogLevel(LogLevels.WARN)) return;
-    writeLogMessage(LogLevels.WARN, ...objects);
+    if (!checkLogLevel('warn')) return;
+    writeLogMessage('warn', ...objects);
     console.error(BgYellow + FgWhite + " WARN " + Reset, ...objects)
 }
 
 export function info(...objects: any) {
-    if (!checkLogLevel(LogLevels.INFO)) return;
-    writeLogMessage(LogLevels.INFO, ...objects);
+    if (!checkLogLevel('info')) return;
+    writeLogMessage('info', ...objects);
     console.error(BgBlue + FgWhite + " INFO " + Reset, ...objects)
 }
 
 export function infoSuccess(...objects: any) {
-    if (!checkLogLevel(LogLevels.INFO)) return;
-    writeLogMessage(LogLevels.INFO, ...objects);
+    if (!checkLogLevel('info')) return;
+    writeLogMessage('info', ...objects);
     console.error(BgGreen + FgWhite + "  OK  " + Reset, ...objects)
 }
 
 export function log(...objects: any) {
-    if (!checkLogLevel(LogLevels.DEBUG)) return;
-    writeLogMessage(LogLevels.DEBUG, ...objects);
+    if (!checkLogLevel('debug')) return;
+    writeLogMessage('debug', ...objects);
     console.error(BgBlack + FgWhite + " LOG  " + Reset, ...objects)
 }
